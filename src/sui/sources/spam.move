@@ -23,7 +23,7 @@ module spam::spam
 
     struct SPAM has drop {}
 
-    /// one-off shared object used to coordinate state and mint coins
+    /// singleton shared object used to coordinate state and to mint coins
     struct Director has key, store {
         id: UID,
         treasury: TreasuryCap<SPAM>,
@@ -45,6 +45,15 @@ module spam::spam
         tx_count: u64,
     }
 
+    // === Public-Mutative Functions ===
+
+    public fun destroy_user_counter(
+        usr_ctr: UserCounter,
+    ) {
+        let UserCounter { id, epoch: _epoch, tx_count: _tx_count} = usr_ctr;
+        sui::object::delete(id);
+    }
+
     // === Entry functions ===
 
     entry fun new_user_counter(
@@ -53,7 +62,7 @@ module spam::spam
         let usr_ctr = UserCounter {
             id: object::new(ctx),
             epoch: epoch(ctx),
-            tx_count: 1,
+            tx_count: 1, // count the txn
         };
         transfer::transfer(usr_ctr, sender(ctx));
     }
@@ -78,15 +87,11 @@ module spam::spam
 
         let sender_addr = sender(ctx);
         let epo_ctr = get_or_create_epoch_counter(director, usr_ctr.epoch, ctx);
-        // if ( table::contains(&epo_ctr.user_counts, sender(ctx)) ) { // TODO: keep the one with highest value
-        // };
 
         // add the user count to the EpochCounter
         table::add(&mut epo_ctr.user_counts, sender_addr, usr_ctr.tx_count);
 
-        // destroy the UserCounter
-        let UserCounter { id, epoch: _epoch, tx_count: _tx_count} = usr_ctr;
-        sui::object::delete(id);
+        destroy_user_counter(usr_ctr);
     }
 
     entry fun claim(
