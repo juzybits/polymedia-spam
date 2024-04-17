@@ -7,7 +7,7 @@ module spam::spam
     use sui::object::{Self, UID};
     use sui::table::{Self, Table};
     use sui::transfer::{Self};
-    use sui::tx_context::{TxContext, epoch_timestamp_ms, sender};
+    use sui::tx_context::{TxContext, epoch, sender};
 
     // === Friends ===
 
@@ -41,14 +41,14 @@ module spam::spam
         txn_count: u64,
     }
 
-    // === Public-Mutative Functions ===
+    // === Entry functions ===
 
     entry fun new_user_counter(
         ctx: &mut TxContext,
     ) {
         let usr_ctr = UserCounter {
             id: object::new(ctx),
-            epoch: epoch_timestamp_ms(ctx),
+            epoch: epoch(ctx),
             txn_count: 1,
         };
         transfer::transfer(usr_ctr, sender(ctx));
@@ -57,21 +57,54 @@ module spam::spam
     entry fun spam(
         usr_ctr: &mut UserCounter,
         ctx: &TxContext,
-    ): bool {
-        if (usr_ctr.epoch != epoch_timestamp_ms(ctx)) {
-            return false
-        };
+    ) {
+        let allowed_epoch = epoch(ctx);
+        assert!(usr_ctr.epoch == allowed_epoch, 0);
+
         usr_ctr.txn_count = usr_ctr.txn_count + 1;
-        return true
     }
 
-    // === Public-View Functions ===
+    entry fun register(
+        director: &mut Director,
+        usr_ctr: UserCounter,
+        ctx: &mut TxContext,
+    ) {
+        let allowed_epoch = epoch(ctx) - 1;
+        assert!(usr_ctr.epoch == allowed_epoch, 0);
 
-    // === Admin Functions ===
+        let sender_addr = sender(ctx);
+        let epo_ctr = get_or_create_epoch_counter(director, usr_ctr.epoch, ctx);
+        // if ( table::contains(&epo_ctr.user_counts, sender(ctx)) ) { // TODO: keep the one with highest value
+        // };
 
-    // === Public-Friend Functions ===
+        // add the user count to the EpochCounter
+        table::add(&mut epo_ctr.user_counts, sender_addr, usr_ctr.txn_count);
 
-    // === Private Functions ===
+        // destroy the UserCounter
+        let UserCounter { id, epoch: _epoch, txn_count: _txn_count} = usr_ctr;
+        sui::object::delete(id);
+
+    }
+
+    // === Private functions ===
+
+    fun get_or_create_epoch_counter(
+        director: &mut Director,
+        epoch: u64,
+        ctx: &mut TxContext,
+    ): &mut EpochCounter {
+        if ( !table::contains(&director.epoch_counters, epoch) ) {
+            let epo_ctr = EpochCounter {
+                epoch,
+                user_counts: table::new(ctx),
+                txn_count: 0,
+            };
+            table::add(&mut director.epoch_counters, epoch, epo_ctr);
+        };
+        return table::borrow_mut(&mut director.epoch_counters, epoch)
+    }
+
+    // === Initialization ===
 
     fun init(witness: SPAM, ctx: &mut TxContext)
     {
