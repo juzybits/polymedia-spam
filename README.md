@@ -1,0 +1,3 @@
+# SPAM
+
+TODO write docs
