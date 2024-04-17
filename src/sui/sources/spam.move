@@ -17,6 +17,8 @@ module spam::spam
 
     // === Constants ===
 
+    const TOTAL_EPOCH_REWARD: u64 = 1_000_000_000;
+
     // === Structs ===
 
     struct SPAM has drop {}
@@ -26,21 +28,21 @@ module spam::spam
         id: UID,
         treasury: TreasuryCap<SPAM>,
         epoch_counters: Table<u64, EpochCounter>,
-        txn_count: u64,
+        tx_count: u64,
     }
 
     /// can only exist inside Director.epoch_counters
     struct EpochCounter has store {
         epoch: u64,
         user_counts: Table<address, u64>,
-        txn_count: u64,
+        tx_count: u64,
     }
 
     /// non transferable owned object tied to one user address
     struct UserCounter has key {
         id: UID,
         epoch: u64,
-        txn_count: u64,
+        tx_count: u64,
     }
 
     // === Entry functions ===
@@ -51,7 +53,7 @@ module spam::spam
         let usr_ctr = UserCounter {
             id: object::new(ctx),
             epoch: epoch(ctx),
-            txn_count: 1,
+            tx_count: 1,
         };
         transfer::transfer(usr_ctr, sender(ctx));
     }
@@ -63,7 +65,7 @@ module spam::spam
         let allowed_epoch = epoch(ctx);
         assert!(usr_ctr.epoch == allowed_epoch, EWrongEpoch);
 
-        usr_ctr.txn_count = usr_ctr.txn_count + 1;
+        usr_ctr.tx_count = usr_ctr.tx_count + 1;
     }
 
     entry fun register(
@@ -80,11 +82,27 @@ module spam::spam
         // };
 
         // add the user count to the EpochCounter
-        table::add(&mut epo_ctr.user_counts, sender_addr, usr_ctr.txn_count);
+        table::add(&mut epo_ctr.user_counts, sender_addr, usr_ctr.tx_count);
 
         // destroy the UserCounter
-        let UserCounter { id, epoch: _epoch, txn_count: _txn_count} = usr_ctr;
+        let UserCounter { id, epoch: _epoch, tx_count: _tx_count} = usr_ctr;
         sui::object::delete(id);
+    }
+
+    entry fun claim(
+        director: &mut Director,
+        epoch: u64,
+        ctx: &mut TxContext,
+    ) {
+        let max_allowed_epoch = epoch(ctx) - 2;
+        assert!(epoch <= max_allowed_epoch, EWrongEpoch);
+
+        let epo_ctr = table::borrow_mut(&mut director.epoch_counters, epoch);
+        let usr_txs = table::remove(&mut epo_ctr.user_counts, sender(ctx));
+        let usr_amount = (usr_txs * TOTAL_EPOCH_REWARD) / epo_ctr.tx_count;
+
+        let coin = coin::mint(&mut director.treasury, usr_amount, ctx);
+        transfer::public_transfer(coin, sender(ctx));
     }
 
     // === Private functions ===
@@ -98,7 +116,7 @@ module spam::spam
             let epo_ctr = EpochCounter {
                 epoch,
                 user_counts: table::new(ctx),
-                txn_count: 0,
+                tx_count: 0,
             };
             table::add(&mut director.epoch_counters, epoch, epo_ctr);
         };
@@ -128,7 +146,7 @@ module spam::spam
             id: object::new(ctx),
             treasury,
             epoch_counters: table::new(ctx),
-            txn_count: 0
+            tx_count: 0
         };
 
         transfer::share_object(director);
