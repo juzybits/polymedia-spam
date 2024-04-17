@@ -13,6 +13,8 @@ module spam::spam
 
     // === Errors ===
 
+    const EWrongEpoch: u64 = 100;
+
     // === Constants ===
 
     // === Structs ===
@@ -59,7 +61,7 @@ module spam::spam
         ctx: &TxContext,
     ) {
         let allowed_epoch = epoch(ctx);
-        assert!(usr_ctr.epoch == allowed_epoch, 0);
+        assert!(usr_ctr.epoch == allowed_epoch, EWrongEpoch);
 
         usr_ctr.txn_count = usr_ctr.txn_count + 1;
     }
@@ -70,7 +72,7 @@ module spam::spam
         ctx: &mut TxContext,
     ) {
         let allowed_epoch = epoch(ctx) - 1;
-        assert!(usr_ctr.epoch == allowed_epoch, 0);
+        assert!(usr_ctr.epoch == allowed_epoch, EWrongEpoch);
 
         let sender_addr = sender(ctx);
         let epo_ctr = get_or_create_epoch_counter(director, usr_ctr.epoch, ctx);
@@ -83,7 +85,6 @@ module spam::spam
         // destroy the UserCounter
         let UserCounter { id, epoch: _epoch, txn_count: _txn_count} = usr_ctr;
         sui::object::delete(id);
-
     }
 
     // === Private functions ===
