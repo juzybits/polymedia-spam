@@ -1,0 +1,46 @@
+{
+    "private": true,
+    "version": "0.0.0",
+    "name": "@polymedia/spam-web",
+    "author": "@juzybits (https://polymedia.app)",
+    "homepage": "https://spam.polymedia.app",
+    "description": "The original Proof of Spam coin",
+    "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/juzybits/polymedia-spam"
+    },
+    "keywords": [],
+    "scripts": {
+        "build": "vite build",
+        "clean": "rm -rf dist/ node_modules/ .turbo/ .wrangler/",
+        "deploy-dev": "pnpm build && wrangler pages deploy dist/ --project-name polymedia-spam --branch dev",
+        "deploy-prod": "pnpm build && wrangler pages deploy dist/ --project-name polymedia-spam --branch main",
+        "dev": "vite",
+        "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+        "preview": "pnpm build && vite preview",
+        "tunnel": "lt --port 1234"
+    },
+    "dependencies": {
+        "@mysten/dapp-kit": "^0.12.9",
+        "@mysten/sui.js": "^0.51.2",
+        "@polymedia/suits": "^0.0.39",
+        "@polymedia/webutils": "^0.0.50",
+        "@tanstack/react-query": "^5.29.2",
+        "normalize.css": "^8.0.1",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "react-router-dom": "^6.22.3"
+    },
+    "devDependencies": {
+        "@types/react": "^18.2.79",
+        "@types/react-dom": "^18.2.25",
+        "@vitejs/plugin-react-swc": "^3.6.0",
+        "less": "^4.2.0",
+        "localtunnel": "^2.0.2",
+        "vite": "^5.2.9",
+        "wrangler": "^3.51.0"
+    },
+    "type": "module",
+    "sideEffects": false
+}

@@ -1,0 +1,462 @@
+/*
+This file is shared by the following Polymedia projects:
+- CoinMeta
+- Send
+- Spam
+*/
+
+@import "../../node_modules/normalize.css/normalize.css";
+@import "./constants.less";
+
+/* Resets */
+
+* {
+    margin: 0;
+    border: 0;
+    box-sizing: border-box;
+    font-family: system-ui;
+    color: @color-text;
+}
+
+h1, h2, h3, h4, h5 {
+    padding: 0;
+    margin: 0;
+}
+
+/* Layout */
+
+body {
+    background: linear-gradient(to bottom, @color-bg-begin, @color-bg-end);
+}
+
+#layout {
+    margin-left: auto;
+    margin-right: auto;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    &.disabled {
+        *:not(.modal-content) {
+            cursor: progress !important;
+            text-decoration: none !important;
+            color: grey !important;
+        }
+        .btn {
+            color: @color-muted !important;
+            background-color: grey !important;
+        }
+        input[type=text], textarea, input::placeholder {
+            background-color: rgb(170, 170, 170) !important;
+            color: rgb(100, 100, 100) !important;
+        }
+        img {
+            filter: grayscale(1);
+        }
+        nav {
+            a, span {
+                border-color: transparent;
+            }
+        }
+    }
+}
+
+header, nav, #page, footer {
+    padding-left: 3rem;
+    padding-right: 3rem;
+    @media (max-width: @mobile-width) {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+}
+
+header {
+    padding-top: 2rem;
+    padding-bottom: 4rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+    a {
+        text-decoration: none;
+    }
+    h1 {
+        display: flex;
+        align-items: center;
+        font-size: 1.5rem;
+        font-weight: @text-weight;
+        img {
+            height: 2rem;
+            width: 2rem;
+            padding-right: 0.5rem;
+            box-sizing: content-box;
+        }
+    }
+    .btn-connect {
+        font-weight: @text-weight;
+        background-color: transparent;
+        &:hover {
+            cursor: pointer;
+            color: @color-blue-2;
+        }
+    }
+}
+
+footer {
+    padding-top: 5rem;
+    padding-bottom: 2rem;
+    #icons {
+        display: flex;
+        gap: 1rem;
+        padding-left: 0.6rem; // same as nav items
+        a {
+            padding: 0;
+            border-width: 0;
+            .icon {
+                height: 25px;
+                width: 25px;
+            }
+        }
+    }
+}
+
+#nav-and-page {
+    display: flex;
+    justify-content: center;
+}
+
+nav {
+    display: flex;
+    flex-direction: column;
+    gap: 1.8rem;
+    font-size: 1.3rem;
+    font-weight: @text-weight;
+    white-space: nowrap;
+    user-select: none;
+
+    .divider {
+        width: 100%;
+        max-width: 200px;
+        border-bottom: 1px solid @color-bg-end;
+    }
+
+    a, span {
+        display: block;
+        padding: 0.2rem 0 0.2rem 0.6rem;
+        border-style: solid;
+        border-color: transparent;
+        border-left-width: 2px;
+        color: @color-muted;
+        text-decoration: none;
+        &:hover {
+            cursor: pointer;
+        }
+    }
+    a {
+        &:hover, &.selected {
+            color: @color-blue-2;
+            border-color: @color-blue-2;
+        }
+    }
+    .network-selector {
+        text-transform: uppercase;
+        font-size: 0.8em;
+        position: relative;
+        .network-option .text {
+            &:hover {
+                color: lightgreen;
+                border-color: lightgreen;
+            }
+        }
+        .network-options {
+            position: absolute;
+            width: 100%;
+            .network-option {
+                padding-top: 0.5rem;
+                padding-bottom: 0.5rem;
+            }
+        }
+    }
+}
+
+#page {
+    flex-grow: 1;
+}
+
+#page-content {
+    text-align: center;
+    margin: 0 auto;
+    max-width: 800px;
+    h1, h2, h3  {
+        padding-bottom: @space;
+        font-weight: 500;
+    }
+    h1 {
+        padding-bottom: calc(@space*2);
+    }
+    h2, h3 {
+        padding-top: @space;
+    }
+    h3 {
+        font-size: 1.25rem;
+    }
+    p {
+        font-size: @text-size;
+        line-height: 1.5rem;
+        font-weight: @text-weight;
+        padding: @space 0;
+    }
+    .tight p {
+        padding: 0.2rem 0;
+        &:first-of-type {
+            padding-top: @space;
+        }
+        &:last-of-type {
+            padding-bottom: @space;
+        }
+    }
+    .btn {
+        background-color: @color-blue-4;
+        border-radius: @radius;
+        color: white;
+        font-weight: 700;
+        margin-top: @space;
+        margin-bottom: @space;
+        padding: 0.7em 1.2em;
+        text-decoration: none;
+        user-select: none;
+        white-space: nowrap;
+        &:hover {
+            background-color: @color-blue-3;
+            cursor: pointer;
+        }
+        &:disabled {
+            cursor: default;
+            background-color: grey;
+            color: @color-muted;
+        }
+    }
+    .txt-btn {
+        color: @color-blue-2;
+        background-color: transparent;
+        padding: 0 0.1em;
+        font-weight: 700;
+        cursor: pointer;
+        white-space: nowrap;
+        &:hover {
+            text-decoration: underline;
+        }
+        &:disabled {
+            cursor: default;
+            text-decoration: none;
+            color: @color-muted;
+        }
+    }
+    .btn-group {
+        display: flex;
+        gap: 1.2rem;
+        justify-content: center;
+    }
+
+    input[type=text], textarea {
+        background-color: @input-background;
+        border-radius: @radius;
+        color: @input-color;
+        margin-top: @space;
+        margin-bottom: @space;
+        outline: none;
+        padding: @input-padding;
+        max-width: 100%;
+        text-align: center;
+        font-size: @text-size;
+        font-weight: 300;
+        &:disabled {
+            background-color: @color-muted;
+            color: rgb(93, 93, 93);
+        }
+    }
+    input[type=text] {
+        &::placeholder {
+            color: @input-color;
+        }
+    }
+
+    textarea {
+        resize: vertical;
+        min-height: 5rem;
+    }
+
+    .dropdown {
+        margin-top: @space;
+        margin-bottom: @space;
+        max-width: 100%;
+        display: inline-block;
+        .dropdown-input {
+            margin: 0;
+            width: 100%;
+            &:hover {
+                cursor: pointer;
+                &:disabled {
+                    cursor: default;
+                }
+            }
+        }
+        &.open {
+            .dropdown-input {
+                border-bottom-left-radius: 0;
+                border-bottom-right-radius: 0;
+                &:hover {
+                    cursor: default;
+                }
+            }
+        }
+        .dropdown-options {
+            max-height: 400px;
+            overflow-y: scroll;
+            border-bottom-left-radius: @radius;
+            border-bottom-right-radius: @radius;
+            width: 100%;
+            word-break: break-all;
+            .dropdown-option {
+                background-color: @input-background;
+                color: @input-color;
+                padding: @input-padding;
+                overflow-wrap: break-word;
+                font-size: @text-size;
+                font-weight: 300;
+                width: 100%;
+                &:hover {
+                    background-color: @color-blue-1;
+                    &:hover {
+                        cursor: pointer;
+                    }
+                }
+                &:last-of-type {
+                    border-bottom-left-radius: @radius;
+                    border-bottom-right-radius: @radius;
+                }
+                display: flex;
+                align-items: center;
+                gap: 0.6rem;
+                span {
+                    color: @input-color;
+                }
+                img {
+                    border-radius: 100%;
+                }
+            }
+        }
+    }
+
+    .error-box {
+        margin-top: @space;
+        margin-bottom: @space;
+        &, * {
+            color: rgb(255, 115, 115);
+            overflow-wrap: anywhere;
+            font-size: @text-size;
+        }
+    }
+}
+
+/* Mobile */
+
+#btn-menu {
+    display: none;
+}
+
+@media (max-width: @mobile-width) {
+    nav {
+        display: none;
+    }
+    #nav-and-page {
+        flex-direction: column;
+    }
+    footer {
+        #icons {
+            justify-content: center;
+            padding-left: 0;
+        }
+    }
+    #layout.menu-open {
+        header, #page {
+            display: none;
+        }
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            top: 0;
+            min-height: 100svh;
+            width: 100%;
+            background-color: @color-bg-begin;
+            font-size: 1.5rem;
+            a, button, span {
+                border-left-width: 0;
+                border-bottom-width: 2px;
+                padding-left: 0;
+            }
+        }
+    }
+    #btn-menu {
+        display: block;
+        position: fixed;
+        bottom: 1.6rem;
+        right: 1.1rem;
+        padding: 0.8rem 1rem;
+        border-radius: 1rem;
+        font-weight: 900;
+        background-color: @color-bg-begin;
+        user-select: none;
+        &:hover {
+            cursor: pointer;
+            color: white;
+        }
+        &:disabled {
+            background-color: rgb(39, 39, 39);
+            color: grey;
+        }
+    }
+}
+
+/* Misc */
+
+.rainbow {
+    background: linear-gradient(
+        90deg,
+        rgba(255, 0, 0, 1) 0%,
+        rgba(255, 154, 0, 1) 10%,
+        rgba(208, 222, 33, 1) 20%,
+        rgba(79, 220, 74, 1) 30%,
+        rgba(63, 218, 216, 1) 40%,
+        rgba(47, 201, 226, 1) 50%,
+        rgb(33, 133, 246) 60%,
+        rgb(116, 46, 255) 70%,
+        rgb(198, 42, 255) 80%,
+        rgba(251, 7, 217, 1) 90%,
+        rgba(255, 0, 0, 1) 100%
+    );
+    font-style: italic;
+    font-weight: 800;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+
+.modal-background {
+    padding: 0;
+    .modal-content {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: @color-bg-begin;
+        color: @color-text;
+        font-size: 1.5em;
+    }
+}

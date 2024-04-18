@@ -1,0 +1,17 @@
+{
+    "extends": "../../tsconfig.json",
+    "include": [
+        "src",
+        "./vite.config.ts",
+    ],
+    "exclude": [
+        "dist",
+        "node_modules",
+    ],
+    "compilerOptions": {
+        "rootDir": "src",
+        "jsx": "react-jsx",
+        "moduleResolution": "bundler",
+        "noEmit": true,
+    },
+}
