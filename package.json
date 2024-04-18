@@ -1,0 +1,27 @@
+{
+    "private": true,
+    "name": "polymedia-spam-monorepo",
+    "license": "Apache-2.0",
+    "scripts": {
+        "build": "turbo run build",
+        "clean": "turbo run clean && rm -rf dist/ node_modules/ .turbo/",
+        "lint": "turbo run lint"
+    },
+    "dependencies": {
+        "@mysten/sui.js": "^0.51.2"
+    },
+    "devDependencies": {
+        "@stylistic/eslint-plugin": "^1.7.2",
+        "@typescript-eslint/eslint-plugin": "^7.7.0",
+        "@typescript-eslint/parser": "^7.7.0",
+        "eslint": "^8.57.0",
+        "eslint-plugin-react": "^7.34.1",
+        "eslint-plugin-react-hooks": "^4.6.0",
+        "eslint-plugin-react-refresh": "^0.4.6",
+        "turbo": "^1.13.2",
+        "typescript": "^5.4.5"
+    },
+    "engines": {
+        "node": ">=18"
+    }
+}

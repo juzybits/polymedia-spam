@@ -3,6 +3,8 @@ name = "Spam"
 version = "1.0.0"
 edition = "2024.beta"
 license = "Apache-2.0"
+authors = ["@juzybits (https://polymedia.app)"]
+
 published-at = "0x0"
 
 [dependencies]
