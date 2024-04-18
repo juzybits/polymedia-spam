@@ -177,7 +177,7 @@ module spam::spam
             0, // decimals
             b"SPAM", // symbol
             b"SPAM", // name
-            b"The original Proof of Spam coin", // description
+            b"Spam to Earn on Sui", // description
             option::none(),// icon_url TODO
             ctx,
         );
