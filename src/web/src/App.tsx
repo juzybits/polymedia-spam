@@ -1,14 +1,8 @@
 import {
-    ConnectModal,
     SuiClientProvider,
-    WalletProvider,
     createNetworkConfig,
-    useCurrentAccount,
-    useDisconnectWallet,
 } from "@mysten/dapp-kit";
-import "@mysten/dapp-kit/dist/index.css";
 import { getFullnodeUrl } from "@mysten/sui.js/client";
-import { shortenSuiAddress } from "@polymedia/suits";
 import { LinkExternal, Modal, NetworkSelector, loadNetwork } from "@polymedia/webutils";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactNode, useState } from "react";
@@ -16,13 +10,6 @@ import { BrowserRouter, Link, Outlet, Route, Routes, useLocation } from "react-r
 import { PageHome } from "./PageHome";
 import { PageNotFound } from "./PageNotFound";
 import "./styles/App.less";
-import { Foo } from "@polymedia/spam-sdk";
-
-const foo: Foo = {
-    bar: "hello",
-};
-
-console.log(foo.bar);
 
 /* App router */
 
@@ -57,9 +44,9 @@ const AppSuiProviders: React.FC = () => {
     return (
     <QueryClientProvider client={queryClient}>
         <SuiClientProvider networks={networkConfig} network={network}>
-            <WalletProvider autoConnect={true}>
+            {/* <WalletProvider autoConnect={true}> */}
                 <App network={network} setNetwork={setNetwork} />
-            </WalletProvider>
+            {/* </WalletProvider> */}
         </SuiClientProvider>
     </QueryClientProvider>
     );
@@ -74,7 +61,7 @@ export type AppContext = {
     network: NetworkName, setNetwork: ReactSetter<NetworkName>,
     showMobileNav: boolean, setShowMobileNav: ReactSetter<boolean>,
     setModalContent: ReactSetter<ReactNode>,
-    openConnectModal: () => void,
+    // openConnectModal: () => void,
 };
 
 const App: React.FC<{
@@ -86,7 +73,7 @@ const App: React.FC<{
 }) =>
 {
     const [ inProgress, setInProgress ] = useState(false);
-    const [ showConnectModal, setShowConnectModal ] = useState(false);
+    // const [ showConnectModal, setShowConnectModal ] = useState(false);
     const [ showMobileNav, setShowMobileNav ] = useState(false);
     const [ modalContent, setModalContent ] = useState<ReactNode>(null);
 
@@ -95,7 +82,7 @@ const App: React.FC<{
         network, setNetwork,
         showMobileNav, setShowMobileNav,
         setModalContent,
-        openConnectModal: () => { setShowConnectModal(true) },
+        // openConnectModal: () => { setShowConnectModal(true) },
     };
 
     const layoutClasses: string[] = [];
@@ -129,11 +116,13 @@ const App: React.FC<{
 
         <Modal content={modalContent} />
 
+        {/*
         <ConnectModal
             trigger={<></>}
             open={showConnectModal}
             onOpenChange={isOpen => { setShowConnectModal(isOpen) }}
         />
+        */}
 
     </div>
     );
@@ -161,7 +150,7 @@ const Header: React.FC<{
             </h1>
         </Link>
 
-        <BtnConnect appContext={app} />
+        {/* <BtnConnect appContext={app} /> */}
     </header>;
 }
 
@@ -210,6 +199,7 @@ const BtnNetwork: React.FC<{
     />;
 }
 
+/*
 const BtnConnect: React.FC<{
     appContext: AppContext,
 }> = ({
@@ -234,6 +224,7 @@ const BtnConnect: React.FC<{
         {text}
     </button>;
 }
+*/
 
 const BtnMenu: React.FC<{
     appContext: AppContext,
