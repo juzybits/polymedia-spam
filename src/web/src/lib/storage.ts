@@ -1,8 +1,8 @@
 const storageKey = "polymedia.spam";
 
 export type Wallet = {
-    secretKey: string;
     address: string;
+    secretKey: string;
 };
 
 export function loadWallet(): Wallet|null {
