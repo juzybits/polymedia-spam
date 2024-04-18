@@ -50,7 +50,7 @@ module spam::spam
         tx_count: u64,
     }
 
-    // === Public-Mutative Functions ===
+    // === User Functions ===
 
     /// Users can create multiple counters per epoch, but it is pointless
     /// because they can only register() one of them.
@@ -60,8 +60,20 @@ module spam::spam
         return UserCounter {
             id: object::new(ctx),
             epoch: epoch(ctx),
-            tx_count: 1, // count the transaction
+            tx_count: 1, // count this transaction
         }
+    }
+
+    /// Users can only increase their tx counter for the current epoch.
+    /// Users can only call this function once per tx block.
+    entry fun increment_user_counter(
+        user_counter: &mut UserCounter,
+        ctx: &TxContext,
+    ) {
+        let current_epoch = epoch(ctx);
+        assert!(user_counter.epoch == current_epoch, EWrongEpoch);
+
+        user_counter.tx_count = user_counter.tx_count + 1;
     }
 
     public fun destroy_user_counter(
@@ -95,7 +107,7 @@ module spam::spam
 
     /// Users can only claim their rewards from the 2nd epoch after UserCounter.epoch.
     /// User rewards are proportional to their share of completed txs in the epoch.
-    /// Director.paused is not checked here so people can always claim past rewards.
+    /// Director.paused is not checked here so users can always claim past rewards.
     public fun claim(
         director: &mut Director,
         epoch: u64,
@@ -113,6 +125,8 @@ module spam::spam
         let coin = director.treasury.mint(user_reward, ctx);
         return coin
     }
+
+    // === Admin functions ===
 
     public fun admin_pause(
         director: &mut Director,
@@ -135,21 +149,7 @@ module spam::spam
         object::delete(id);
     }
 
-    // === Entry functions ===
-
-    /// Users can only increase their tx counter for the current epoch.
-    /// Users can only call this function once per tx block.
-    entry fun increment_user_counter(
-        user_counter: &mut UserCounter,
-        ctx: &TxContext,
-    ) {
-        let current_epoch = epoch(ctx);
-        assert!(user_counter.epoch == current_epoch, EWrongEpoch);
-
-        user_counter.tx_count = user_counter.tx_count + 1;
-    }
-
-    // === Private functions ===
+    // === Private helpers ===
 
     fun get_or_create_epoch_counter(
         director: &mut Director,
@@ -193,7 +193,6 @@ module spam::spam
             tx_count: 0,
             paused: true,
         };
-
         transfer::share_object(director);
 
         // Create the admin capability, and transfer it
