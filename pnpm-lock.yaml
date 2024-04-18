@@ -11,6 +11,9 @@ importers:
       '@mysten/sui.js':
         specifier: ^0.51.2
         version: 0.51.2(typescript@5.4.5)
+      '@polymedia/suits':
+        specifier: ^0.0.39
+        version: 0.0.39(typescript@5.4.5)
     devDependencies:
       '@stylistic/eslint-plugin':
         specifier: ^1.7.2
@@ -53,9 +56,6 @@ importers:
       '@polymedia/spam-sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@polymedia/suits':
-        specifier: ^0.0.39
-        version: 0.0.39(typescript@5.4.5)
       '@polymedia/webutils':
         specifier: ^0.0.50
         version: 0.0.50(react@18.2.0)(typescript@5.4.5)

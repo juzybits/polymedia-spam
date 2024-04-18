@@ -8,7 +8,8 @@
         "lint": "turbo run lint"
     },
     "dependencies": {
-        "@mysten/sui.js": "^0.51.2"
+        "@mysten/sui.js": "^0.51.2",
+        "@polymedia/suits": "^0.0.39"
     },
     "devDependencies": {
         "@stylistic/eslint-plugin": "^1.7.2",
