@@ -22,6 +22,7 @@
         "tunnel": "lt --port 1234"
     },
     "dependencies": {
+        "@polymedia/spam-sdk": "workspace:*",
         "@mysten/dapp-kit": "^0.12.9",
         "@mysten/sui.js": "^0.51.2",
         "@polymedia/suits": "^0.0.39",

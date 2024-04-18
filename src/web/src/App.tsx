@@ -16,6 +16,13 @@ import { BrowserRouter, Link, Outlet, Route, Routes, useLocation } from "react-r
 import { PageHome } from "./PageHome";
 import { PageNotFound } from "./PageNotFound";
 import "./styles/App.less";
+import { Foo } from "@polymedia/spam-sdk";
+
+const foo: Foo = {
+    bar: "hello",
+};
+
+console.log(foo.bar);
 
 /* App router */
 

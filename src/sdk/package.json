@@ -1,0 +1,26 @@
+{
+    "private": true,
+    "version": "0.0.0",
+    "name": "@polymedia/spam-sdk",
+    "author": "@juzybits (https://polymedia.app)",
+    "homepage": "https://github.com/juzybits/polymedia-spam",
+    "description": "An SDK to interact with the Spam package",
+    "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/juzybits/polymedia-spam"
+    },
+    "keywords": [
+    ],
+    "scripts": {
+        "build": "tsc",
+        "clean": "rm -rf dist/ node_modules/ .turbo/",
+        "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+    },
+    "dependencies": {
+    },
+    "type": "module",
+    "sideEffects": false,
+    "types": "./dist/index.d.ts",
+    "import": "./dist/index.js"
+}
