@@ -16,7 +16,7 @@ export const PageHome: React.FC = () =>
         </p>
 
         <br />
-        <Link className="btn" to={wallet ? '/spam' : '/user'}>
+        <Link className="btn" to={wallet ? "/spam" : "/user"}>
             START
         </Link>
 

@@ -9,6 +9,7 @@ import { ReactNode, useState } from "react";
 import { BrowserRouter, Link, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import { PageHome } from "./PageHome";
 import { PageNotFound } from "./PageNotFound";
+import { PageSpam } from "./PageSpam";
 import { PageUser } from "./PageUser";
 import { Wallet, loadWallet, saveWallet } from "./lib/storage";
 import "./styles/App.less";
@@ -22,6 +23,7 @@ export const AppRouter: React.FC = () => {
             <Route path='/' element={<AppSuiProviders />} >
                 <Route index element={<PageHome />} />
                 <Route path='/user' element={<PageUser />} />
+                <Route path='/spam' element={<PageSpam />} />
                 <Route path='*' element={<PageNotFound />} />
             </Route>
         </Routes>
