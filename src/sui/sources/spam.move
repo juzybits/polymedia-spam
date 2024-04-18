@@ -11,6 +11,7 @@ module spam::spam
     // === Errors ===
 
     const EWrongEpoch: u64 = 100;
+    const EIsPaused: u64 = 101;
 
     // === Constants ===
 
@@ -20,12 +21,17 @@ module spam::spam
 
     public struct SPAM has drop {}
 
+    public struct AdminCap has store, key {
+        id: UID,
+    }
+
     /// Singleton shared object to coordinate state and to mint coins.
     public struct Director has key, store {
         id: UID,
         treasury: TreasuryCap<SPAM>,
         epoch_counters: Table<u64, EpochCounter>, // keys are epochs
         tx_count: u64,
+        paused: bool,
     }
 
     /// Can only exist inside the Director.epoch_counters table.
@@ -74,6 +80,8 @@ module spam::spam
         user_counter: UserCounter,
         ctx: &mut TxContext,
     ) {
+        assert!(director.paused == false, EIsPaused);
+
         let previous_epoch = epoch(ctx) - 1;
         assert!(user_counter.epoch == previous_epoch, EWrongEpoch);
 
@@ -87,6 +95,7 @@ module spam::spam
 
     /// Users can only claim their rewards from the 2nd epoch after UserCounter.epoch.
     /// User rewards are proportional to their share of completed txs in the epoch.
+    /// Director.paused is not checked here so people can always claim past rewards.
     public fun claim(
         director: &mut Director,
         epoch: u64,
@@ -103,6 +112,27 @@ module spam::spam
 
         let coin = director.treasury.mint(user_reward, ctx);
         return coin
+    }
+
+    public fun admin_pause(
+        director: &mut Director,
+        _: &AdminCap,
+    ) {
+        director.paused = true;
+    }
+
+    public fun admin_resume(
+        director: &mut Director,
+        _: &AdminCap,
+    ) {
+        director.paused = false;
+    }
+
+    public fun admin_destroy(
+        cap: AdminCap,
+    ) {
+        let AdminCap { id } = cap;
+        object::delete(id);
     }
 
     // === Entry functions ===
@@ -155,15 +185,22 @@ module spam::spam
         // Freeze the metadata
         transfer::public_freeze_object(metadata);
 
-        // Create the only Director that will ever exist
+        // Create the only Director that will ever exist, and share it
         let director = Director {
             id: object::new(ctx),
             treasury,
             epoch_counters: table::new(ctx),
-            tx_count: 0
+            tx_count: 0,
+            paused: true,
         };
 
         transfer::share_object(director);
+
+        // Create the admin capability, and transfer it
+        let adminCap = AdminCap {
+            id: object::new(ctx),
+        };
+        transfer::transfer(adminCap, sender(ctx))
     }
 
     // === Test Functions ===
