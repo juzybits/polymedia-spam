@@ -8,7 +8,8 @@ export const PageSpam: React.FC = () =>
 {
     const navigate = useNavigate();
     const { wallet } = useOutletContext<AppContext>();
-    const [ pair, setPair ] = useState<Ed25519Keypair|null>(null);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [ _pair, setPair ] = useState<Ed25519Keypair|null>(null);
 
     useEffect(() => {
         if (!wallet) {
