@@ -86,7 +86,7 @@ module spam::spam
         let epo_ctr = get_or_create_epoch_counter(director, usr_ctr.epoch, ctx);
 
         // add the user count to the EpochCounter
-        table::add(&mut epo_ctr.user_counts, sender_addr, usr_ctr.tx_count);
+        epo_ctr.user_counts.add(sender_addr, usr_ctr.tx_count);
 
         destroy_user_counter(usr_ctr);
     }
@@ -99,11 +99,11 @@ module spam::spam
         let max_allowed_epoch = epoch(ctx) - 2;
         assert!(epoch <= max_allowed_epoch, EWrongEpoch);
 
-        let epo_ctr = table::borrow_mut(&mut director.epoch_counters, epoch);
-        let usr_txs = table::remove(&mut epo_ctr.user_counts, sender(ctx));
+        let epo_ctr = director.epoch_counters.borrow_mut(epoch);
+        let usr_txs = epo_ctr.user_counts.remove(sender(ctx));
         let usr_amount = (usr_txs * TOTAL_EPOCH_REWARD) / epo_ctr.tx_count;
 
-        let coin = coin::mint(&mut director.treasury, usr_amount, ctx);
+        let coin = director.treasury.mint(usr_amount, ctx);
         transfer::public_transfer(coin, sender(ctx));
     }
 
@@ -114,15 +114,15 @@ module spam::spam
         epoch: u64,
         ctx: &mut TxContext,
     ): &mut EpochCounter {
-        if ( !table::contains(&director.epoch_counters, epoch) ) {
+        if ( !director.epoch_counters.contains(epoch) ) {
             let epo_ctr = EpochCounter {
                 epoch,
                 user_counts: table::new(ctx),
                 tx_count: 0,
             };
-            table::add(&mut director.epoch_counters, epoch, epo_ctr);
+            director.epoch_counters.add(epoch, epo_ctr);
         };
-        return table::borrow_mut(&mut director.epoch_counters, epoch)
+        return director.epoch_counters.borrow_mut(epoch)
     }
 
     // === Initialization ===
