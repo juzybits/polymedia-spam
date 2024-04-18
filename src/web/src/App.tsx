@@ -10,6 +10,7 @@ import { BrowserRouter, Link, Outlet, Route, Routes, useLocation } from "react-r
 import { PageHome } from "./PageHome";
 import { PageNotFound } from "./PageNotFound";
 import "./styles/App.less";
+import { Wallet, loadWallet, saveWallet } from "./lib/storage";
 
 /* App router */
 
@@ -62,6 +63,7 @@ export type AppContext = {
     showMobileNav: boolean, setShowMobileNav: ReactSetter<boolean>,
     setModalContent: ReactSetter<ReactNode>,
     // openConnectModal: () => void,
+    wallet: Wallet|null, replaceWallet: (wallet: Wallet|null) => void,
 };
 
 const App: React.FC<{
@@ -76,6 +78,12 @@ const App: React.FC<{
     // const [ showConnectModal, setShowConnectModal ] = useState(false);
     const [ showMobileNav, setShowMobileNav ] = useState(false);
     const [ modalContent, setModalContent ] = useState<ReactNode>(null);
+    const [ wallet, setWallet ] = useState<Wallet|null>(loadWallet());
+
+    const replaceWallet = (wallet: Wallet|null): void => {
+        setWallet(wallet);
+        saveWallet(wallet);
+    }
 
     const appContext: AppContext = {
         inProgress, setInProgress,
@@ -83,6 +91,7 @@ const App: React.FC<{
         showMobileNav, setShowMobileNav,
         setModalContent,
         // openConnectModal: () => { setShowConnectModal(true) },
+        wallet, replaceWallet,
     };
 
     const layoutClasses: string[] = [];
