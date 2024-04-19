@@ -52,14 +52,15 @@ module spam::spam
 
     /// Users can create multiple counters per epoch, but it is pointless
     /// because they can only register() one of them.
-    public fun new_user_counter(
+    entry fun new_user_counter(
         ctx: &mut TxContext,
-    ): UserCounter {
-        return UserCounter {
+    ) {
+        let user_counter = UserCounter {
             id: object::new(ctx),
             epoch: epoch(ctx),
             tx_count: 1, // count this transaction
-        }
+        };
+        transfer::transfer(user_counter, sender(ctx));
     }
 
     /// Users can only increase their tx counter for the current epoch.
