@@ -6,8 +6,6 @@ module spam::spam
     use sui::table::{Self, Table};
     use sui::tx_context::{epoch, sender};
 
-    // === Friends ===
-
     // === Errors ===
 
     const EWrongEpoch: u64 = 100;
@@ -99,7 +97,7 @@ module spam::spam
 
         let sender_addr = sender(ctx);
         let epoch_counter = get_or_create_epoch_counter(director, previous_epoch, ctx);
-
+        epoch_counter.tx_count = epoch_counter.tx_count + user_counter.tx_count;
         epoch_counter.user_counts.add(sender_addr, user_counter.tx_count);
 
         destroy_user_counter(user_counter);
