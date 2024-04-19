@@ -16,8 +16,15 @@ type Status =
     "processing counters" |
     "claiming counters" |
     "registering counters" |
+    "destroying duplicate counters" |
     "creating counter" |
     "spamming";
+
+type UserCounters = {
+    current: UserCounter[],
+    register: UserCounter[],
+    claim: UserCounter[],
+}
 
 export const PageSpam: React.FC = () =>
 {
@@ -30,7 +37,7 @@ export const PageSpam: React.FC = () =>
     const { network, wallet } = useOutletContext<AppContext>();
 
     const [ spamClient, setSpamClient ] = useState<SpamClient>();
-    const [ counters, setCounters ] = useState<UserCounter[]>();
+    const [ counters, setCounters ] = useState<UserCounters>();
     const [ status, setStatus ] = useState<Status>("booting up");
     const [ error, setError ] = useState<string|null>(null);
 
@@ -53,11 +60,36 @@ export const PageSpam: React.FC = () =>
                 const spamClient = new SpamClient(keypair, suiClient, network);
                 setSpamClient(spamClient);
 
+                setStatus("fetching epoch");
+                const suiState = await suiClient.getLatestSuiSystemState();
+                const currEpoch = Number(suiState.epoch);
+
                 setStatus("fetching counters");
-                const newCounters = await spamClient.fetchUserCounters(
+                const countersArray = await spamClient.fetchUserCounters(
                     keypair.toSuiAddress(),
                 );
-                setCounters(newCounters);
+
+                const userCounters: UserCounters =  {
+                    current: [],
+                    register: [],
+                    claim: [],
+                };
+
+                for (const counter of countersArray) {
+                    if (counter.epoch === currEpoch) {
+                        userCounters.current.push(counter);
+                    }
+                    else if (counter.epoch == currEpoch - 1) {
+                        userCounters.register.push(counter);
+                    }
+                    else if (counter.epoch <= currEpoch - 2) {
+                        userCounters.claim.push(counter);
+                    }
+                    else {
+                        throw new Error("UserCounter.epoch is newer than network epoch");
+                    }
+                }
+                setCounters(userCounters);
 
                 setStatus("ready to spam");
             } catch(err) {
@@ -67,54 +99,27 @@ export const PageSpam: React.FC = () =>
         initialize();
     }, [wallet]);
 
-    const spam = async() => {
+    const spam = async() => { // TODO handle duplicates
         if (status !== "ready to spam" || isLoading) {
             return;
         }
         try {
-            setStatus("fetching epoch");
-            const suiState = await suiClient.getLatestSuiSystemState();
-            const currEpoch = Number(suiState.epoch);
-
-            setStatus("processing counters")
-            const currCounters: UserCounter[]= [];
-            const registerCounters: UserCounter[]= [];
-            const claimCounters: UserCounter[] = [];
-
-            for (const counter of counters) {
-                if (counter.epoch === currEpoch) {
-                    currCounters.push(counter);
-                } else if (counter.epoch == currEpoch - 1) {
-                    registerCounters.push(counter);
-                } else if (counter.epoch <= currEpoch - 2) {
-                    claimCounters.push(counter);
-                } else {
-                    throw new Error("UserCounter.epoch is newer than network epoch");
-                }
+            if (counters.claim.length > 0) {
+                setStatus("claiming counters"); // TODO
             }
 
-            claimCounters.length && setStatus("claiming counters")
-            for (const counter of claimCounters) {
-                // TODO claim()
+            if (counters.register.length > 0) {
+                setStatus("registering counters"); // TODO
             }
 
-            registerCounters.length && setStatus("registering counters")
-            for (const counter of registerCounters) {
-                // TODO register()
-            }
-
-            if (currCounters.length === 0) {
+            if (counters.current.length === 0) {
                 setStatus("creating counter");
-                const resp = await spamClient.newUserCounter(); // TODO setCounters()
-                console.debug("resp: ", resp);
+                const resp = await spamClient.newUserCounter();
+                console.debug("newUserCounter resp: ", resp); // TODO setCounters(), etc
             }
 
-            setStatus("spamming")
-            const spamAmount = 5; // TODO make infinite
-            for (let i = 0; i < spamAmount; i++) {
-                i**i/i;
-                // TODO increment_user_counter()
-            }
+            setStatus("spamming"); // TODO
+
             setStatus("ready to spam");
         } catch(err) {
             setError(String(err));
@@ -130,7 +135,11 @@ export const PageSpam: React.FC = () =>
             <p>Status: {status}</p>
             {isLoading
             ? <p>Loading...</p>
-            : <p>Counters: {counters.length}</p>
+            : <>
+                <p>Current counters: {counters.current.length}</p>
+                <p>Register counters: {counters.register.length}</p>
+                <p>Claim counters: {counters.claim.length}</p>
+            </>
             }
             <button className="btn" onClick={spam}>SPAM</button>
         </div>

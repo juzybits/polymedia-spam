@@ -70,7 +70,7 @@ export type AppContext = {
     wallet: Wallet|null, replaceWallet: (wallet: Wallet|null) => void,
 };
 
-const App: React.FC<{
+const App: React.FC<{ // TODO: RpcSelector
     network: NetworkName,
     setNetwork: ReactSetter<NetworkName>,
 }> = ({
