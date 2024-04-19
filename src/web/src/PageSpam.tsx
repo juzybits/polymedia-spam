@@ -1,7 +1,7 @@
 import { useSuiClient } from "@mysten/dapp-kit";
 import { decodeSuiPrivateKey } from "@mysten/sui.js/cryptography";
 import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
-import { SPAM_IDS, UserCounter, fetchUserCounters } from "@polymedia/spam-sdk";
+import { SpamClient, UserCounter } from "@polymedia/spam-sdk";
 import { useEffect, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
@@ -31,8 +31,8 @@ export const PageSpam: React.FC = () =>
     const [ status, setStatus ] = useState<Status>("booting up");
     const [ error, setError ] = useState<string|null>(null);
 
-    const spamIds = SPAM_IDS[network];
     const isLoading = !pair || !counters;
+    const spamClient = new SpamClient(suiClient, network);
 
     /* Functions */
 
@@ -51,9 +51,7 @@ export const PageSpam: React.FC = () =>
                 setPair(newPair);
 
                 setStatus("fetching counters");
-                const newCounters = await fetchUserCounters(
-                    suiClient,
-                    spamIds.packageId,
+                const newCounters = await spamClient.fetchUserCounters(
                     newPair.toSuiAddress(),
                 );
                 setCounters(newCounters);
