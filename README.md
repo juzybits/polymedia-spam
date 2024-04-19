@@ -2,6 +2,8 @@
 
 Spam to Earn on Sui.
 
+<!-- ![Polymedia SPAM](https://spam.polymedia.app/img/open-graph.webp) -->
+
 ## ELI5
 
 - One billion SPAM coins are minted every day.
