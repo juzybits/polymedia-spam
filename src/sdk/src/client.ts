@@ -69,6 +69,7 @@ function parseUserCounter(
         id: fields.id.id,
         epoch: Number(fields.epoch),
         tx_count: Number(fields.tx_count),
+        registered: Boolean(fields.registered),
     };
 }
 /* eslint-enable */

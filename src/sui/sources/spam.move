@@ -9,7 +9,9 @@ module spam::spam
     // === Errors ===
 
     const EWrongEpoch: u64 = 100;
-    const EIsPaused: u64 = 101;
+    const EDirectorIsPaused: u64 = 101;
+    const ECounterIsRegistered: u64 = 102;
+    const ECounterIsNotRegistered: u64 = 103;
 
     // === Constants ===
 
@@ -46,6 +48,7 @@ module spam::spam
         id: UID,
         epoch: u64,
         tx_count: u64,
+        registered: bool,
     }
 
     // === User Functions ===
@@ -59,6 +62,7 @@ module spam::spam
             id: object::new(ctx),
             epoch: epoch(ctx),
             tx_count: 1, // count this transaction
+            registered: false,
         };
         transfer::transfer(user_counter, sender(ctx));
     }
@@ -78,30 +82,29 @@ module spam::spam
     public fun destroy_user_counter(
         user_counter: UserCounter,
     ) {
-        let UserCounter { id, epoch: _epoch, tx_count: _tx_count} = user_counter;
+        let UserCounter { id, epoch: _, tx_count: _, registered: _} = user_counter;
         sui::object::delete(id);
     }
 
     /// Users can only register their counter during the 1st epoch after UserCounter.epoch.
-    ///
-    /// Users can only register one UserCounter per epoch because
-    /// user_counts.add() aborts with sui::dynamic_field::EFieldAlreadyExists.
+    /// Users can only register one UserCounter per epoch.
     public fun register(
         director: &mut Director,
-        user_counter: UserCounter,
+        user_counter: &mut UserCounter,
         ctx: &mut TxContext,
     ) {
-        assert!(director.paused == false, EIsPaused);
-
         let previous_epoch = epoch(ctx) - 1;
         assert!(user_counter.epoch == previous_epoch, EWrongEpoch);
+        assert!(director.paused == false, EDirectorIsPaused);
+        assert!(user_counter.registered == false, ECounterIsRegistered);
 
         let sender_addr = sender(ctx);
         let epoch_counter = get_or_create_epoch_counter(director, previous_epoch, ctx);
-        epoch_counter.tx_count = epoch_counter.tx_count + user_counter.tx_count;
-        epoch_counter.user_counts.add(sender_addr, user_counter.tx_count);
 
-        destroy_user_counter(user_counter);
+        // Note how this will abort if user tries to add more than 1 counter per epoch
+        epoch_counter.user_counts.add(sender_addr, user_counter.tx_count);
+        epoch_counter.tx_count = epoch_counter.tx_count + user_counter.tx_count;
+        user_counter.registered = true;
     }
 
     /// Users can only claim their rewards from the 2nd epoch after UserCounter.epoch.
@@ -109,17 +112,20 @@ module spam::spam
     /// Director.paused is not checked here so users can always claim past rewards.
     public fun claim(
         director: &mut Director,
-        epoch: u64,
+        user_counter: UserCounter,
         ctx: &mut TxContext,
     ): Coin<SPAM> {
         let max_allowed_epoch = epoch(ctx) - 2;
-        assert!(epoch <= max_allowed_epoch, EWrongEpoch);
+        assert!(user_counter.epoch <= max_allowed_epoch, EWrongEpoch);
+        assert!(user_counter.registered == true, ECounterIsNotRegistered);
 
-        let epoch_counter = director.epoch_counters.borrow_mut(epoch);
-        // we can safely remove the user from the EpochCounter because
-        // users can no longer register() their UserCounter for that epoch
+        let epoch_counter = director.epoch_counters.borrow_mut(user_counter.epoch);
+        // we can safely remove the user from the EpochCounter because users
+        // are no longer allowed to register() a UserCounter for this epoch
         let user_txs = epoch_counter.user_counts.remove(sender(ctx));
         let user_reward = (user_txs * TOTAL_EPOCH_REWARD) / epoch_counter.tx_count;
+
+        destroy_user_counter(user_counter);
 
         let coin = director.treasury.mint(user_reward, ctx);
         return coin

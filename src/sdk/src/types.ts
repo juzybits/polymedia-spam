@@ -16,4 +16,5 @@ export type UserCounter = {
     id: string;
     epoch: number;
     tx_count: number;
+    registered: boolean;
 };
