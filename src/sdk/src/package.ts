@@ -1,7 +1,7 @@
 import {
     TransactionBlock,
     TransactionResult,
-} from '@mysten/sui.js/transactions';
+} from "@mysten/sui.js/transactions";
 
 export function new_user_counter(
     txb: TransactionBlock,
