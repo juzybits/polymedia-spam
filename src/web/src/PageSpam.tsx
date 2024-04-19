@@ -1,27 +1,62 @@
+import { useSuiClient } from "@mysten/dapp-kit";
+import { decodeSuiPrivateKey } from "@mysten/sui.js/cryptography";
+import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
+import { SPAM_IDS, UserCounter, fetchUserCounters } from "@polymedia/spam-sdk";
+import { useEffect, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
-import { useEffect, useState } from "react";
-import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
-import { decodeSuiPrivateKey } from "@mysten/sui.js/cryptography";
 
 export const PageSpam: React.FC = () =>
 {
+    /* State */
+
     const navigate = useNavigate();
-    const { wallet } = useOutletContext<AppContext>();
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [ _pair, setPair ] = useState<Ed25519Keypair|null>(null);
+    const suiClient = useSuiClient();
+    const { network, wallet } = useOutletContext<AppContext>();
+    const [ pair, setPair ] = useState<Ed25519Keypair|null>(null);
+    const [ counters, setCounters ] = useState<UserCounter[]>();
+
+    const spamIds = SPAM_IDS[network];
+
+    /* Functions */
 
     useEffect(() => {
-        if (!wallet) {
-            navigate("/user")
-        } else {
+        const initialize = async () =>
+        {
+            if (!wallet) {
+                navigate("/user");
+                return;
+            }
+
             const parsedPair = decodeSuiPrivateKey(wallet.secretKey);
-            setPair(Ed25519Keypair.fromSecretKey(parsedPair.secretKey));
-        }
-    }, [wallet])
+            const newPair = Ed25519Keypair.fromSecretKey(parsedPair.secretKey);
+            setPair(newPair);
+
+            const newCounters = await fetchUserCounters(
+                suiClient,
+                spamIds.packageId,
+                newPair.toSuiAddress(),
+            );
+            setCounters(newCounters);
+        };
+        initialize();
+    }, [wallet]);
+
+    /* HTML */
+
+    const isLoading = !pair || !counters;
+
+    let content;
+    if (isLoading) {
+        content = <p>Loading...</p>;
+    } else {
+        content = <p>
+            Counters: {counters.length}
+        </p>;
+    }
 
     return <div id="page-content" >
         <h1>Spam</h1>
-        Ready to spam
+        {content}
     </div>;
 }
