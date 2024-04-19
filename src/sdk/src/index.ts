@@ -1,4 +1,4 @@
+export * from "./client.js";
 export * from "./config.js";
-export * from "./functions-client.js";
-export * from "./functions-package.js";
+export * from "./package.js";
 export * from "./types.js";
