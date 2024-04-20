@@ -48,38 +48,9 @@ export const PageSpam: React.FC = () =>
                 const spamClient = new SpamClient(keypair, suiClient, network);
                 setSpamClient(spamClient);
 
-                setStatus("fetching Sui epoch");
-                const suiState = await suiClient.getLatestSuiSystemState();
-                const currEpoch = Number(suiState.epoch);
+                await fetchUserCounters(spamClient);
 
                 setStatus("fetching user balance"); // TODO
-
-                setStatus("fetching user counters");
-                const countersArray = await spamClient.fetchUserCounters(
-                    keypair.toSuiAddress(),
-                );
-
-                const userCounters: UserCounters =  {
-                    current: [],
-                    register: [],
-                    claim: [],
-                };
-
-                for (const counter of countersArray) {
-                    if (counter.epoch === currEpoch) {
-                        userCounters.current.push(counter);
-                    }
-                    else if (counter.epoch == currEpoch - 1) {
-                        userCounters.register.push(counter);
-                    }
-                    else if (counter.epoch <= currEpoch - 2) {
-                        userCounters.claim.push(counter);
-                    }
-                    else {
-                        throw new Error("UserCounter.epoch is newer than network epoch");
-                    }
-                }
-                setCounters(userCounters);
 
                 setStatus("ready to spam");
             } catch(err) {
@@ -88,6 +59,39 @@ export const PageSpam: React.FC = () =>
         };
         initialize();
     }, [wallet]);
+
+    const fetchUserCounters = async (
+        spamClient: SpamClient,
+    ) => {
+        setStatus("fetching Sui epoch");
+        const suiState = await suiClient.getLatestSuiSystemState();
+        const currEpoch = Number(suiState.epoch);
+
+        setStatus("fetching user counters");
+        const countersArray = await spamClient.fetchUserCounters();
+
+        const userCounters: UserCounters =  {
+            current: [],
+            register: [],
+            claim: [],
+        };
+
+        for (const counter of countersArray) {
+            if (counter.epoch === currEpoch) {
+                userCounters.current.push(counter);
+            }
+            else if (counter.epoch == currEpoch - 1) {
+                userCounters.register.push(counter);
+            }
+            else if (counter.epoch <= currEpoch - 2) {
+                userCounters.claim.push(counter);
+            }
+            else {
+                throw new Error("UserCounter.epoch is newer than network epoch");
+            }
+        }
+        setCounters(userCounters);
+    }
 
     const spam = async() => {
         if (isLoading) {
@@ -104,20 +108,20 @@ export const PageSpam: React.FC = () =>
 
             setStatus("destroying duplicate user counters"); // TODO
 
-            let currUserCounterId: string;
             if (counters.current.length === 0) {
                 setStatus("creating user counter");
                 const resp = await spamClient.newUserCounter();
-                console.debug("newUserCounter resp: ", resp); // TODO setCounters(), etc
-                // @ts-expect-error 'resp.effects.created' is possibly 'undefined'
-                currUserCounterId = resp.effects.created[0].reference.objectId;
-            } else {
-                currUserCounterId = counters.current[0].id;
+                console.debug("newUserCounter resp: ", resp);
+                await fetchUserCounters(spamClient);
+                setStatus("ready to spam");
+                return;
             }
 
             setStatus("spamming"); // TODO loop
-            console.debug("currUserCounterId:", currUserCounterId);
-            const resp = await spamClient.incrementUserCounter(currUserCounterId)
+            let currUserCounter = counters.current[0];
+            console.debug("currUserCounterId:", currUserCounter.id);
+            const resp = await spamClient.incrementUserCounter(currUserCounter.id)
+            currUserCounter.tx_count += 1; // hack for now
             console.debug("incrementUserCounter resp: ", resp);
 
             setStatus("ready to spam");

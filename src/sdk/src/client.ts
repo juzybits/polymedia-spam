@@ -26,12 +26,11 @@ export class SpamClient
     }
 
     public async fetchUserCounters(
-        owner: string,
     ): Promise<UserCounter[]>
     {
         const StructType = `${this.packageId}::spam::UserCounter`;
         const pageObjResp = await this.suiClient.getOwnedObjects({
-            owner,
+            owner: this.signer.toSuiAddress(),
             cursor: null, // TODO handle pagination
             options: { showContent: true },
             filter: { StructType },
