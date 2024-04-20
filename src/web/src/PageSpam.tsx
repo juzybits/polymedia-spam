@@ -3,11 +3,12 @@ import { decodeSuiPrivateKey } from "@mysten/sui.js/cryptography";
 import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
 import { SpamClient, SpamError, UserCounter, UserData, parseSpamError } from "@polymedia/spam-sdk";
 import { shortenSuiAddress, sleep } from "@polymedia/suits";
-import { LinkToExplorerObj } from "@polymedia/webutils";
+import { LinkToExplorerObj, isLocalhost } from "@polymedia/webutils";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
 import { ErrorBox } from "./components/ErrorBox";
+import { Wallet } from "./lib/storage";
 
 type Status = "stopped" | "running" | "stop requested";
 
@@ -32,25 +33,33 @@ export const PageSpam: React.FC = () =>
     /* Functions */
 
     useEffect(() => {
-        const initialize = async () => {
-            if (!wallet) {
-                navigate("/user");
-                return;
+        if (!wallet) {
+            navigate("/user");
+            return;
+        }
+        const initialize = async (wallet: Wallet) => {
+            const loadUserKeypair = (wallet: Wallet): Ed25519Keypair => {
+                const parsedPair = decodeSuiPrivateKey(wallet.secretKey);
+                const keypair = Ed25519Keypair.fromSecretKey(parsedPair.secretKey);
+                return keypair;
+            };
+            const loadSpamClient = (wallet: Wallet): SpamClient => {
+                const keypair = loadUserKeypair(wallet);
+                const spamClient = new SpamClient(keypair, suiClient, network);
+                setSpamClient(spamClient);
+                return spamClient;
+            };
+            try {
+                showInfo("booting up");
+                const spamClient = loadSpamClient(wallet);
+                await loadUserData(spamClient);
+                showInfo("ready to spam");
             }
-
-            showInfo("booting up");
-
-            // load user key pair
-            const parsedPair = decodeSuiPrivateKey(wallet.secretKey);
-            const keypair = Ed25519Keypair.fromSecretKey(parsedPair.secretKey);
-            const spamClient = new SpamClient(keypair, suiClient, network);
-            setSpamClient(spamClient);
-
-            await reload(false);
-
-            showInfo("ready to spam");
+            catch(err) {
+                setError(String(err));
+            }
         };
-        initialize();
+        initialize(wallet);
     }, [wallet]);
 
     const showInfo = (msg: string) => {
@@ -58,30 +67,25 @@ export const PageSpam: React.FC = () =>
         console.info(msg);
     };
 
-    const reload = async (start: boolean) => {
-        if (!wallet || !spamClient) {
-            return;
-        }
-        try {
-            // fetch user balance TODO
+    const loadUserData = async (spamClient: SpamClient): Promise<UserData> => {
+        // fetch user balance TODO
 
-            // fetch user counters
-            const userData = await spamClient.fetchUserData();
-            setUserData(userData);
+        // fetch user counters
+        const userData = await spamClient.fetchUserData();
+        setUserData(userData);
+        return userData;
+    }
 
-            if (start) {
-                spam(userData);
-            }
-        } catch(err) {
-            setError(String(err));
-        }
+    const loadUserDataAndStart = async (spamClient: SpamClient) => {
+        const userData = await loadUserData(spamClient);
+        spam(userData);
     }
 
     const spam = async(
         userData: UserData,
     ) => {
         if (isBootingUp || status.current !== "stopped") {
-            console.debug("Can't spam now. Status:", status.current);
+            showInfo("Can't spam now. Status: " + status.current);
             return;
         }
         try {
@@ -123,24 +127,24 @@ export const PageSpam: React.FC = () =>
                     const resp = await spamClient.newUserCounter();
                     console.debug("newUserCounter resp: ", resp);
                     status.current = "stopped";
-                    reload(true);
+                    loadUserDataAndStart(spamClient);
                     return;
                 }
 
                 showInfo("spamming");
 
-                console.debug("counters.current.id:", userData.current.id);
+                network == "localnet" && isLocalhost() && await sleep(333); // simulate latency
                 const resp = await spamClient.incrementUserCounter(userData.current.id)
                 console.debug("incrementUserCounter resp: ", resp);
-                await sleep(1000);
-                reload(false);
+                loadUserData(spamClient); // TODO do periodically, outside of this loop
             }
-        } catch(err) {
+        }
+        catch(err) {
             status.current = "stopped";
             const errStr = String(err);
             const errCode = parseSpamError(errStr);
             if (errCode === SpamError.EWrongEpoch) {
-                reload(true);
+                loadUserDataAndStart(spamClient);
             } else {
                 showInfo("ready to spam");
                 setError(errStr);
@@ -185,7 +189,7 @@ export const PageSpam: React.FC = () =>
             {isBootingUp
             ? <p>Loading...</p>
             : <>
-                <button className="btn" onClick={() => reload(true)}>SPAM</button>
+                <button className="btn" onClick={() => loadUserDataAndStart(spamClient)}>SPAM</button>
                 <button className="btn" onClick={() => status.current = "stop requested"}>STOP</button>
             </>
             }
