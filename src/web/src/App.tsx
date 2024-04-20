@@ -3,7 +3,7 @@ import {
     createNetworkConfig,
 } from "@mysten/dapp-kit";
 import { getFullnodeUrl } from "@mysten/sui.js/client";
-import { LinkExternal, Modal, NetworkSelector, loadNetwork } from "@polymedia/webutils";
+import { LinkExternal, Modal, NetworkSelector, isLocalhost, loadNetwork } from "@polymedia/webutils";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactNode, useState } from "react";
 import { BrowserRouter, Link, Outlet, Route, Routes, useLocation } from "react-router-dom";
@@ -45,7 +45,8 @@ const { networkConfig } = createNetworkConfig({
 
 const queryClient = new QueryClient();
 const AppSuiProviders: React.FC = () => {
-    const [network, setNetwork] = useState(loadNetwork(supportedNetworks, "mainnet"));
+    const defaultNetwork = isLocalhost() ? "localnet" : "mainnet";
+    const [network, setNetwork] = useState(loadNetwork(supportedNetworks, defaultNetwork));
     return (
     <QueryClientProvider client={queryClient}>
         <SuiClientProvider networks={networkConfig} network={network}>
