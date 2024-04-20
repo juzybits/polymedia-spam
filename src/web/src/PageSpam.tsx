@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
 import { ErrorBox } from "./components/ErrorBox";
+import { LinkToExplorerObj } from "@polymedia/webutils";
 
 type UserCounters = {
     current: UserCounter[],
@@ -119,6 +120,26 @@ export const PageSpam: React.FC = () =>
 
     /* HTML */
 
+    const CounterSection: React.FC<{
+        title: string;
+        counters: UserCounter[];
+    }> = ({
+        title,
+        counters
+    }) => (
+        <div>
+            <h3>{title}</h3>
+            {counters.map(counter => (
+                <p key={counter.id}>
+                    id: <LinkToExplorerObj network={network} objId={counter.id} /><br />
+                    epoch: {counter.epoch}<br />
+                    tx_count: {counter.tx_count}<br />
+                    registered: {counter.registered}<br />
+                </p>
+            ))}
+        </div>
+    );
+
     return <div id="page-content" >
         <h1>Spam</h1>
         <div>
@@ -127,9 +148,9 @@ export const PageSpam: React.FC = () =>
             {isLoading
             ? <p>Loading...</p>
             : <>
-                <p>Current counters: {counters.current.length}</p>
-                <p>Register counters: {counters.register.length}</p>
-                <p>Claim counters: {counters.claim.length}</p>
+                <CounterSection title="Current counters" counters={counters.current} />
+                <CounterSection title="Register counters" counters={counters.register} />
+                <CounterSection title="Claim counters" counters={counters.claim} />
             </>
             }
             <button className="btn" onClick={spam}>SPAM</button>
