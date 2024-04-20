@@ -34,63 +34,58 @@ export const PageSpam: React.FC = () =>
     /* Functions */
 
     useEffect(() => {
-        const initialize = async () =>
-        {
-            if (!wallet) {
-                navigate("/user");
-                return;
-            }
-
-            try {
-                setStatus("loading user key pair");
-                const parsedPair = decodeSuiPrivateKey(wallet.secretKey);
-                const keypair = Ed25519Keypair.fromSecretKey(parsedPair.secretKey);
-                const spamClient = new SpamClient(keypair, suiClient, network);
-                setSpamClient(spamClient);
-
-                await fetchUserCounters(spamClient);
-
-                setStatus("fetching user balance"); // TODO
-
-                setStatus("ready to spam");
-            } catch(err) {
-                setError(String(err));
-            }
-        };
-        initialize();
+        if (!wallet) {
+            navigate("/user");
+        } else {
+            reload();
+        }
     }, [wallet]);
 
-    const fetchUserCounters = async (
-        spamClient: SpamClient,
-    ) => {
-        setStatus("fetching Sui epoch");
-        const suiState = await suiClient.getLatestSuiSystemState();
-        const currEpoch = Number(suiState.epoch);
-
-        setStatus("fetching user counters");
-        const countersArray = await spamClient.fetchUserCounters();
-
-        const userCounters: UserCounters =  {
-            current: [],
-            register: [],
-            claim: [],
-        };
-
-        for (const counter of countersArray) {
-            if (counter.epoch === currEpoch) {
-                userCounters.current.push(counter);
-            }
-            else if (counter.epoch == currEpoch - 1) {
-                userCounters.register.push(counter);
-            }
-            else if (counter.epoch <= currEpoch - 2) {
-                userCounters.claim.push(counter);
-            }
-            else {
-                throw new Error("UserCounter.epoch is newer than network epoch");
-            }
+    const reload = async () => {
+        if (!wallet) {
+            return;
         }
-        setCounters(userCounters);
+        try {
+            setStatus("loading user key pair");
+            const parsedPair = decodeSuiPrivateKey(wallet.secretKey);
+            const keypair = Ed25519Keypair.fromSecretKey(parsedPair.secretKey);
+            const spamClient = new SpamClient(keypair, suiClient, network);
+            setSpamClient(spamClient);
+
+            setStatus("fetching user balance"); // TODO
+
+            setStatus("fetching Sui epoch");
+            const suiState = await suiClient.getLatestSuiSystemState();
+            const currEpoch = Number(suiState.epoch);
+
+            setStatus("fetching user counters");
+            const countersArray = await spamClient.fetchUserCounters();
+
+            const userCounters: UserCounters =  {
+                current: [],
+                register: [],
+                claim: [],
+            };
+
+            for (const counter of countersArray) {
+                if (counter.epoch === currEpoch) {
+                    userCounters.current.push(counter);
+                }
+                else if (counter.epoch == currEpoch - 1) {
+                    userCounters.register.push(counter);
+                }
+                else if (counter.epoch <= currEpoch - 2) {
+                    userCounters.claim.push(counter);
+                }
+                else {
+                    throw new Error("UserCounter.epoch is newer than network epoch");
+                }
+            }
+            setCounters(userCounters);
+            setStatus("ready to spam");
+        } catch(err) {
+            setError(String(err));
+        }
     }
 
     const spam = async() => {
@@ -112,8 +107,7 @@ export const PageSpam: React.FC = () =>
                 setStatus("creating user counter");
                 const resp = await spamClient.newUserCounter();
                 console.debug("newUserCounter resp: ", resp);
-                await fetchUserCounters(spamClient);
-                setStatus("ready to spam");
+                await reload();
                 return;
             }
 
@@ -129,8 +123,7 @@ export const PageSpam: React.FC = () =>
             const errStr = String(err);
             const errCode = parseSpamError(errStr);
             if (errCode === SpamError.EWrongEpoch) {
-                await fetchUserCounters(spamClient);
-                setStatus("ready to spam");
+                await reload();
             } else {
                 setError(errStr);
             }
