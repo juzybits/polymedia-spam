@@ -7,19 +7,6 @@ import { useNavigate, useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
 import { ErrorBox } from "./components/ErrorBox";
 
-type Status =
-    "booting up" |
-    "loading key pair" |
-    "fetching counters" |
-    "ready to spam" |
-    "fetching epoch" |
-    "processing counters" |
-    "claiming counters" |
-    "registering counters" |
-    "destroying duplicate counters" |
-    "creating counter" |
-    "spamming";
-
 type UserCounters = {
     current: UserCounter[],
     register: UserCounter[],
@@ -38,10 +25,10 @@ export const PageSpam: React.FC = () =>
 
     const [ spamClient, setSpamClient ] = useState<SpamClient>();
     const [ counters, setCounters ] = useState<UserCounters>();
-    const [ status, setStatus ] = useState<Status>("booting up");
+    const [ status, setStatus ] = useState<string>("booting up");
     const [ error, setError ] = useState<string|null>(null);
 
-    const isLoading = !spamClient || !counters;
+    const isLoading = !spamClient || !counters || status !== "ready to spam";
 
     /* Functions */
 
@@ -54,17 +41,19 @@ export const PageSpam: React.FC = () =>
             }
 
             try {
-                setStatus("loading key pair");
+                setStatus("loading user key pair");
                 const parsedPair = decodeSuiPrivateKey(wallet.secretKey);
                 const keypair = Ed25519Keypair.fromSecretKey(parsedPair.secretKey);
                 const spamClient = new SpamClient(keypair, suiClient, network);
                 setSpamClient(spamClient);
 
-                setStatus("fetching epoch");
+                setStatus("fetching Sui epoch");
                 const suiState = await suiClient.getLatestSuiSystemState();
                 const currEpoch = Number(suiState.epoch);
 
-                setStatus("fetching counters");
+                setStatus("fetching user balance"); // TODO
+
+                setStatus("fetching user counters");
                 const countersArray = await spamClient.fetchUserCounters(
                     keypair.toSuiAddress(),
                 );
@@ -99,21 +88,23 @@ export const PageSpam: React.FC = () =>
         initialize();
     }, [wallet]);
 
-    const spam = async() => { // TODO handle duplicates
-        if (status !== "ready to spam" || isLoading) {
+    const spam = async() => {
+        if (isLoading) {
             return;
         }
         try {
             if (counters.claim.length > 0) {
-                setStatus("claiming counters"); // TODO
+                setStatus("claiming user counters"); // TODO
             }
 
             if (counters.register.length > 0) {
-                setStatus("registering counters"); // TODO
+                setStatus("registering user counters"); // TODO
             }
 
+            setStatus("destroying duplicate user counters"); // TODO
+
             if (counters.current.length === 0) {
-                setStatus("creating counter");
+                setStatus("creating user counter");
                 const resp = await spamClient.newUserCounter();
                 console.debug("newUserCounter resp: ", resp); // TODO setCounters(), etc
             }
