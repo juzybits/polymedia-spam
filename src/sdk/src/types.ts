@@ -1,15 +1,15 @@
 export type Director = {
     id: string;
+    paused: boolean;
+    tx_count: number;
     treasury: string;
     epoch_counters: Map<number, string>;
-    tx_count: number;
-    paused: boolean;
 };
 
 export type EpochCounter = {
     epoch: number;
-    user_counts: Map<string, number>;
     tx_count: number;
+    user_counts: Map<string, number>;
 };
 
 export type UserCounter = {

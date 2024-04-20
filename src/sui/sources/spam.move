@@ -10,8 +10,9 @@ module spam::spam
 
     const EWrongEpoch: u64 = 100;
     const EDirectorIsPaused: u64 = 101;
-    const ECounterIsRegistered: u64 = 102;
-    const ECounterIsNotRegistered: u64 = 103;
+    const EUserIsRegistered: u64 = 102;
+    const EUserCounterIsRegistered: u64 = 104;
+    const EUserCounterIsNotRegistered: u64 = 103;
 
     // === Constants ===
 
@@ -28,18 +29,18 @@ module spam::spam
     /// Singleton shared object to coordinate state and to mint coins.
     public struct Director has key, store {
         id: UID,
+        paused: bool,
+        tx_count: u64,
         treasury: TreasuryCap<SPAM>,
         epoch_counters: Table<u64, EpochCounter>, // keys are epochs
-        tx_count: u64,
-        paused: bool,
     }
 
     /// Can only exist inside the Director.epoch_counters table.
     /// Tracks how many tx blocks each user completed in one epoch.
     public struct EpochCounter has store {
         epoch: u64,
-        user_counts: Table<address, u64>,
         tx_count: u64,
+        user_counts: Table<address, u64>,
     }
 
     /// Non transferable owned object tied to a user address.
@@ -93,15 +94,16 @@ module spam::spam
         user_counter: &mut UserCounter,
         ctx: &mut TxContext,
     ) {
+        assert!(director.paused == false, EDirectorIsPaused);
+        assert!(user_counter.registered == false, EUserCounterIsRegistered);
+
         let previous_epoch = epoch(ctx) - 1;
         assert!(user_counter.epoch == previous_epoch, EWrongEpoch);
-        assert!(director.paused == false, EDirectorIsPaused);
-        assert!(user_counter.registered == false, ECounterIsRegistered);
 
         let sender_addr = sender(ctx);
         let epoch_counter = get_or_create_epoch_counter(director, previous_epoch, ctx);
+        assert!(epoch_counter.user_counts.contains(sender_addr) == false, EUserIsRegistered);
 
-        // Note how this will abort if user tries to add more than 1 counter per epoch
         epoch_counter.user_counts.add(sender_addr, user_counter.tx_count);
         epoch_counter.tx_count = epoch_counter.tx_count + user_counter.tx_count;
         user_counter.registered = true;
@@ -117,7 +119,7 @@ module spam::spam
     ): Coin<SPAM> {
         let max_allowed_epoch = epoch(ctx) - 2;
         assert!(user_counter.epoch <= max_allowed_epoch, EWrongEpoch);
-        assert!(user_counter.registered == true, ECounterIsNotRegistered);
+        assert!(user_counter.registered == true, EUserCounterIsNotRegistered);
 
         let epoch_counter = director.epoch_counters.borrow_mut(user_counter.epoch);
         // we can safely remove the user from the EpochCounter because users
