@@ -137,7 +137,7 @@ export const PageSpam: React.FC = () =>
 
                 setInfo("spamming");
 
-                let currUserCounter = counters.current[0];
+                const currUserCounter = counters.current[0];
                 console.debug("currUserCounterId:", currUserCounter.id);
                 const resp = await spamClient.incrementUserCounter(currUserCounter.id)
                 console.debug("incrementUserCounter resp: ", resp);

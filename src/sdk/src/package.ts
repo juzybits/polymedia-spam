@@ -41,14 +41,14 @@ export function destroy_user_counter(
     });
 }
 
-export function register(
+export function register_user_counter(
     txb: TransactionBlock,
     packageId: string,
     directorId: string,
     userCounterId: string,
 ): TransactionResult {
     return txb.moveCall({
-        target: `${packageId}::spam::register`,
+        target: `${packageId}::spam::register_user_counter`,
         arguments: [
             txb.object(directorId),
             txb.object(userCounterId),
@@ -56,17 +56,17 @@ export function register(
     });
 }
 
-export function claim(
+export function claim_user_counter(
     txb: TransactionBlock,
     packageId: string,
     directorId: string,
-    epoch: number,
+    userCounterId: string,
 ): TransactionResult {
     return txb.moveCall({
-        target: `${packageId}::spam::claim`,
+        target: `${packageId}::spam::claim_user_counter`,
         arguments: [
             txb.object(directorId),
-            txb.pure(epoch),
+            txb.object(userCounterId),
         ],
     });
 }

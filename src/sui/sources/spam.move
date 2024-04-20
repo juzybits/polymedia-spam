@@ -89,7 +89,7 @@ module spam::spam
 
     /// Users can only register their counter during the 1st epoch after UserCounter.epoch.
     /// Users can only register one UserCounter per epoch.
-    public fun register(
+    public fun register_user_counter(
         director: &mut Director,
         user_counter: &mut UserCounter,
         ctx: &mut TxContext,
@@ -112,7 +112,7 @@ module spam::spam
     /// Users can only claim their rewards from the 2nd epoch after UserCounter.epoch.
     /// User rewards are proportional to their share of completed txs in the epoch.
     /// Director.paused is not checked here so users can always claim past rewards.
-    public fun claim(
+    public fun claim_user_counter(
         director: &mut Director,
         user_counter: UserCounter,
         ctx: &mut TxContext,

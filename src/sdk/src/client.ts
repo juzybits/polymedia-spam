@@ -3,7 +3,13 @@ import { Signer } from "@mysten/sui.js/cryptography";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { NetworkName, getSuiObjectResponseFields } from "@polymedia/suits";
 import { SPAM_IDS } from "./config";
-import { increment_user_counter, new_user_counter } from "./package";
+import {
+    claim_user_counter,
+    destroy_user_counter,
+    increment_user_counter,
+    new_user_counter,
+    register_user_counter,
+} from "./package";
 import { UserCounter } from "./types";
 
 export class SpamClient
@@ -11,7 +17,7 @@ export class SpamClient
     private signer: Signer;
     private suiClient: SuiClient;
     private packageId: string;
-    // private directorId: string;
+    private directorId: string;
 
     constructor(
         keypair: Signer,
@@ -22,7 +28,7 @@ export class SpamClient
         this.signer = keypair;
         this.suiClient = suiClient,
         this.packageId = spamIds.packageId;
-        // this.directorId = spamIds.directorId;
+        this.directorId = spamIds.directorId;
     }
 
     public async fetchUserCounters(
@@ -52,6 +58,35 @@ export class SpamClient
     {
         const txb = new TransactionBlock();
         increment_user_counter(txb, this.packageId, userCounterId);
+        return this.signAndExecute(txb);
+    }
+
+    public async destroyUserCounters(
+        userCounterIds: string[],
+    ): Promise<SuiTransactionBlockResponse>
+    {
+        const txb = new TransactionBlock();
+        for (const counterId of userCounterIds) {
+            destroy_user_counter(txb, this.packageId, counterId);
+        }
+        return this.signAndExecute(txb);
+    }
+
+    public async registerUserCounter(
+        userCounterId: string,
+    ): Promise<SuiTransactionBlockResponse>
+    {
+        const txb = new TransactionBlock();
+        register_user_counter(txb, this.packageId, this.directorId, userCounterId);
+        return this.signAndExecute(txb);
+    }
+
+    public async claimUserCounter(
+        userCounterId: string,
+    ): Promise<SuiTransactionBlockResponse>
+    {
+        const txb = new TransactionBlock();
+        claim_user_counter(txb, this.packageId, this.directorId, userCounterId);
         return this.signAndExecute(txb);
     }
 
