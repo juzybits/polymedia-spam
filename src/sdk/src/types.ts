@@ -19,7 +19,8 @@ export type UserCounter = {
     registered: boolean;
 };
 
-export type UserCounters = {
+export type UserData = {
+    epoch: number,
     current: UserCounter|null,
     register: UserCounter|null,
     claim: UserCounter[],

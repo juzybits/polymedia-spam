@@ -10,7 +10,7 @@ import {
     new_user_counter,
     register_user_counter,
 } from "./package";
-import { UserCounter, UserCounters } from "./types";
+import { UserCounter, UserData } from "./types";
 
 export class SpamClient
 {
@@ -32,7 +32,7 @@ export class SpamClient
     }
 
     public async fetchUserCounters(
-    ): Promise<UserCounters>
+    ): Promise<UserCounter[]>
     {
         // fetch user counters
         const StructType = `${this.packageId}::spam::UserCounter`;
@@ -42,14 +42,21 @@ export class SpamClient
             options: { showContent: true },
             filter: { StructType },
         });
-        const userCountersArray = pageObjResp.data.map(objResp => parseUserCounter(objResp));
+        return pageObjResp.data.map(objResp => parseUserCounter(objResp));
+    }
+
+    public async fetchUserData(
+    ): Promise<UserData>
+    {
+        const userCountersArray = await this.fetchUserCounters();
 
         // fetch Sui epoch
         const suiState = await this.suiClient.getLatestSuiSystemState();
         const currEpoch = Number(suiState.epoch);
 
         // categorize user counters
-        const userCounters: UserCounters =  {
+        const userCounters: UserData =  {
+            epoch: currEpoch,
             current: null,
             register: null,
             claim: [],
