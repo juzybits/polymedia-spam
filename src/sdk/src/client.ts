@@ -31,6 +31,14 @@ export class SpamClient
         this.directorId = spamIds.directorId;
     }
 
+    public getSignerAddress(): string {
+        return this.signer.toSuiAddress();
+    }
+
+    public getSpamType(): string {
+        return `${this.packageId}::spam::SPAM`;
+    }
+
     public async fetchUserCounters(
     ): Promise<UserCounter[]>
     {
@@ -38,7 +46,7 @@ export class SpamClient
         const StructType = `${this.packageId}::spam::UserCounter`;
         const pageObjResp = await this.suiClient.getOwnedObjects({
             owner: this.signer.toSuiAddress(),
-            cursor: null, // TODO handle pagination
+            cursor: null, // TODO handle pagination (unlikely to ever be needed)
             options: { showContent: true },
             filter: { StructType },
         });
@@ -60,7 +68,7 @@ export class SpamClient
             current: null,
             register: null,
             claim: [],
-            delete: [], // TODO
+            delete: [],
         };
         for (const counter of userCountersArray) {
             if (counter.epoch === currEpoch) {

@@ -2,7 +2,7 @@ import { useSuiClient } from "@mysten/dapp-kit";
 import { decodeSuiPrivateKey } from "@mysten/sui.js/cryptography";
 import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
 import { SpamClient, SpamError, UserCounter, UserData, parseSpamError } from "@polymedia/spam-sdk";
-import { shortenSuiAddress, sleep } from "@polymedia/suits";
+import { convertBigIntToNumber, formatNumber, shortenSuiAddress, sleep } from "@polymedia/suits";
 import { LinkToExplorerObj, isLocalhost } from "@polymedia/webutils";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
@@ -11,6 +11,11 @@ import { ErrorBox } from "./components/ErrorBox";
 import { Wallet } from "./lib/storage";
 
 type Status = "stopped" | "running" | "stop requested";
+
+type UserBalances = {
+    spam: number,
+    sui: number,
+};
 
 export const PageSpam: React.FC = () =>
 {
@@ -24,11 +29,12 @@ export const PageSpam: React.FC = () =>
 
     const [ spamClient, setSpamClient ] = useState<SpamClient>();
     const [ userData, setUserData ] = useState<UserData>();
+    const [ userBalances, setUserBalances ] = useState<UserBalances>({ spam: 0, sui: 0 });
     const status = useRef<Status>("stopped");
     const [ info, setInfo ] = useState<string>("booting up");
     const [ error, setError ] = useState<string|null>(null);
 
-    const isBootingUp = !spamClient || !userData;
+    const isBootingUp = !spamClient || !userData || !userBalances;
 
     /* Functions */
 
@@ -68,11 +74,23 @@ export const PageSpam: React.FC = () =>
     };
 
     const loadUserData = async (spamClient: SpamClient): Promise<UserData> => {
-        // fetch user balance TODO
+        // fetch user balances
+        const balanceSui = await suiClient.getBalance({
+            owner: spamClient.getSignerAddress(),
+        });
+        const balanceSpam = await suiClient.getBalance({
+            owner: spamClient.getSignerAddress(),
+            coinType: spamClient.getSpamType(),
+        });
+        setUserBalances({
+            spam: convertBigIntToNumber(BigInt(balanceSpam.totalBalance), 0),
+            sui: convertBigIntToNumber(BigInt(balanceSui.totalBalance), 9),
+        });
 
         // fetch user counters
         const userData = await spamClient.fetchUserData();
         setUserData(userData);
+
         return userData;
     }
 
@@ -185,6 +203,9 @@ export const PageSpam: React.FC = () =>
                 <p>Status: {status.current}</p>
                 <p>Info: {info}</p>
                 <p>Epoch: {userData?.epoch}</p>
+                <p>Your balances:</p>
+                <p>{formatNumber(userBalances.spam, "compact")} SPAM</p>
+                <p>{formatNumber(userBalances.sui, "compact")} SUI</p>
             </div>
             {isBootingUp
             ? <p>Loading...</p>
