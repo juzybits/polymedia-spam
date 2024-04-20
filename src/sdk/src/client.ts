@@ -43,9 +43,24 @@ export class SpamClient
     ): Promise<SuiTransactionBlockResponse>
     {
         const txb = new TransactionBlock();
-        txb.setSender(this.signer.toSuiAddress());
-
         new_user_counter(txb, this.packageId);
+        return this.signAndExecute(txb);
+    }
+
+    public async incrementUserCounter(
+        userCounterId: string,
+    ): Promise<SuiTransactionBlockResponse>
+    {
+        const txb = new TransactionBlock();
+        increment_user_counter(txb, this.packageId, userCounterId);
+        return this.signAndExecute(txb);
+    }
+
+    private async signAndExecute(
+        txb: TransactionBlock,
+    ): Promise<SuiTransactionBlockResponse>
+    {
+        txb.setSender(this.signer.toSuiAddress());
 
         const { bytes, signature } = await txb.sign({
             signer: this.signer,
@@ -56,27 +71,6 @@ export class SpamClient
             signature,
             transactionBlock: bytes,
             options: { showEffects: true },
-        });
-    }
-
-    public async incrementUserCounter(
-        userCounterId: string,
-    ): Promise<SuiTransactionBlockResponse>
-    {
-        const txb = new TransactionBlock();
-        txb.setSender(this.signer.toSuiAddress());
-
-        increment_user_counter(txb, this.packageId, userCounterId);
-
-        const { bytes, signature } = await txb.sign({
-            signer: this.signer,
-            client: this.suiClient,
-        });
-
-        return await this.suiClient.executeTransactionBlock({
-            signature,
-            transactionBlock: bytes,
-            options: { showEffects: true, showObjectChanges: true },
         });
     }
 }
