@@ -2,7 +2,7 @@ import { useSuiClient } from "@mysten/dapp-kit";
 import { decodeSuiPrivateKey } from "@mysten/sui.js/cryptography";
 import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
 import { SpamClient, SpamError, UserCounter, UserCounters, parseSpamError } from "@polymedia/spam-sdk";
-import { sleep } from "@polymedia/suits";
+import { shortenSuiAddress, sleep } from "@polymedia/suits";
 import { LinkToExplorerObj } from "@polymedia/webutils";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
@@ -36,12 +36,17 @@ export const PageSpam: React.FC = () =>
             navigate("/user");
         } else {
             (async () => {
-                setInfo("booting up");
+                showInfo("booting up");
                 await reload(false);
-                setInfo("ready to spam");
+                showInfo("ready to spam");
             })();
         }
     }, [wallet]);
+
+    const showInfo = (msg: string) => {
+        setInfo(msg);
+        console.info(msg);
+    };
 
     const reload = async (start: boolean) => {
         if (!wallet) {
@@ -82,22 +87,35 @@ export const PageSpam: React.FC = () =>
                 // @ts-expect-error "This comparison appears to be unintentional"
                 if (status.current === "stop requested") {
                     status.current = "stopped";
-                    setInfo("ready to spam");
+                    showInfo("ready to spam");
                     return;
                 }
 
+                if (counters.register !== null && !counters.register.registered) {
+                    showInfo("registering counter: " + shortenSuiAddress(counters.register.id));
+                    const resp = await spamClient.registerUserCounter(counters.register.id);
+                    counters.register.registered = true;
+                    console.debug("registerUserCounter resp: ", resp);
+                }
+
                 if (counters.claim.length > 0) {
-                    setInfo("claiming user counters"); // TODO
+                    showInfo("claiming counters: " + counters.claim.map(c => shortenSuiAddress(c.id)).join(", "));
+                    const counterIds = counters.claim.map(counter => counter.id);
+                    const resp = await spamClient.claimUserCounters(counterIds);
+                    counters.claim = [];
+                    console.debug("destroyUserCounters resp: ", resp);
                 }
 
-                if (counters.register !== null) {
-                    setInfo("registering user counter"); // TODO
+                if (counters.delete.length > 0) {
+                    showInfo("deleting counters: " + counters.delete.map(c => shortenSuiAddress(c.id)).join(", "));
+                    const counterIds = counters.delete.map(counter => counter.id);
+                    const resp = await spamClient.destroyUserCounters(counterIds);
+                    counters.delete = [];
+                    console.debug("destroyUserCounters resp: ", resp);
                 }
-
-                setInfo("destroying duplicate user counters"); // TODO
 
                 if (counters.current === null) {
-                    setInfo("creating user counter");
+                    showInfo("creating counter");
                     const resp = await spamClient.newUserCounter();
                     console.debug("newUserCounter resp: ", resp);
                     status.current = "stopped";
@@ -105,9 +123,9 @@ export const PageSpam: React.FC = () =>
                     return;
                 }
 
-                setInfo("spamming");
+                showInfo("spamming");
 
-                console.debug("currUserCounterId:", counters.current.id);
+                console.debug("counters.current.id:", counters.current.id);
                 const resp = await spamClient.incrementUserCounter(counters.current.id)
                 console.debug("incrementUserCounter resp: ", resp);
                 await sleep(1000);
@@ -120,7 +138,7 @@ export const PageSpam: React.FC = () =>
             if (errCode === SpamError.EWrongEpoch) {
                 reload(true);
             } else {
-                setInfo("ready to spam");
+                showInfo("ready to spam");
                 setError(errStr);
             }
         }
@@ -142,7 +160,7 @@ export const PageSpam: React.FC = () =>
                     id: <LinkToExplorerObj network={network} objId={counter.id} /><br />
                     epoch: {counter.epoch}<br />
                     tx_count: {counter.tx_count}<br />
-                    registered: {counter.registered}<br />
+                    registered: {counter.registered ? "true" : "false"}<br />
                 </p>
             ))}
         </div>
@@ -166,6 +184,7 @@ export const PageSpam: React.FC = () =>
                 <CounterSection title="Current counter" counters={counters.current ? [counters.current] : []} />
                 <CounterSection title="Register counters" counters={counters.register ? [counters.register] : []} />
                 <CounterSection title="Claim counters" counters={counters.claim} />
+                <CounterSection title="Delete counters" counters={counters.delete} />
             </>}
         </div>
     </div>;

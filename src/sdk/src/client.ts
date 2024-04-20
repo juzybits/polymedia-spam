@@ -139,12 +139,15 @@ export class SpamClient
         return this.signAndExecute(txb);
     }
 
-    public async claimUserCounter(
-        userCounterId: string,
+    public async claimUserCounters(
+        userCounterIds: string[],
     ): Promise<SuiTransactionBlockResponse>
     {
         const txb = new TransactionBlock();
-        claim_user_counter(txb, this.packageId, this.directorId, userCounterId);
+        for (const counterId of userCounterIds) {
+            const [coin] = claim_user_counter(txb, this.packageId, this.directorId, counterId);
+            txb.transferObjects([coin], this.signer.toSuiAddress());
+        }
         return this.signAndExecute(txb);
     }
 
