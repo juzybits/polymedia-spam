@@ -7,6 +7,7 @@ import { useNavigate, useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
 import { ErrorBox } from "./components/ErrorBox";
 import { LinkToExplorerObj } from "@polymedia/webutils";
+import { sleep } from "@polymedia/suits";
 
 type UserCounters = {
     current: UserCounter[],
@@ -37,11 +38,11 @@ export const PageSpam: React.FC = () =>
         if (!wallet) {
             navigate("/user");
         } else {
-            reload();
+            reload(false);
         }
     }, [wallet]);
 
-    const reload = async () => {
+    const reload = async (start: boolean) => {
         if (!wallet) {
             return;
         }
@@ -83,47 +84,55 @@ export const PageSpam: React.FC = () =>
             }
             setCounters(userCounters);
             setStatus("ready to spam");
+            if (start) {
+                spam(userCounters);
+            }
         } catch(err) {
             setError(String(err));
         }
     }
 
-    const spam = async() => {
+    const spam = async(
+        counters: UserCounters,
+    ) => {
         if (isLoading) {
             return;
         }
         try {
-            if (counters.claim.length > 0) {
-                setStatus("claiming user counters"); // TODO
+            while (true) {
+                if (counters.claim.length > 0) {
+                    setStatus("claiming user counters"); // TODO
+                }
+
+                if (counters.register.length > 0) {
+                    setStatus("registering user counters"); // TODO
+                }
+
+                setStatus("destroying duplicate user counters"); // TODO
+
+                setStatus("ready to spam");
+
+                if (counters.current.length === 0) {
+                    setStatus("creating user counter");
+                    const resp = await spamClient.newUserCounter();
+                    console.debug("newUserCounter resp: ", resp);
+                    await reload(true);
+                    return;
+                }
+
+                let currUserCounter = counters.current[0];
+                console.debug("currUserCounterId:", currUserCounter.id);
+                const resp = await spamClient.incrementUserCounter(currUserCounter.id)
+                currUserCounter.tx_count += 1; // hack for now
+                console.debug("incrementUserCounter resp: ", resp);
+                await sleep(1000);
+                reload(false);
             }
-
-            if (counters.register.length > 0) {
-                setStatus("registering user counters"); // TODO
-            }
-
-            setStatus("destroying duplicate user counters"); // TODO
-
-            if (counters.current.length === 0) {
-                setStatus("creating user counter");
-                const resp = await spamClient.newUserCounter();
-                console.debug("newUserCounter resp: ", resp);
-                await reload();
-                return;
-            }
-
-            setStatus("spamming"); // TODO loop
-            let currUserCounter = counters.current[0];
-            console.debug("currUserCounterId:", currUserCounter.id);
-            const resp = await spamClient.incrementUserCounter(currUserCounter.id)
-            currUserCounter.tx_count += 1; // hack for now
-            console.debug("incrementUserCounter resp: ", resp);
-
-            setStatus("ready to spam");
         } catch(err) {
             const errStr = String(err);
             const errCode = parseSpamError(errStr);
             if (errCode === SpamError.EWrongEpoch) {
-                await reload();
+                await reload(true);
             } else {
                 setError(errStr);
             }
@@ -160,7 +169,7 @@ export const PageSpam: React.FC = () =>
             {isLoading
             ? <p>Loading...</p>
             : <>
-                <button className="btn" onClick={spam}>SPAM</button>
+                <button className="btn" onClick={() => reload(true)}>SPAM</button>
                 <CounterSection title="Current counters" counters={counters.current} />
                 <CounterSection title="Register counters" counters={counters.register} />
                 <CounterSection title="Claim counters" counters={counters.claim} />
