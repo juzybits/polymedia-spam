@@ -90,13 +90,13 @@ export const PageSpam: React.FC = () =>
                     setInfo("claiming user counters"); // TODO
                 }
 
-                if (counters.register.length > 0) {
-                    setInfo("registering user counters"); // TODO
+                if (counters.register !== null) {
+                    setInfo("registering user counter"); // TODO
                 }
 
                 setInfo("destroying duplicate user counters"); // TODO
 
-                if (counters.current.length === 0) {
+                if (counters.current === null) {
                     setInfo("creating user counter");
                     const resp = await spamClient.newUserCounter();
                     console.debug("newUserCounter resp: ", resp);
@@ -107,9 +107,8 @@ export const PageSpam: React.FC = () =>
 
                 setInfo("spamming");
 
-                const currUserCounter = counters.current[0];
-                console.debug("currUserCounterId:", currUserCounter.id);
-                const resp = await spamClient.incrementUserCounter(currUserCounter.id)
+                console.debug("currUserCounterId:", counters.current.id);
+                const resp = await spamClient.incrementUserCounter(counters.current.id)
                 console.debug("incrementUserCounter resp: ", resp);
                 await sleep(1000);
                 reload(false);
@@ -164,8 +163,8 @@ export const PageSpam: React.FC = () =>
             }
             {counters &&
             <>
-                <CounterSection title="Current counters" counters={counters.current} />
-                <CounterSection title="Register counters" counters={counters.register} />
+                <CounterSection title="Current counter" counters={counters.current ? [counters.current] : []} />
+                <CounterSection title="Register counters" counters={counters.register ? [counters.register] : []} />
                 <CounterSection title="Claim counters" counters={counters.claim} />
             </>}
         </div>

@@ -50,20 +50,49 @@ export class SpamClient
 
         // categorize user counters
         const userCounters: UserCounters =  {
-            current: [],
-            register: [],
+            current: null,
+            register: null,
             claim: [],
             delete: [], // TODO
         };
         for (const counter of userCountersArray) {
             if (counter.epoch === currEpoch) {
-                userCounters.current.push(counter);
+                if (!userCounters.current) {
+                    userCounters.current = counter;
+                } else {
+                    // delete counter with lower tx_count
+                    if (counter.tx_count > userCounters.current.tx_count) {
+                        userCounters.delete.push(userCounters.current);
+                        userCounters.current = counter;
+                    } else {
+                        userCounters.delete.push(counter);
+                    }
+                }
             }
             else if (counter.epoch == currEpoch - 1) {
-                userCounters.register.push(counter);
+                if (!userCounters.register) {
+                    userCounters.register = counter;
+                } else if (counter.registered) {
+                    // delete unregistered counter
+                    userCounters.delete.push(userCounters.register);
+                    userCounters.register = counter;
+                } else {
+                    // delete counter with lower tx_count
+                    if (counter.tx_count > userCounters.register.tx_count) {
+                        userCounters.delete.push(userCounters.register);
+                        userCounters.register = counter;
+                    } else {
+                        userCounters.delete.push(counter);
+                    }
+                }
             }
             else if (counter.epoch <= currEpoch - 2) {
-                userCounters.claim.push(counter);
+                if (counter.registered) {
+                    userCounters.claim.push(counter);
+                } else {
+                    // delete unclaimable counters
+                    userCounters.delete.push(counter);
+                }
             }
             else {
                 throw new Error("UserCounter.epoch is newer than network epoch");

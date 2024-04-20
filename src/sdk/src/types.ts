@@ -20,8 +20,8 @@ export type UserCounter = {
 };
 
 export type UserCounters = {
-    current: UserCounter[],
-    register: UserCounter[],
+    current: UserCounter|null,
+    register: UserCounter|null,
     claim: UserCounter[],
     delete: UserCounter[],
 }
