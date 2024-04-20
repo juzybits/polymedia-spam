@@ -21,8 +21,14 @@ export type UserCounter = {
 
 export type UserData = {
     epoch: number,
-    current: UserCounter|null,
-    register: UserCounter|null,
-    claim: UserCounter[],
-    delete: UserCounter[],
+    balances: {
+        spam: number;
+        sui: number;
+    };
+    counters: {
+        current: UserCounter|null,
+        register: UserCounter|null,
+        claim: UserCounter[],
+        delete: UserCounter[],
+    };
 }

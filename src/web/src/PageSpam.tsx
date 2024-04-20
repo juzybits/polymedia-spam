@@ -2,7 +2,7 @@ import { useSuiClient } from "@mysten/dapp-kit";
 import { decodeSuiPrivateKey } from "@mysten/sui.js/cryptography";
 import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
 import { SpamClient, SpamError, UserCounter, UserData, parseSpamError } from "@polymedia/spam-sdk";
-import { convertBigIntToNumber, formatNumber, shortenSuiAddress, sleep } from "@polymedia/suits";
+import { formatNumber, shortenSuiAddress, sleep } from "@polymedia/suits";
 import { LinkToExplorerObj, isLocalhost } from "@polymedia/webutils";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
@@ -11,11 +11,6 @@ import { ErrorBox } from "./components/ErrorBox";
 import { Wallet } from "./lib/storage";
 
 type Status = "stopped" | "running" | "stop requested";
-
-type UserBalances = {
-    spam: number,
-    sui: number,
-};
 
 export const PageSpam: React.FC = () =>
 {
@@ -29,12 +24,11 @@ export const PageSpam: React.FC = () =>
 
     const [ spamClient, setSpamClient ] = useState<SpamClient>();
     const [ userData, setUserData ] = useState<UserData>();
-    const [ userBalances, setUserBalances ] = useState<UserBalances>({ spam: 0, sui: 0 });
     const status = useRef<Status>("stopped");
     const [ info, setInfo ] = useState<string>("booting up");
     const [ error, setError ] = useState<string|null>(null);
 
-    const isBootingUp = !spamClient || !userData || !userBalances;
+    const isBootingUp = !spamClient || !userData;
 
     /* Functions */
 
@@ -74,27 +68,12 @@ export const PageSpam: React.FC = () =>
     };
 
     const loadUserData = async (spamClient: SpamClient): Promise<UserData> => {
-        // fetch user balances
-        const balanceSui = await suiClient.getBalance({
-            owner: spamClient.getSignerAddress(),
-        });
-        const balanceSpam = await suiClient.getBalance({
-            owner: spamClient.getSignerAddress(),
-            coinType: spamClient.getSpamType(),
-        });
-        setUserBalances({
-            spam: convertBigIntToNumber(BigInt(balanceSpam.totalBalance), 0),
-            sui: convertBigIntToNumber(BigInt(balanceSui.totalBalance), 9),
-        });
-
-        // fetch user counters
         const userData = await spamClient.fetchUserData();
         setUserData(userData);
-
         return userData;
     }
 
-    const loadUserDataAndStart = async (spamClient: SpamClient) => {
+    const loadUserDataAndSpam = async (spamClient: SpamClient) => {
         const userData = await loadUserData(spamClient);
         spam(userData);
     }
@@ -117,42 +96,44 @@ export const PageSpam: React.FC = () =>
                     return;
                 }
 
-                if (userData.register !== null && !userData.register.registered) {
-                    showInfo("registering counter: " + shortenSuiAddress(userData.register.id));
-                    const resp = await spamClient.registerUserCounter(userData.register.id);
-                    userData.register.registered = true;
+                const counters = userData.counters;
+
+                if (counters.register !== null && !counters.register.registered) {
+                    showInfo("registering counter: " + shortenSuiAddress(counters.register.id));
+                    const resp = await spamClient.registerUserCounter(counters.register.id);
+                    counters.register.registered = true;
                     console.debug("registerUserCounter resp: ", resp);
                 }
 
-                if (userData.claim.length > 0) {
-                    showInfo("claiming counters: " + userData.claim.map(c => shortenSuiAddress(c.id)).join(", "));
-                    const counterIds = userData.claim.map(counter => counter.id);
+                if (counters.claim.length > 0) {
+                    showInfo("claiming counters: " + counters.claim.map(c => shortenSuiAddress(c.id)).join(", "));
+                    const counterIds = counters.claim.map(counter => counter.id);
                     const resp = await spamClient.claimUserCounters(counterIds);
-                    userData.claim = [];
+                    counters.claim = [];
                     console.debug("destroyUserCounters resp: ", resp);
                 }
 
-                if (userData.delete.length > 0) {
-                    showInfo("deleting counters: " + userData.delete.map(c => shortenSuiAddress(c.id)).join(", "));
-                    const counterIds = userData.delete.map(counter => counter.id);
+                if (counters.delete.length > 0) {
+                    showInfo("deleting counters: " + counters.delete.map(c => shortenSuiAddress(c.id)).join(", "));
+                    const counterIds = counters.delete.map(counter => counter.id);
                     const resp = await spamClient.destroyUserCounters(counterIds);
-                    userData.delete = [];
+                    counters.delete = [];
                     console.debug("destroyUserCounters resp: ", resp);
                 }
 
-                if (userData.current === null) {
+                if (counters.current === null) {
                     showInfo("creating counter");
                     const resp = await spamClient.newUserCounter();
                     console.debug("newUserCounter resp: ", resp);
                     status.current = "stopped";
-                    loadUserDataAndStart(spamClient);
+                    loadUserDataAndSpam(spamClient);
                     return;
                 }
 
                 showInfo("spamming");
 
                 network == "localnet" && isLocalhost() && await sleep(333); // simulate latency
-                const resp = await spamClient.incrementUserCounter(userData.current.id)
+                const resp = await spamClient.incrementUserCounter(counters.current.id)
                 console.debug("incrementUserCounter resp: ", resp);
                 loadUserData(spamClient); // TODO do periodically, outside of this loop
             }
@@ -162,7 +143,7 @@ export const PageSpam: React.FC = () =>
             const errStr = String(err);
             const errCode = parseSpamError(errStr);
             if (errCode === SpamError.EWrongEpoch) {
-                loadUserDataAndStart(spamClient);
+                loadUserDataAndSpam(spamClient);
             } else {
                 showInfo("ready to spam");
                 setError(errStr);
@@ -195,6 +176,9 @@ export const PageSpam: React.FC = () =>
         </div>
     );
 
+    const balances = userData?.balances;
+    const counters = userData?.counters;
+
     return <div id="page-content" >
         <h1>Spam</h1>
         <div>
@@ -203,23 +187,25 @@ export const PageSpam: React.FC = () =>
                 <p>Status: {status.current}</p>
                 <p>Info: {info}</p>
                 <p>Epoch: {userData?.epoch}</p>
+                {balances && <>
                 <p>Your balances:</p>
-                <p>{formatNumber(userBalances.spam, "compact")} SPAM</p>
-                <p>{formatNumber(userBalances.sui, "compact")} SUI</p>
+                <p>{formatNumber(balances.spam, "compact")} SPAM</p>
+                <p>{formatNumber(balances.sui, "compact")} SUI</p>
+                </>}
             </div>
             {isBootingUp
             ? <p>Loading...</p>
             : <>
-                <button className="btn" onClick={() => loadUserDataAndStart(spamClient)}>SPAM</button>
+                <button className="btn" onClick={() => loadUserDataAndSpam(spamClient)}>SPAM</button>
                 <button className="btn" onClick={() => status.current = "stop requested"}>STOP</button>
             </>
             }
-            {userData &&
+            {counters &&
             <>
-                <CounterSection title="Current counter" counters={userData.current ? [userData.current] : []} />
-                <CounterSection title="Registered counters" counters={userData.register ? [userData.register] : []} />
-                <CounterSection title="Claimable counters" counters={userData.claim} />
-                <CounterSection title="Deletable counters" counters={userData.delete} />
+                <CounterSection title="Current counter" counters={counters.current ? [counters.current] : []} />
+                <CounterSection title="Registered counters" counters={counters.register ? [counters.register] : []} />
+                <CounterSection title="Claimable counters" counters={counters.claim} />
+                <CounterSection title="Deletable counters" counters={counters.delete} />
             </>}
         </div>
     </div>;

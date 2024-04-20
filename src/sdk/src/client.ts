@@ -1,7 +1,7 @@
 import { SuiClient, SuiObjectResponse, SuiTransactionBlockResponse } from "@mysten/sui.js/client";
 import { Signer } from "@mysten/sui.js/cryptography";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
-import { NetworkName, getSuiObjectResponseFields } from "@polymedia/suits";
+import { NetworkName, convertBigIntToNumber, getSuiObjectResponseFields } from "@polymedia/suits";
 import { SPAM_IDS } from "./config";
 import {
     claim_user_counter,
@@ -31,14 +31,6 @@ export class SpamClient
         this.directorId = spamIds.directorId;
     }
 
-    public getSignerAddress(): string {
-        return this.signer.toSuiAddress();
-    }
-
-    public getSpamType(): string {
-        return `${this.packageId}::spam::SPAM`;
-    }
-
     public async fetchUserCounters(
     ): Promise<UserCounter[]>
     {
@@ -56,6 +48,20 @@ export class SpamClient
     public async fetchUserData(
     ): Promise<UserData>
     {
+        // fetch user balances
+        const balanceSui = await this.suiClient.getBalance({
+            owner: this.signer.toSuiAddress(),
+        });
+        const balanceSpam = await this.suiClient.getBalance({
+            owner: this.signer.toSuiAddress(),
+            coinType: `${this.packageId}::spam::SPAM`,
+        });
+        const balances: UserData["balances"] = {
+            spam: convertBigIntToNumber(BigInt(balanceSpam.totalBalance), 0),
+            sui: convertBigIntToNumber(BigInt(balanceSui.totalBalance), 9),
+        };
+
+        // fetch user counters
         const userCountersArray = await this.fetchUserCounters();
 
         // fetch Sui epoch
@@ -63,8 +69,7 @@ export class SpamClient
         const currEpoch = Number(suiState.epoch);
 
         // categorize user counters
-        const userCounters: UserData =  {
-            epoch: currEpoch,
+        const counters: UserData["counters"] = {
             current: null,
             register: null,
             claim: [],
@@ -72,41 +77,41 @@ export class SpamClient
         };
         for (const counter of userCountersArray) {
             if (counter.epoch === currEpoch) {
-                if (!userCounters.current) {
-                    userCounters.current = counter;
+                if (!counters.current) {
+                    counters.current = counter;
                 } else {
                     // delete counter with lower tx_count
-                    if (counter.tx_count > userCounters.current.tx_count) {
-                        userCounters.delete.push(userCounters.current);
-                        userCounters.current = counter;
+                    if (counter.tx_count > counters.current.tx_count) {
+                        counters.delete.push(counters.current);
+                        counters.current = counter;
                     } else {
-                        userCounters.delete.push(counter);
+                        counters.delete.push(counter);
                     }
                 }
             }
             else if (counter.epoch == currEpoch - 1) {
-                if (!userCounters.register) {
-                    userCounters.register = counter;
+                if (!counters.register) {
+                    counters.register = counter;
                 } else if (counter.registered) {
                     // delete unregistered counter
-                    userCounters.delete.push(userCounters.register);
-                    userCounters.register = counter;
+                    counters.delete.push(counters.register);
+                    counters.register = counter;
                 } else {
                     // delete counter with lower tx_count
-                    if (counter.tx_count > userCounters.register.tx_count) {
-                        userCounters.delete.push(userCounters.register);
-                        userCounters.register = counter;
+                    if (counter.tx_count > counters.register.tx_count) {
+                        counters.delete.push(counters.register);
+                        counters.register = counter;
                     } else {
-                        userCounters.delete.push(counter);
+                        counters.delete.push(counter);
                     }
                 }
             }
             else if (counter.epoch <= currEpoch - 2) {
                 if (counter.registered) {
-                    userCounters.claim.push(counter);
+                    counters.claim.push(counter);
                 } else {
                     // delete unclaimable counters
-                    userCounters.delete.push(counter);
+                    counters.delete.push(counter);
                 }
             }
             else {
@@ -114,7 +119,12 @@ export class SpamClient
             }
         }
 
-        return userCounters;
+        // assemble and return UserData
+        return {
+            epoch: currEpoch,
+            balances,
+            counters,
+        };
     }
 
     public async newUserCounter(
