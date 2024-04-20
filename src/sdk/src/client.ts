@@ -10,7 +10,7 @@ import {
     new_user_counter,
     register_user_counter,
 } from "./package";
-import { UserCounter } from "./types";
+import { UserCounter, UserCounters } from "./types";
 
 export class SpamClient
 {
@@ -32,8 +32,9 @@ export class SpamClient
     }
 
     public async fetchUserCounters(
-    ): Promise<UserCounter[]>
+    ): Promise<UserCounters>
     {
+        // fetch user counters
         const StructType = `${this.packageId}::spam::UserCounter`;
         const pageObjResp = await this.suiClient.getOwnedObjects({
             owner: this.signer.toSuiAddress(),
@@ -41,7 +42,35 @@ export class SpamClient
             options: { showContent: true },
             filter: { StructType },
         });
-        return pageObjResp.data.map(objResp => parseUserCounter(objResp));
+        const userCountersArray = pageObjResp.data.map(objResp => parseUserCounter(objResp));
+
+        // fetch Sui epoch
+        const suiState = await this.suiClient.getLatestSuiSystemState();
+        const currEpoch = Number(suiState.epoch);
+
+        // categorize user counters
+        const userCounters: UserCounters =  {
+            current: [],
+            register: [],
+            claim: [],
+            delete: [], // TODO
+        };
+        for (const counter of userCountersArray) {
+            if (counter.epoch === currEpoch) {
+                userCounters.current.push(counter);
+            }
+            else if (counter.epoch == currEpoch - 1) {
+                userCounters.register.push(counter);
+            }
+            else if (counter.epoch <= currEpoch - 2) {
+                userCounters.claim.push(counter);
+            }
+            else {
+                throw new Error("UserCounter.epoch is newer than network epoch");
+            }
+        }
+
+        return userCounters;
     }
 
     public async newUserCounter(

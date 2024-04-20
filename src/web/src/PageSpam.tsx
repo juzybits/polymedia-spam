@@ -1,19 +1,13 @@
 import { useSuiClient } from "@mysten/dapp-kit";
 import { decodeSuiPrivateKey } from "@mysten/sui.js/cryptography";
 import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
-import { SpamClient, SpamError, UserCounter, parseSpamError } from "@polymedia/spam-sdk";
+import { SpamClient, SpamError, UserCounter, UserCounters, parseSpamError } from "@polymedia/spam-sdk";
+import { sleep } from "@polymedia/suits";
+import { LinkToExplorerObj } from "@polymedia/webutils";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
 import { ErrorBox } from "./components/ErrorBox";
-import { LinkToExplorerObj } from "@polymedia/webutils";
-import { sleep } from "@polymedia/suits";
-
-type UserCounters = {
-    current: UserCounter[],
-    register: UserCounter[],
-    claim: UserCounter[],
-}
 
 type Status = "stopped" | "running" | "stop requested";
 
@@ -62,34 +56,10 @@ export const PageSpam: React.FC = () =>
 
             // fetch user balance TODO
 
-            // fetch Sui epoch
-            const suiState = await suiClient.getLatestSuiSystemState();
-            const currEpoch = Number(suiState.epoch);
-
             // fetch user counters
-            const countersArray = await spamClient.fetchUserCounters();
-
-            const userCounters: UserCounters =  {
-                current: [],
-                register: [],
-                claim: [],
-            };
-
-            for (const counter of countersArray) {
-                if (counter.epoch === currEpoch) {
-                    userCounters.current.push(counter);
-                }
-                else if (counter.epoch == currEpoch - 1) {
-                    userCounters.register.push(counter);
-                }
-                else if (counter.epoch <= currEpoch - 2) {
-                    userCounters.claim.push(counter);
-                }
-                else {
-                    throw new Error("UserCounter.epoch is newer than network epoch");
-                }
-            }
+            const userCounters = await spamClient.fetchUserCounters();
             setCounters(userCounters);
+
             if (start) {
                 spam(userCounters);
             }

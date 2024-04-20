@@ -18,3 +18,10 @@ export type UserCounter = {
     tx_count: number;
     registered: boolean;
 };
+
+export type UserCounters = {
+    current: UserCounter[],
+    register: UserCounter[],
+    claim: UserCounter[],
+    delete: UserCounter[],
+}
