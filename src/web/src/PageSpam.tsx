@@ -1,7 +1,7 @@
 import { useSuiClient } from "@mysten/dapp-kit";
 import { decodeSuiPrivateKey } from "@mysten/sui.js/cryptography";
 import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
-import { SpamClient, UserCounter } from "@polymedia/spam-sdk";
+import { SpamClient, SpamError, UserCounter, parseSpamError } from "@polymedia/spam-sdk";
 import { useEffect, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
@@ -126,7 +126,14 @@ export const PageSpam: React.FC = () =>
 
             setStatus("ready to spam");
         } catch(err) {
-            setError(String(err));
+            const errStr = String(err);
+            const errCode = parseSpamError(errStr);
+            if (errCode === SpamError.EWrongEpoch) {
+                await fetchUserCounters(spamClient);
+                setStatus("ready to spam");
+            } else {
+                setError(errStr);
+            }
         }
     };
 
