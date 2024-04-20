@@ -32,15 +32,25 @@ export const PageSpam: React.FC = () =>
     /* Functions */
 
     useEffect(() => {
-        if (!wallet) {
-            navigate("/user");
-        } else {
-            (async () => {
-                showInfo("booting up");
-                await reload(false);
-                showInfo("ready to spam");
-            })();
-        }
+        const initialize = async () => {
+            if (!wallet) {
+                navigate("/user");
+                return;
+            }
+
+            showInfo("booting up");
+
+            // load user key pair
+            const parsedPair = decodeSuiPrivateKey(wallet.secretKey);
+            const keypair = Ed25519Keypair.fromSecretKey(parsedPair.secretKey);
+            const spamClient = new SpamClient(keypair, suiClient, network);
+            setSpamClient(spamClient);
+
+            await reload(false);
+
+            showInfo("ready to spam");
+        };
+        initialize();
     }, [wallet]);
 
     const showInfo = (msg: string) => {
@@ -49,16 +59,10 @@ export const PageSpam: React.FC = () =>
     };
 
     const reload = async (start: boolean) => {
-        if (!wallet) {
+        if (!wallet || !spamClient) {
             return;
         }
         try {
-            // load user key pair
-            const parsedPair = decodeSuiPrivateKey(wallet.secretKey);
-            const keypair = Ed25519Keypair.fromSecretKey(parsedPair.secretKey);
-            const spamClient = new SpamClient(keypair, suiClient, network);
-            setSpamClient(spamClient);
-
             // fetch user balance TODO
 
             // fetch user counters
