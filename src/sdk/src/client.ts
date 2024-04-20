@@ -3,7 +3,7 @@ import { Signer } from "@mysten/sui.js/cryptography";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { NetworkName, getSuiObjectResponseFields } from "@polymedia/suits";
 import { SPAM_IDS } from "./config";
-import { new_user_counter } from "./package";
+import { increment_user_counter, new_user_counter } from "./package";
 import { UserCounter } from "./types";
 
 export class SpamClient
@@ -56,6 +56,27 @@ export class SpamClient
             signature,
             transactionBlock: bytes,
             options: { showEffects: true },
+        });
+    }
+
+    public async incrementUserCounter(
+        userCounterId: string,
+    ): Promise<SuiTransactionBlockResponse>
+    {
+        const txb = new TransactionBlock();
+        txb.setSender(this.signer.toSuiAddress());
+
+        increment_user_counter(txb, this.packageId, userCounterId);
+
+        const { bytes, signature } = await txb.sign({
+            signer: this.signer,
+            client: this.suiClient,
+        });
+
+        return await this.suiClient.executeTransactionBlock({
+            signature,
+            transactionBlock: bytes,
+            options: { showEffects: true, showObjectChanges: true },
         });
     }
 }

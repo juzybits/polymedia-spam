@@ -104,13 +104,21 @@ export const PageSpam: React.FC = () =>
 
             setStatus("destroying duplicate user counters"); // TODO
 
+            let currUserCounterId: string;
             if (counters.current.length === 0) {
                 setStatus("creating user counter");
                 const resp = await spamClient.newUserCounter();
                 console.debug("newUserCounter resp: ", resp); // TODO setCounters(), etc
+                // @ts-expect-error 'resp.effects.created' is possibly 'undefined'
+                currUserCounterId = resp.effects.created[0].reference.objectId;
+            } else {
+                currUserCounterId = counters.current[0].id;
             }
 
-            setStatus("spamming"); // TODO
+            setStatus("spamming"); // TODO loop
+            console.debug("currUserCounterId:", currUserCounterId);
+            const resp = await spamClient.incrementUserCounter(currUserCounterId)
+            console.debug("incrementUserCounter resp: ", resp);
 
             setStatus("ready to spam");
         } catch(err) {
@@ -148,12 +156,12 @@ export const PageSpam: React.FC = () =>
             {isLoading
             ? <p>Loading...</p>
             : <>
+                <button className="btn" onClick={spam}>SPAM</button>
                 <CounterSection title="Current counters" counters={counters.current} />
                 <CounterSection title="Register counters" counters={counters.register} />
                 <CounterSection title="Claim counters" counters={counters.claim} />
             </>
             }
-            <button className="btn" onClick={spam}>SPAM</button>
         </div>
     </div>;
 }
