@@ -16,7 +16,7 @@ import {
     register_user_counter,
     stats,
 } from "./package";
-import { UserCounter, UserData } from "./types";
+import { BcsStats, Stats, UserCounter, UserData } from "./types";
 
 export class SpamClient
 {
@@ -184,13 +184,22 @@ export class SpamClient
 
     public async getStats(
         epochs: number[],
-    ): Promise<unknown>
+    ): Promise<Stats>
     {
         const txb = new TransactionBlock();
         stats(txb, this.packageId, this.directorId, epochs);
-        const res = await devInspectAndGetResults(this.suiClient, txb);
+        const blockResults = await devInspectAndGetResults(this.suiClient, txb);
 
-        return res[0].returnValues;
+        const txResults = blockResults[0];
+        if (!txResults.returnValues?.length) {
+            throw Error(`transaction didn't return any values: ${JSON.stringify(txResults, null, 2)}`);
+        }
+
+        const value = txResults.returnValues[0];
+        const valueData = Uint8Array.from(value[0]);
+        let valueDeserialized = BcsStats.parse(valueData);
+
+        return valueDeserialized;
     }
 
     private async signAndExecute(

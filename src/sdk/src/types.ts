@@ -1,3 +1,5 @@
+import { InferBcsType, bcs } from '@mysten/bcs';
+
 /* 1:1 representations of Sui structs */
 
 export type Director = {
@@ -21,19 +23,19 @@ export type UserCounter = {
     registered: boolean;
 };
 
-export type Stats = {
-    epoch: number;
-    paused: boolean;
-    tx_count: number;
-    supply: number;
-    epochs: EpochStats[];
-};
+export type Stats = InferBcsType<typeof BcsStats>;
 
-export type EpochStats = {
-    epoch: number;
-    tx_count: number;
-    user_count: number;
-};
+export const BcsStats = bcs.struct('Stats', {
+    epoch: bcs.u64(),
+    paused: bcs.bool(),
+    tx_count: bcs.u64(),
+    supply: bcs.u64(),
+    epochs: bcs.vector(bcs.struct('EpochStats', {
+        epoch: bcs.u64(),
+        tx_count: bcs.u64(),
+        user_count: bcs.u64(),
+    })),
+});
 
 /* Other types */
 
