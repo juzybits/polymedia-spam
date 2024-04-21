@@ -150,9 +150,9 @@ module spam::spam
 
     // === Public-View Functions ===
 
-    /// Get Stats for the Director object and chosen EpochCounter objects.
+    /// Get Stats for the Director and selected epochs.
     /// Epochs without an EpochCounter are represented with tx_count=0 and user_count=0.
-    public fun stats(
+    public fun stats_for_specific_epochs(
         director: &Director,
         epoch_numbers: vector<u64>,
         ctx: &TxContext,
@@ -187,6 +187,23 @@ module spam::spam
             supply: coin::total_supply(&director.treasury),
             epochs: epoch_stats,
         }
+    }
+
+    /// Get Stats for the Director and the latest epochs, in descending order, and starting
+    /// from yesterday's epoch because today's EpochCounter cannot exist (see register()).
+    public fun stats_for_recent_epochs(
+        director: &Director,
+        epoch_count: u64,
+        ctx: &TxContext,
+    ): Stats {
+        let epoch_now = epoch(ctx);
+        let mut epoch_numbers = vector<u64>[];
+        let mut i = 0;
+        while (i < epoch_count && i < epoch_now) {
+            i = i + 1;
+            epoch_numbers.push_back(epoch_now - i);
+        };
+        return stats_for_specific_epochs(director, epoch_numbers, ctx)
     }
 
     // === Admin functions ===
