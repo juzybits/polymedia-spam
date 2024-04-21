@@ -52,7 +52,7 @@ module spam::spam
         registered: bool,
     }
 
-    // === User Functions ===
+    // === Public-Mutative Functions ===
 
     /// Users can create multiple counters per epoch, but it is pointless
     /// because they can only register() one of them.
@@ -106,6 +106,7 @@ module spam::spam
 
         epoch_counter.user_counts.add(sender_addr, user_counter.tx_count);
         epoch_counter.tx_count = epoch_counter.tx_count + user_counter.tx_count;
+        director.tx_count = director.tx_count + user_counter.tx_count;
         user_counter.registered = true;
     }
 
@@ -156,7 +157,7 @@ module spam::spam
         object::delete(id);
     }
 
-    // === Private helpers ===
+    // === Private functions ===
 
     fun get_or_create_epoch_counter(
         director: &mut Director,
