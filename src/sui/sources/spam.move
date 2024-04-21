@@ -63,7 +63,6 @@ module spam::spam
     public struct EpochStats has copy, drop {
         epoch: u64,
         tx_count: u64,
-        user_count: u64,
     }
 
     // === Public-Mutative Functions ===
@@ -167,14 +166,12 @@ module spam::spam
                 let stats = EpochStats {
                     epoch: epoch.epoch,
                     tx_count: epoch.tx_count,
-                    user_count: table::length(&epoch.user_counts),
                 };
                 epoch_stats.push_back(stats);
             } else {
                 let stats = EpochStats {
                     epoch: epoch_number,
                     tx_count: 0,
-                    user_count: 0,
                 };
                 epoch_stats.push_back(stats);
             };
