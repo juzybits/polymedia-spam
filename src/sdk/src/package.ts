@@ -71,17 +71,32 @@ export function claim_user_counter(
     });
 }
 
-export function stats(
+export function stats_for_specific_epochs(
     txb: TransactionBlock,
     packageId: string,
     directorId: string,
-    epochs: number[],
+    epochNumbers: number[],
 ): TransactionResult {
     return txb.moveCall({
-        target: `${packageId}::spam::stats`,
+        target: `${packageId}::spam::stats_for_specific_epochs`,
         arguments: [
             txb.object(directorId),
-            txb.pure(epochs),
+            txb.pure(epochNumbers),
+        ],
+    });
+}
+
+export function stats_for_recent_epochs(
+    txb: TransactionBlock,
+    packageId: string,
+    directorId: string,
+    epochCount: number,
+): TransactionResult {
+    return txb.moveCall({
+        target: `${packageId}::spam::stats_for_recent_epochs`,
+        arguments: [
+            txb.object(directorId),
+            txb.pure(epochCount),
         ],
     });
 }

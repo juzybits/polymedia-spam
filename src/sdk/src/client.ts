@@ -14,7 +14,8 @@ import {
     increment_user_counter,
     new_user_counter,
     register_user_counter,
-    stats,
+    stats_for_recent_epochs,
+    stats_for_specific_epochs
 } from "./package";
 import { BcsStats, Stats, UserCounter, UserData } from "./types";
 
@@ -182,12 +183,28 @@ export class SpamClient
         return this.signAndExecute(txb);
     }
 
-    public async getStats(
-        epochs: number[],
+    public async getStatsForSpecificEpochs(
+        epochNumbers: number[],
     ): Promise<Stats>
     {
         const txb = new TransactionBlock();
-        stats(txb, this.packageId, this.directorId, epochs);
+        stats_for_specific_epochs(txb, this.packageId, this.directorId, epochNumbers);
+        return this.deserializeStats(txb);
+    }
+
+    public async getStatsForRecentEpochs(
+        epochCount: number,
+    ): Promise<Stats>
+    {
+        const txb = new TransactionBlock();
+        stats_for_recent_epochs(txb, this.packageId, this.directorId, epochCount);
+        return this.deserializeStats(txb);
+    }
+
+    public async deserializeStats(
+        txb: TransactionBlock,
+    ): Promise<Stats>
+    {
         const blockResults = await devInspectAndGetResults(this.suiClient, txb);
 
         const txResults = blockResults[0];
