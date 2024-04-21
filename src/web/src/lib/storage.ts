@@ -1,10 +1,10 @@
 import { decodeSuiPrivateKey } from "@mysten/sui.js/cryptography";
 import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
 
-const storageKey = "polymedia.secretKey";
+const storageKey = "spam.secretKey";
 
 export function loadKeypairFromStorage(): Ed25519Keypair {
-    const secretKey = localStorage.getItem(storageKey);
+    const secretKey = sessionStorage.getItem(storageKey);
     let pair: Ed25519Keypair;
     if (!secretKey) {
         pair = new Ed25519Keypair();
@@ -17,5 +17,5 @@ export function loadKeypairFromStorage(): Ed25519Keypair {
 }
 
 export function saveKeypairToStorage(pair: Ed25519Keypair): void {
-    localStorage.setItem(storageKey, pair.getSecretKey());
+    sessionStorage.setItem(storageKey, pair.getSecretKey());
 }
