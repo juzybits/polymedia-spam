@@ -19,6 +19,5 @@ export const PageHome: React.FC = () =>
         <Link className="btn" to={wallet ? "/spam" : "/user"}>
             START
         </Link>
-
     </>;
-}
+};

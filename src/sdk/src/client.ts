@@ -15,7 +15,7 @@ import {
     new_user_counter,
     register_user_counter,
     stats_for_recent_epochs,
-    stats_for_specific_epochs
+    stats_for_specific_epochs,
 } from "./package";
 import { BcsStats, Stats, UserCounter, UserData } from "./types";
 

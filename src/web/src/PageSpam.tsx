@@ -71,12 +71,12 @@ export const PageSpam: React.FC = () =>
         const userData = await spamClient.fetchUserData();
         setUserData(userData);
         return userData;
-    }
+    };
 
     const loadUserDataAndSpam = async (spamClient: SpamClient) => {
         const userData = await loadUserData(spamClient);
         spam(userData);
-    }
+    };
 
     const spam = async(
         userData: UserData,
@@ -133,7 +133,7 @@ export const PageSpam: React.FC = () =>
                 showInfo("spamming");
 
                 network == "localnet" && isLocalhost() && await sleep(333); // simulate latency
-                const resp = await spamClient.incrementUserCounter(counters.current.id)
+                const resp = await spamClient.incrementUserCounter(counters.current.id);
                 console.debug("incrementUserCounter resp: ", resp);
                 loadUserData(spamClient); // TODO do periodically, outside of this loop
             }
@@ -209,4 +209,4 @@ export const PageSpam: React.FC = () =>
             </>}
         </div>
     </>;
-}
+};

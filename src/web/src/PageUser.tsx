@@ -40,4 +40,4 @@ export const PageUser: React.FC = () =>
         <h1>User</h1>
         {content}
     </>;
-}
+};

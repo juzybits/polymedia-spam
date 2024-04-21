@@ -39,14 +39,14 @@ export const BcsStats = bcs.struct("Stats", {
 /* Other types */
 
 export type UserData = {
-    epoch: number,
+    epoch: number;
     balances: {
         spam: number;
         sui: number;
     };
     counters: {
-        current: UserCounter|null;
-        register: UserCounter|null;
+        current: UserCounter | null;
+        register: UserCounter | null;
         claim: UserCounter[];
         delete: UserCounter[];
     };

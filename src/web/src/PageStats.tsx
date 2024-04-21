@@ -44,7 +44,6 @@ export const PageStats: React.FC = () =>
                 )}
                 </div>
             </>}
-        </>
-        }
+        </>}
     </>;
-}
+};
