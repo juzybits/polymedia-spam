@@ -151,7 +151,7 @@ module spam::spam
     // === Public-View Functions ===
 
     /// Get Stats for the Director object and chosen EpochCounter objects.
-    /// Epochs that don't have an EpochCounter don't get included in the results.
+    /// Epochs without an EpochCounter are represented with tx_count=0 and user_count=0.
     public fun stats(
         director: &Director,
         epoch_numbers: vector<u64>,
@@ -170,6 +170,13 @@ module spam::spam
                     user_count: table::length(&epoch.user_counts),
                 };
                 epoch_stats.push_back(stats);
+            } else {
+                let stats = EpochStats {
+                    epoch: epoch_number,
+                    tx_count: 0,
+                    user_count: 0,
+                };
+                epoch_stats.push_back(stats);
             };
             i = i + 1;
         };
@@ -181,6 +188,7 @@ module spam::spam
             epochs: epoch_stats,
         }
     }
+
     // === Admin functions ===
 
     public fun admin_pause(
