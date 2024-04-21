@@ -1,4 +1,4 @@
-import { InferBcsType, bcs } from '@mysten/bcs';
+import { InferBcsType, bcs } from "@mysten/bcs";
 
 /* 1:1 representations of Sui structs */
 
@@ -25,12 +25,12 @@ export type UserCounter = {
 
 export type Stats = InferBcsType<typeof BcsStats>;
 
-export const BcsStats = bcs.struct('Stats', {
+export const BcsStats = bcs.struct("Stats", {
     epoch: bcs.u64(),
     paused: bcs.bool(),
     tx_count: bcs.u64(),
     supply: bcs.u64(),
-    epochs: bcs.vector(bcs.struct('EpochStats', {
+    epochs: bcs.vector(bcs.struct("EpochStats", {
         epoch: bcs.u64(),
         tx_count: bcs.u64(),
     })),

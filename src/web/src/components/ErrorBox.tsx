@@ -7,7 +7,7 @@ export const ErrorBox: React.FC<{
     if (!err) {
         return null;
     }
-    return <div className='error-box'>
+    return <div className="error-box">
         <div>Something went wrong:</div>
         <div>{String(err)}</div>
     </div>;

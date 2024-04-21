@@ -214,7 +214,7 @@ export class SpamClient
 
         const value = txResults.returnValues[0];
         const valueData = Uint8Array.from(value[0]);
-        let valueDeserialized = BcsStats.parse(valueData);
+        const valueDeserialized = BcsStats.parse(valueData);
 
         return valueDeserialized;
     }

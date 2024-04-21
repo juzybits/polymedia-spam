@@ -18,6 +18,7 @@ module.exports = {
         "plugin:@typescript-eslint/stylistic-type-checked",
     ],
     rules: {
+        "@stylistic/jsx-quotes": [ "error", "prefer-double" ],
         "@stylistic/quotes": [ "error", "double", { "avoidEscape": true } ],
         "@typescript-eslint/consistent-type-definitions": ["error", "type"],
         "@typescript-eslint/no-confusing-void-expression": "off",
