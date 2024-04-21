@@ -1,4 +1,3 @@
-import { useSuiClient } from "@mysten/dapp-kit";
 import { decodeSuiPrivateKey } from "@mysten/sui.js/cryptography";
 import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
 import { SpamClient, SpamError, UserCounter, UserData, parseSpamError } from "@polymedia/spam-sdk";
@@ -18,9 +17,7 @@ export const PageSpam: React.FC = () =>
 
     const navigate = useNavigate();
 
-    const suiClient = useSuiClient();
-
-    const { network, wallet } = useOutletContext<AppContext>();
+    const { network, suiClient, wallet } = useOutletContext<AppContext>();
 
     const [ spamClient, setSpamClient ] = useState<SpamClient>();
     const [ userData, setUserData ] = useState<UserData>();

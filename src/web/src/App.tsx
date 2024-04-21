@@ -1,10 +1,6 @@
-import {
-    SuiClientProvider,
-    createNetworkConfig,
-} from "@mysten/dapp-kit";
-import { getFullnodeUrl } from "@mysten/sui.js/client";
+import { SuiClient } from "@mysten/sui.js/client";
+import { RPC_ENDPOINTS } from "@polymedia/suits";
 import { LinkExternal, Modal, NetworkSelector, isLocalhost, loadNetwork } from "@polymedia/webutils";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactNode, useState } from "react";
 import { BrowserRouter, Link, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import { PageHome } from "./PageHome";
@@ -21,7 +17,7 @@ export const AppRouter: React.FC = () => {
     return (
     <BrowserRouter>
         <Routes>
-            <Route path="/" element={<AppSuiProviders />} >
+            <Route path="/" element={<App />} >
                 <Route index element={<PageHome />} />
                 <Route path="/user" element={<PageUser />} />
                 <Route path="/stats" element={<PageStats />} />
@@ -37,52 +33,29 @@ export const AppRouter: React.FC = () => {
 
 const supportedNetworks = ["mainnet", "testnet", "devnet", "localnet"] as const;
 export type NetworkName = typeof supportedNetworks[number];
-
-const { networkConfig } = createNetworkConfig({
-    localnet: { url: getFullnodeUrl("localnet") },
-    devnet: { url: getFullnodeUrl("devnet") },
-    testnet: { url: getFullnodeUrl("testnet") },
-    mainnet: { url: "https://mainnet.suiet.app" },
-});
-
-const queryClient = new QueryClient();
-const AppSuiProviders: React.FC = () => {
-    const defaultNetwork = isLocalhost() ? "localnet" : "mainnet";
-    const [network, setNetwork] = useState(loadNetwork(supportedNetworks, defaultNetwork));
-    return (
-    <QueryClientProvider client={queryClient}>
-        <SuiClientProvider networks={networkConfig} network={network}>
-            {/* <WalletProvider autoConnect={true}> */}
-                <App network={network} setNetwork={setNetwork} />
-            {/* </WalletProvider> */}
-        </SuiClientProvider>
-    </QueryClientProvider>
-    );
-};
+const defaultNetwork = isLocalhost() ? "localnet" : "mainnet";
+const loadedNetwork = loadNetwork(supportedNetworks, defaultNetwork);
 
 /* App */
 
 export type ReactSetter<T> = React.Dispatch<React.SetStateAction<T>>;
 
 export type AppContext = {
-    inProgress: boolean; setInProgress: ReactSetter<boolean>;
     network: NetworkName; setNetwork: ReactSetter<NetworkName>;
+    suiClient: SuiClient; setSuiClient: ReactSetter<SuiClient>;
+    inProgress: boolean; setInProgress: ReactSetter<boolean>;
     showMobileNav: boolean; setShowMobileNav: ReactSetter<boolean>;
     setModalContent: ReactSetter<ReactNode>;
-    // openConnectModal: () => void,
     wallet: Wallet|null; replaceWallet: (wallet: Wallet|null) => void;
 };
 
-const App: React.FC<{ // TODO: RpcSelector
-    network: NetworkName;
-    setNetwork: ReactSetter<NetworkName>;
-}> = ({
-    network,
-    setNetwork,
-}) =>
+const App: React.FC = () =>
 {
+    const [ network, setNetwork ] = useState(loadedNetwork);
+    const [ suiClient, setSuiClient ] = useState(new SuiClient({
+        url: RPC_ENDPOINTS[loadedNetwork][0],
+    }));
     const [ inProgress, setInProgress ] = useState(false);
-    // const [ showConnectModal, setShowConnectModal ] = useState(false);
     const [ showMobileNav, setShowMobileNav ] = useState(false);
     const [ modalContent, setModalContent ] = useState<ReactNode>(null);
     const [ wallet, setWallet ] = useState<Wallet|null>(loadWallet());
@@ -93,11 +66,11 @@ const App: React.FC<{ // TODO: RpcSelector
     };
 
     const appContext: AppContext = {
-        inProgress, setInProgress,
         network, setNetwork,
+        suiClient, setSuiClient,
+        inProgress, setInProgress,
         showMobileNav, setShowMobileNav,
         setModalContent,
-        // openConnectModal: () => { setShowConnectModal(true) },
         wallet, replaceWallet,
     };
 
@@ -133,15 +106,6 @@ const App: React.FC<{ // TODO: RpcSelector
         <BtnMenu appContext={appContext} />
 
         <Modal content={modalContent} />
-
-        {/*
-        <ConnectModal
-            trigger={<></>}
-            open={showConnectModal}
-            onOpenChange={isOpen => { setShowConnectModal(isOpen) }}
-        />
-        */}
-
     </div>
     );
 };
@@ -210,6 +174,9 @@ const BtnNetwork: React.FC<{
 {
     const onSwitchNetwork = (newNet: NetworkName) => {
         app.setNetwork(newNet);
+        app.setSuiClient(new SuiClient({
+            url: RPC_ENDPOINTS[loadedNetwork][0],
+        }));
         app.setShowMobileNav(false);
     };
     return <NetworkSelector
@@ -219,33 +186,6 @@ const BtnNetwork: React.FC<{
         disabled={app.inProgress}
     />;
 };
-
-/*
-const BtnConnect: React.FC<{
-    appContext: AppContext,
-}> = ({
-    appContext: app,
-}) =>
-{
-    const currAcct = useCurrentAccount();
-    const { mutate: disconnect } = useDisconnectWallet();
-
-    const onClick = () => {
-            currAcct ? disconnect() : app.openConnectModal();
-            app.setShowMobileNav(false);
-    };
-
-    const text = currAcct ? shortenSuiAddress(currAcct.address, 3, 3) : "LOG IN";
-
-    return <button
-        className="btn-connect"
-        disabled={app.inProgress}
-        onClick={onClick}
-    >
-        {text}
-    </button>;
-}
-*/
 
 const BtnMenu: React.FC<{
     appContext: AppContext;

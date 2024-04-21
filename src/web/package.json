@@ -22,11 +22,9 @@
         "tunnel": "lt --port 1234"
     },
     "dependencies": {
-        "@mysten/dapp-kit": "^0.12.9",
         "@mysten/sui.js": "^0.51.2",
         "@polymedia/spam-sdk": "workspace:*",
         "@polymedia/webutils": "^0.0.50",
-        "@tanstack/react-query": "^5.29.2",
         "normalize.css": "^8.0.1",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",

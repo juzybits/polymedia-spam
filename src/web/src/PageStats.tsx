@@ -1,4 +1,3 @@
-import { useSuiClient } from "@mysten/dapp-kit";
 import { SPAM_DECIMALS, SpamClient, Stats } from "@polymedia/spam-sdk";
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
@@ -8,8 +7,7 @@ import { formatBigInt, formatNumber } from "@polymedia/suits";
 
 export const PageStats: React.FC = () =>
 {
-    const suiClient = useSuiClient();
-    const { network } = useOutletContext<AppContext>();
+    const { network, suiClient } = useOutletContext<AppContext>();
     const [ stats, setStats ] = useState<Stats>();
 
     useEffect(() => {
@@ -39,7 +37,7 @@ export const PageStats: React.FC = () =>
                 <div className="tight">
                 {stats.epochs.map(epoch =>
                     <p key={epoch.epoch}>
-                        Epoch {epoch.epoch}: {epoch.tx_count} transactions
+                        Epoch {epoch.epoch}: {formatNumber(Number(epoch.tx_count), "compact")} transactions
                     </p>
                 )}
                 </div>
