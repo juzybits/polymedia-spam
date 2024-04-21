@@ -52,6 +52,20 @@ module spam::spam
         registered: bool,
     }
 
+    public struct Stats has copy, drop {
+        epoch: u64,
+        paused: bool,
+        tx_count: u64,
+        supply: u64,
+        epochs: vector<EpochStats>,
+    }
+
+    public struct EpochStats has copy, drop {
+        epoch: u64,
+        tx_count: u64,
+        user_count: u64,
+    }
+
     // === Public-Mutative Functions ===
 
     /// Users can create multiple counters per epoch, but it is pointless
@@ -134,6 +148,39 @@ module spam::spam
         return coin
     }
 
+    // === Public-View Functions ===
+
+    /// Get Stats for the Director object and chosen EpochCounter objects.
+    /// Epochs that don't have an EpochCounter don't get included in the results.
+    public fun stats(
+        director: &Director,
+        epoch_numbers: vector<u64>,
+        ctx: &TxContext,
+    ): Stats {
+        let mut epoch_stats = vector<EpochStats>[];
+        let mut i = 0;
+        let count = epoch_numbers.length();
+        while (i < count) {
+            let epoch_number = *epoch_numbers.borrow(i);
+            if ( director.epoch_counters.contains(epoch_number) ) {
+                let epoch = director.epoch_counters.borrow(epoch_number);
+                let stats = EpochStats {
+                    epoch: epoch.epoch,
+                    tx_count: epoch.tx_count,
+                    user_count: table::length(&epoch.user_counts),
+                };
+                epoch_stats.push_back(stats);
+            };
+            i = i + 1;
+        };
+        return Stats {
+            epoch: epoch(ctx),
+            paused: director.paused,
+            tx_count: director.tx_count,
+            supply: coin::total_supply(&director.treasury),
+            epochs: epoch_stats,
+        }
+    }
     // === Admin functions ===
 
     public fun admin_pause(
