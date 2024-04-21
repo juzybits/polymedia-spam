@@ -1,19 +1,17 @@
-import { SPAM_DECIMALS, SpamClient, Stats } from "@polymedia/spam-sdk";
+import { SPAM_DECIMALS, Stats } from "@polymedia/spam-sdk";
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
-import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
 import { formatBigInt, formatNumber } from "@polymedia/suits";
 
 export const PageStats: React.FC = () =>
 {
-    const { network, suiClient } = useOutletContext<AppContext>();
+    const { spamClient } = useOutletContext<AppContext>();
     const [ stats, setStats ] = useState<Stats>();
 
     useEffect(() => {
         const initialize = async () => {
-            const spamClient = new SpamClient(new Ed25519Keypair(), suiClient, network);
-            const newStats = await spamClient.getStatsForRecentEpochs(140);
+            const newStats = await spamClient.fetchStatsForRecentEpochs(30);
             setStats(newStats);
         };
         initialize();

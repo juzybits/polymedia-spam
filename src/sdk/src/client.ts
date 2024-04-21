@@ -21,22 +21,28 @@ import { BcsStats, Stats, UserCounter, UserData } from "./types";
 
 export class SpamClient
 {
-    private signer: Signer;
-    private suiClient: SuiClient;
-    private packageId: string;
-    private directorId: string;
+    public signer: Signer;
+    public network: NetworkName;
+    public rpcUrl: string;
+    public suiClient: SuiClient;
+    public packageId: string;
+    public directorId: string;
 
     constructor(
         keypair: Signer,
-        suiClient: SuiClient,
         network: NetworkName,
+        rpcUrl: string
     ) {
         const spamIds = SPAM_IDS[network];
         this.signer = keypair;
-        this.suiClient = suiClient,
+        this.network = network;
+        this.rpcUrl = rpcUrl;
+        this.suiClient = new SuiClient({ url: rpcUrl }),
         this.packageId = spamIds.packageId;
         this.directorId = spamIds.directorId;
     }
+
+    /* Sui RPC functions */
 
     public async fetchUserCounters(
     ): Promise<UserCounter[]>
@@ -49,7 +55,7 @@ export class SpamClient
             options: { showContent: true },
             filter: { StructType },
         });
-        return pageObjResp.data.map(objResp => parseUserCounter(objResp));
+        return pageObjResp.data.map(objResp => this.parseUserCounter(objResp));
     }
 
     public async fetchUserData(
@@ -183,7 +189,7 @@ export class SpamClient
         return this.signAndExecute(txb);
     }
 
-    public async getStatsForSpecificEpochs(
+    public async fetchStatsForSpecificEpochs(
         epochNumbers: number[],
     ): Promise<Stats>
     {
@@ -192,7 +198,7 @@ export class SpamClient
         return this.deserializeStats(txb);
     }
 
-    public async getStatsForRecentEpochs(
+    public async fetchStatsForRecentEpochs(
         epochCount: number,
     ): Promise<Stats>
     {
@@ -201,7 +207,9 @@ export class SpamClient
         return this.deserializeStats(txb);
     }
 
-    public async deserializeStats(
+    /* Helpers */
+
+    private async deserializeStats(
         txb: TransactionBlock,
     ): Promise<Stats>
     {
@@ -236,18 +244,18 @@ export class SpamClient
             options: { showEffects: true },
         });
     }
-}
 
-/* eslint-disable */
-function parseUserCounter(
-    resp: SuiObjectResponse,
-): UserCounter {
-    const fields = getSuiObjectResponseFields(resp);
-    return {
-        id: fields.id.id,
-        epoch: Number(fields.epoch),
-        tx_count: Number(fields.tx_count),
-        registered: Boolean(fields.registered),
-    };
+    /* eslint-disable */
+    private parseUserCounter(
+        resp: SuiObjectResponse,
+    ): UserCounter {
+        const fields = getSuiObjectResponseFields(resp);
+        return {
+            id: fields.id.id,
+            epoch: Number(fields.epoch),
+            tx_count: Number(fields.tx_count),
+            registered: Boolean(fields.registered),
+        };
+    }
+    /* eslint-enable */
 }
-/* eslint-enable */

@@ -1,4 +1,5 @@
-import { SuiClient } from "@mysten/sui.js/client";
+import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
+import { SpamClient } from "@polymedia/spam-sdk";
 import { RPC_ENDPOINTS } from "@polymedia/suits";
 import { LinkExternal, Modal, NetworkSelector, isLocalhost, loadNetwork } from "@polymedia/webutils";
 import { ReactNode, useState } from "react";
@@ -8,7 +9,7 @@ import { PageNotFound } from "./PageNotFound";
 import { PageSpam } from "./PageSpam";
 import { PageStats } from "./PageStats";
 import { PageUser } from "./PageUser";
-import { Wallet, loadWallet, saveWallet } from "./lib/storage";
+import { loadKeypairFromStorage, saveKeypairToStorage } from "./lib/storage";
 import "./styles/App.less";
 
 /* App router */
@@ -35,43 +36,47 @@ const supportedNetworks = ["mainnet", "testnet", "devnet", "localnet"] as const;
 export type NetworkName = typeof supportedNetworks[number];
 const defaultNetwork = isLocalhost() ? "localnet" : "mainnet";
 const loadedNetwork = loadNetwork(supportedNetworks, defaultNetwork);
+const loadedKeypair = loadKeypairFromStorage();
 
 /* App */
 
 export type ReactSetter<T> = React.Dispatch<React.SetStateAction<T>>;
 
 export type AppContext = {
-    network: NetworkName; setNetwork: ReactSetter<NetworkName>;
-    suiClient: SuiClient; setSuiClient: ReactSetter<SuiClient>;
+    spamClient: SpamClient; setSpamClient: ReactSetter<SpamClient>;
     inProgress: boolean; setInProgress: ReactSetter<boolean>;
     showMobileNav: boolean; setShowMobileNav: ReactSetter<boolean>;
     setModalContent: ReactSetter<ReactNode>;
-    wallet: Wallet|null; replaceWallet: (wallet: Wallet|null) => void;
+    replaceKeypair: (keypair: Ed25519Keypair) => void;
 };
 
 const App: React.FC = () =>
 {
-    const [ network, setNetwork ] = useState(loadedNetwork);
-    const [ suiClient, setSuiClient ] = useState(new SuiClient({
-        url: RPC_ENDPOINTS[loadedNetwork][0],
-    }));
+    const [ spamClient, setSpamClient ] = useState(new SpamClient(
+        loadedKeypair,
+        loadedNetwork,
+        RPC_ENDPOINTS[loadedNetwork][0], // TODO rotate within SpamClient
+    ));
     const [ inProgress, setInProgress ] = useState(false);
     const [ showMobileNav, setShowMobileNav ] = useState(false);
     const [ modalContent, setModalContent ] = useState<ReactNode>(null);
-    const [ wallet, setWallet ] = useState<Wallet|null>(loadWallet());
 
-    const replaceWallet = (wallet: Wallet|null): void => {
-        setWallet(wallet);
-        saveWallet(wallet);
+    const replaceKeypair = (keypair: Ed25519Keypair): void => {
+        // spamClient.stop(); // TODO
+        setSpamClient(new SpamClient(
+            keypair,
+            spamClient.network,
+            spamClient.rpcUrl,
+        ));
+        saveKeypairToStorage(keypair);
     };
 
     const appContext: AppContext = {
-        network, setNetwork,
-        suiClient, setSuiClient,
+        spamClient, setSpamClient,
         inProgress, setInProgress,
         showMobileNav, setShowMobileNav,
         setModalContent,
-        wallet, replaceWallet,
+        replaceKeypair,
     };
 
     const layoutClasses: string[] = [];
@@ -173,14 +178,16 @@ const BtnNetwork: React.FC<{
 }) =>
 {
     const onSwitchNetwork = (newNet: NetworkName) => {
-        app.setNetwork(newNet);
-        app.setSuiClient(new SuiClient({
-            url: RPC_ENDPOINTS[loadedNetwork][0],
-        }));
+        // app.spamClient.stop(); // TODO
+        app.setSpamClient(new SpamClient(
+            app.spamClient.signer,
+            newNet,
+            RPC_ENDPOINTS[newNet][0],
+        ));
         app.setShowMobileNav(false);
     };
     return <NetworkSelector
-        currentNetwork={app.network}
+        currentNetwork={app.spamClient.network}
         supportedNetworks={supportedNetworks}
         onSwitch={onSwitchNetwork}
         disabled={app.inProgress}
