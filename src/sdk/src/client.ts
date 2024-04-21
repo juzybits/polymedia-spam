@@ -6,6 +6,8 @@ import {
     convertBigIntToNumber,
     devInspectAndGetResults,
     getSuiObjectResponseFields,
+    shortenSuiAddress,
+    sleep,
 } from "@polymedia/suits";
 import { SPAM_DECIMALS, SPAM_IDS, SUI_DECIMALS } from "./config";
 import {
@@ -18,6 +20,15 @@ import {
     stats_for_specific_epochs,
 } from "./package";
 import { BcsStats, Stats, UserCounter, UserData } from "./types";
+import { SpamError, parseSpamError } from "./errors";
+
+export type SpamStatus = "stopped" | "running" | "stop requested";
+export type SpamEventType = "debug" | "info" | "warn";
+export type SpamEvent = {
+    type: SpamEventType;
+    msg: string;
+};
+export type SpamEventHandler = (event: SpamEvent) => void;
 
 export class SpamClient
 {
@@ -27,19 +38,116 @@ export class SpamClient
     public suiClient: SuiClient;
     public packageId: string;
     public directorId: string;
+    public status: SpamStatus;
+    public userData: UserData|null;
+    public onEvent: SpamEventHandler;
 
     constructor(
         keypair: Signer,
         network: NetworkName,
-        rpcUrl: string
+        rpcUrl: string,
+        onEvent: SpamEventHandler,
     ) {
-        const spamIds = SPAM_IDS[network];
         this.signer = keypair;
         this.network = network;
         this.rpcUrl = rpcUrl;
         this.suiClient = new SuiClient({ url: rpcUrl }),
-        this.packageId = spamIds.packageId;
-        this.directorId = spamIds.directorId;
+        this.packageId = SPAM_IDS[network].packageId;
+        this.directorId = SPAM_IDS[network].directorId;
+        this.status = "stopped";
+        this.userData = null;
+        this.onEvent = onEvent;
+    }
+
+    /* Spam functions */
+
+    public stop() {
+        this.status = "stop requested";
+    }
+
+    public async start()
+    {
+        if (this.status == "running") {
+            this.onEvent({ type: "warn", msg: "Already running" });
+            return;
+        }
+
+        if (this.status === "stop requested") {
+            this.status = "stopped";
+            this.onEvent({ type: "info", msg: "stopped" });
+            return;
+        }
+
+        this.status = "running";
+
+        try {
+            if (this.userData === null) { // 1st run
+                this.onEvent({ type: "info", msg: "loading user data" });
+                this.userData = await this.fetchUserData(); // Reassignment not needed
+            }
+
+            const counters = this.userData.counters;
+
+            if (counters.register !== null && !counters.register.registered) {
+                this.onEvent({ type: "info", msg: "registering counter: " + shortenSuiAddress(counters.register.id) });
+                const resp = await this.registerUserCounter(counters.register.id);
+                counters.register.registered = true;
+                this.onEvent({
+                    type: "debug",
+                    msg: "registerUserCounter resp: " + JSON.stringify(resp, null, 2),
+                });
+            }
+
+            if (counters.claim.length > 0) {
+                this.onEvent({ type: "info", msg: "claiming counters: " + counters.claim.map(c => shortenSuiAddress(c.id)).join(", ") });
+                const counterIds = counters.claim.map(counter => counter.id);
+                const resp = await this.claimUserCounters(counterIds);
+                counters.claim = [];
+                this.onEvent({
+                    type: "debug",
+                    msg: "destroyUserCounters resp: " + JSON.stringify(resp, null, 2),
+                });
+            }
+
+            if (counters.delete.length > 0) {
+                this.onEvent({ type: "info", msg: "deleting counters: " + counters.delete.map(c => shortenSuiAddress(c.id)).join(", ") });
+                const counterIds = counters.delete.map(counter => counter.id);
+                const resp = await this.destroyUserCounters(counterIds);
+                counters.delete = [];
+                this.onEvent({ type: "debug", msg: "destroyUserCounters resp: " + JSON.stringify(resp, null, 2) });
+            }
+
+            if (counters.current === null) {
+                this.onEvent({ type: "info", msg: "creating counter" });
+                const resp = await this.newUserCounter();
+                this.userData = null; // force a re-fetch // TODO: this happens twice on epoch change (see catch() below)
+                this.onEvent({ type: "debug", msg: "newUserCounter resp: " + JSON.stringify(resp, null, 2) });
+            } else {
+                this.network == "localnet" && await sleep(333); // simulate latency
+                const resp = await this.incrementUserCounter(counters.current.id);
+                this.onEvent({ type: "debug", msg: "incrementUserCounter resp: " + JSON.stringify(resp, null, 2) });
+            }
+        }
+        catch (err) {
+            const errStr = String(err);
+            const errCode = parseSpamError(errStr);
+            if (errCode === SpamError.EWrongEpoch) {
+                // Expected error: when the epoch changes, the counter is no longer incrementable
+                this.userData = null; // force a re-fetch
+                this.start();
+                this.onEvent({ type: "info", msg: "epoch change"});
+            }
+            else {
+                // Unexpected error // TODO rotate RPC etc
+                this.onEvent({ type: "warn", msg: String(err) });
+            }
+        }
+        finally {
+            if (this.status === "running") {
+                this.status = "stopped";
+            }
+            this.start();
+        }
     }
 
     /* Sui RPC functions */
@@ -133,11 +241,12 @@ export class SpamClient
         }
 
         // assemble and return UserData
-        return {
+        this.userData = {
             epoch: currEpoch,
             balances,
             counters,
         };
+        return this.userData;
     }
 
     public async newUserCounter(

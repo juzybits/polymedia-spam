@@ -1,25 +1,21 @@
-import { SpamClient, SpamError, UserCounter, UserData, parseSpamError } from "@polymedia/spam-sdk";
-import { formatNumber, shortenSuiAddress, sleep } from "@polymedia/suits";
-import { LinkToExplorerObj, isLocalhost } from "@polymedia/webutils";
-import { useEffect, useRef, useState } from "react";
+import { UserCounter, UserData } from "@polymedia/spam-sdk";
+import { formatNumber, shortenSuiAddress } from "@polymedia/suits";
+import { LinkToExplorerObj } from "@polymedia/webutils";
+import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
 import { ErrorBox } from "./components/ErrorBox";
-
-type Status = "stopped" | "running" | "stop requested";
 
 export const PageSpam: React.FC = () =>
 {
     /* State */
 
     const { spamClient } = useOutletContext<AppContext>();
-
-    const [ userData, setUserData ] = useState<UserData>();
-    const status = useRef<Status>("stopped");
+    const [ userData, setUserData ] = useState<UserData|null>(spamClient.userData);
     const [ info, setInfo ] = useState<string>("booting up");
     const [ error, setError ] = useState<string|null>(null);
 
-    const isBootingUp = !spamClient || !userData;
+    const isBootingUp = !userData;
 
     /* Functions */
 
@@ -27,7 +23,7 @@ export const PageSpam: React.FC = () =>
         const initialize = async () => {
             try {
                 showInfo("booting up");
-                await loadUserData(spamClient);
+                setUserData(await spamClient.fetchUserData());
                 showInfo("ready to spam");
             }
             catch(err) {
@@ -42,88 +38,12 @@ export const PageSpam: React.FC = () =>
         console.info(msg);
     };
 
-    const loadUserData = async (spamClient: SpamClient): Promise<UserData> => {
-        const userData = await spamClient.fetchUserData();
-        setUserData(userData);
-        return userData;
+    const start = () => {
+        spamClient.start();
     };
 
-    const loadUserDataAndSpam = async (spamClient: SpamClient) => {
-        const userData = await loadUserData(spamClient);
-        spam(userData);
-    };
-
-    const spam = async(
-        userData: UserData,
-    ) => {
-        if (isBootingUp || status.current !== "stopped") {
-            showInfo("Can't spam now. Status: " + status.current);
-            return;
-        }
-        try {
-            status.current = "running";
-            while (true)
-            {
-                // @ts-expect-error "This comparison appears to be unintentional"
-                if (status.current === "stop requested") {
-                    status.current = "stopped";
-                    showInfo("ready to spam");
-                    return;
-                }
-
-                const counters = userData.counters;
-
-                if (counters.register !== null && !counters.register.registered) {
-                    showInfo("registering counter: " + shortenSuiAddress(counters.register.id));
-                    const resp = await spamClient.registerUserCounter(counters.register.id);
-                    counters.register.registered = true;
-                    console.debug("registerUserCounter resp: ", resp);
-                }
-
-                if (counters.claim.length > 0) {
-                    showInfo("claiming counters: " + counters.claim.map(c => shortenSuiAddress(c.id)).join(", "));
-                    const counterIds = counters.claim.map(counter => counter.id);
-                    const resp = await spamClient.claimUserCounters(counterIds);
-                    counters.claim = [];
-                    console.debug("destroyUserCounters resp: ", resp);
-                }
-
-                if (counters.delete.length > 0) {
-                    showInfo("deleting counters: " + counters.delete.map(c => shortenSuiAddress(c.id)).join(", "));
-                    const counterIds = counters.delete.map(counter => counter.id);
-                    const resp = await spamClient.destroyUserCounters(counterIds);
-                    counters.delete = [];
-                    console.debug("destroyUserCounters resp: ", resp);
-                }
-
-                if (counters.current === null) {
-                    showInfo("creating counter");
-                    const resp = await spamClient.newUserCounter();
-                    console.debug("newUserCounter resp: ", resp);
-                    status.current = "stopped";
-                    loadUserDataAndSpam(spamClient);
-                    return;
-                }
-
-                showInfo("spamming");
-
-                spamClient.network == "localnet" && isLocalhost() && await sleep(333); // simulate latency
-                const resp = await spamClient.incrementUserCounter(counters.current.id);
-                console.debug("incrementUserCounter resp: ", resp);
-                loadUserData(spamClient); // TODO do periodically, outside of this loop
-            }
-        }
-        catch(err) {
-            status.current = "stopped";
-            const errStr = String(err);
-            const errCode = parseSpamError(errStr);
-            if (errCode === SpamError.EWrongEpoch) {
-                loadUserDataAndSpam(spamClient);
-            } else {
-                showInfo("ready to spam");
-                setError(errStr);
-            }
-        }
+    const stop = () => {
+        spamClient.stop();
     };
 
     /* HTML */
@@ -159,7 +79,8 @@ export const PageSpam: React.FC = () =>
         <div>
             <ErrorBox err={error} />
             <div className="tight">
-                <p>Status: {status.current}</p>
+                <p>Status: {spamClient.status}</p>
+                <p>User address: {shortenSuiAddress(spamClient.signer.toSuiAddress())}</p>
                 <p>Info: {info}</p>
                 <p>Epoch: {userData?.epoch}</p>
                 {balances && <>
@@ -171,8 +92,8 @@ export const PageSpam: React.FC = () =>
             {isBootingUp
             ? <p>Loading...</p>
             : <>
-                <button className="btn" onClick={() => loadUserDataAndSpam(spamClient)}>SPAM</button>
-                <button className="btn" onClick={() => status.current = "stop requested"}>STOP</button>
+                <button className="btn" onClick={start}>SPAM</button>
+                <button className="btn" onClick={stop}>STOP</button>
             </>
             }
             {counters &&

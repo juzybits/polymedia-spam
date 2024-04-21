@@ -1,5 +1,5 @@
 import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
-import { SpamClient } from "@polymedia/spam-sdk";
+import { SpamClient, SpamEventHandler } from "@polymedia/spam-sdk";
 import { RPC_ENDPOINTS } from "@polymedia/suits";
 import { LinkExternal, Modal, NetworkSelector, isLocalhost, loadNetwork } from "@polymedia/webutils";
 import { ReactNode, useState } from "react";
@@ -30,7 +30,7 @@ export const AppRouter: React.FC = () => {
     );
 };
 
-/* Sui providers + network config */
+/* Config */
 
 const supportedNetworks = ["mainnet", "testnet", "devnet", "localnet"] as const;
 export type NetworkName = typeof supportedNetworks[number];
@@ -52,21 +52,26 @@ export type AppContext = {
 
 const App: React.FC = () =>
 {
+    const spamEventHandler: SpamEventHandler = (evt) => {
+        console[evt.type](`${evt.type}: ${evt.msg}`);
+    };
     const [ spamClient, setSpamClient ] = useState(new SpamClient(
         loadedKeypair,
         loadedNetwork,
         RPC_ENDPOINTS[loadedNetwork][0], // TODO rotate within SpamClient
+        spamEventHandler,
     ));
     const [ inProgress, setInProgress ] = useState(false);
     const [ showMobileNav, setShowMobileNav ] = useState(false);
     const [ modalContent, setModalContent ] = useState<ReactNode>(null);
 
     const replaceKeypair = (keypair: Ed25519Keypair): void => {
-        // spamClient.stop(); // TODO
+        spamClient.stop();
         setSpamClient(new SpamClient(
             keypair,
             spamClient.network,
             spamClient.rpcUrl,
+            spamEventHandler,
         ));
         saveKeypairToStorage(keypair);
     };
@@ -178,11 +183,12 @@ const BtnNetwork: React.FC<{
 }) =>
 {
     const onSwitchNetwork = (newNet: NetworkName) => {
-        // app.spamClient.stop(); // TODO
+        app.spamClient.stop();
         app.setSpamClient(new SpamClient(
             app.spamClient.signer,
             newNet,
             RPC_ENDPOINTS[newNet][0],
+            app.spamClient.onEvent, // TODO check this works
         ));
         app.setShowMobileNav(false);
     };
