@@ -30,13 +30,24 @@ export const AppRouter: React.FC = () => {
     );
 };
 
-/* Config */
+/* Network config */
 
 const supportedNetworks = ["mainnet", "testnet", "devnet", "localnet"] as const;
-export type NetworkName = typeof supportedNetworks[number];
+type NetworkName = typeof supportedNetworks[number];
 const defaultNetwork = isLocalhost() ? "localnet" : "mainnet";
 const loadedNetwork = loadNetwork(supportedNetworks, defaultNetwork);
-const loadedKeypair = loadKeypairFromStorage();
+
+/* SpamClient config */
+
+const spamEventHandler: SpamEventHandler = (evt) => {
+    console[evt.type](`${evt.type}: ${evt.msg}`);
+};
+const loadedSpamClient = new SpamClient(
+    loadKeypairFromStorage(),
+    loadedNetwork,
+    RPC_ENDPOINTS[loadedNetwork][0], // TODO rotate within SpamClient
+    spamEventHandler,
+);
 
 /* App */
 
@@ -52,15 +63,7 @@ export type AppContext = {
 
 const App: React.FC = () =>
 {
-    const spamEventHandler: SpamEventHandler = (evt) => {
-        console[evt.type](`${evt.type}: ${evt.msg}`);
-    };
-    const [ spamClient, setSpamClient ] = useState(new SpamClient(
-        loadedKeypair,
-        loadedNetwork,
-        RPC_ENDPOINTS[loadedNetwork][0], // TODO rotate within SpamClient
-        spamEventHandler,
-    ));
+    const [ spamClient, setSpamClient ] = useState(loadedSpamClient);
     const [ inProgress, setInProgress ] = useState(false);
     const [ showMobileNav, setShowMobileNav ] = useState(false);
     const [ modalContent, setModalContent ] = useState<ReactNode>(null);
@@ -133,7 +136,7 @@ const App: React.FC = () =>
             setSpamClient(new SpamClient(
                 spamClient.signer,
                 newNet,
-                RPC_ENDPOINTS[newNet][0],
+                RPC_ENDPOINTS[newNet][0], // TODO
                 spamEventHandler,
             ));
             setShowMobileNav(false);

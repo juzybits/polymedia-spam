@@ -1,5 +1,5 @@
-import { UserCounter, UserData } from "@polymedia/spam-sdk";
-import { formatNumber, shortenSuiAddress } from "@polymedia/suits";
+import { SpamEventHandler, UserCounter, UserData } from "@polymedia/spam-sdk";
+import { formatNumber } from "@polymedia/suits";
 import { LinkToExplorerObj } from "@polymedia/webutils";
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
@@ -22,21 +22,26 @@ export const PageSpam: React.FC = () =>
     useEffect(() => {
         const initialize = async () => {
             try {
-                showInfo("booting up");
                 setUserData(await spamClient.fetchUserData());
-                showInfo("ready to spam");
+                setInfo("ready to spam");
             }
             catch(err) {
                 setError(String(err));
             }
         };
         initialize();
-    }, [spamClient]);
 
-    const showInfo = (msg: string) => {
-        setInfo(msg);
-        console.info(msg);
-    };
+        const handler: SpamEventHandler = (evt) => {
+            setUserData(spamClient.userData ? {...spamClient.userData} : null);
+            if (evt.type !== "debug") {
+                setInfo(evt.msg);
+            }
+        };
+        spamClient.addEventHandler(handler);
+        return () => {
+            spamClient.removeEventHandler(handler);
+        };
+    }, [spamClient]);
 
     const start = () => {
         spamClient.start();
@@ -80,7 +85,6 @@ export const PageSpam: React.FC = () =>
             <ErrorBox err={error} />
             <div className="tight">
                 <p>Status: {spamClient.status}</p>
-                <p>User address: {shortenSuiAddress(spamClient.signer.toSuiAddress())}</p>
                 <p>Info: {info}</p>
                 <p>Epoch: {userData?.epoch}</p>
                 {balances && <>

@@ -40,13 +40,13 @@ export class SpamClient
     public directorId: string;
     public status: SpamStatus;
     public userData: UserData|null;
-    public onEvent: SpamEventHandler;
+    private eventHandlers: Set<SpamEventHandler>;
 
     constructor(
         keypair: Signer,
         network: NetworkName,
         rpcUrl: string,
-        onEvent: SpamEventHandler,
+        eventHandler: SpamEventHandler,
     ) {
         this.signer = keypair;
         this.network = network;
@@ -56,7 +56,19 @@ export class SpamClient
         this.directorId = SPAM_IDS[network].directorId;
         this.status = "stopped";
         this.userData = null;
-        this.onEvent = onEvent;
+        this.eventHandlers = new Set<SpamEventHandler>([eventHandler]);
+    }
+
+    public addEventHandler(handler: SpamEventHandler) {
+        this.eventHandlers.add(handler);
+    }
+
+    public removeEventHandler(handler: SpamEventHandler) {
+        this.eventHandlers.delete(handler);
+    }
+
+    private onEvent(event: SpamEvent) {
+        this.eventHandlers.forEach(handler => handler(event));
     }
 
     /* Spam functions */
