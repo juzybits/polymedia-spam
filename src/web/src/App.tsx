@@ -119,7 +119,9 @@ const App: React.FC<{ // TODO: RpcSelector
                 <Nav appContext={appContext} />
 
                 <div id='page'>
-                    <Outlet context={appContext} /> {/* Loads a Page*.tsx */}
+                    <div id='page-content'>
+                        <Outlet context={appContext} /> {/* Loads a Page*.tsx */}
+                    </div>
                 </div>
             </div>
         </div>

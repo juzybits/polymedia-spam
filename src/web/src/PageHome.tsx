@@ -5,7 +5,7 @@ export const PageHome: React.FC = () =>
 {
     const { wallet } = useOutletContext<AppContext>();
 
-    return <div id="page-content" >
+    return <>
         <h1><span className="rainbow">SPAM</span></h1>
 
         <h2>Spam to Earn on Sui</h2>
@@ -20,5 +20,5 @@ export const PageHome: React.FC = () =>
             START
         </Link>
 
-    </div>;
+    </>;
 }

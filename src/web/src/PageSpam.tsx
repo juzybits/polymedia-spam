@@ -179,7 +179,7 @@ export const PageSpam: React.FC = () =>
     const balances = userData?.balances;
     const counters = userData?.counters;
 
-    return <div id="page-content" >
+    return <>
         <h1>Spam</h1>
         <div>
             <ErrorBox err={error} />
@@ -208,5 +208,5 @@ export const PageSpam: React.FC = () =>
                 <CounterSection title="Deletable counters" counters={counters.delete} />
             </>}
         </div>
-    </div>;
+    </>;
 }

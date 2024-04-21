@@ -21,7 +21,7 @@ export const PageStats: React.FC = () =>
         initialize();
     }, []);
 
-    return <div id="page-content">
+    return <>
         <h1>Stats</h1>
         {!stats
         ? <p>Loading...</p>
@@ -33,7 +33,8 @@ export const PageStats: React.FC = () =>
                 <p>Total transactions: {formatNumber(Number(stats.tx_count), "compact")}</p>
             </div>
 
-            {stats.epochs.length > 0 && <>
+            {stats.epochs.length > 0 &&
+            <>
                 <h2>Epochs:</h2>
                 <div className="tight">
                 {stats.epochs.map(epoch =>
@@ -45,5 +46,5 @@ export const PageStats: React.FC = () =>
             </>}
         </>
         }
-    </div>;
+    </>;
 }

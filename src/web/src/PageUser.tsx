@@ -36,8 +36,8 @@ export const PageUser: React.FC = () =>
         </div>
     </>;
 
-    return <div id="page-content" >
+    return <>
         <h1>User</h1>
         {content}
-    </div>;
+    </>;
 }
