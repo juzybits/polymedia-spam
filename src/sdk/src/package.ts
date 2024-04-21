@@ -70,3 +70,18 @@ export function claim_user_counter(
         ],
     });
 }
+
+export function stats(
+    txb: TransactionBlock,
+    packageId: string,
+    directorId: string,
+    epochs: number[],
+): TransactionResult {
+    return txb.moveCall({
+        target: `${packageId}::spam::stats`,
+        arguments: [
+            txb.object(directorId),
+            txb.pure(epochs),
+        ],
+    });
+}

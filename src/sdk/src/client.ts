@@ -1,7 +1,12 @@
 import { SuiClient, SuiObjectResponse, SuiTransactionBlockResponse } from "@mysten/sui.js/client";
 import { Signer } from "@mysten/sui.js/cryptography";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
-import { NetworkName, convertBigIntToNumber, getSuiObjectResponseFields } from "@polymedia/suits";
+import {
+    NetworkName,
+    convertBigIntToNumber,
+    devInspectAndGetResults,
+    getSuiObjectResponseFields,
+} from "@polymedia/suits";
 import { SPAM_IDS } from "./config";
 import {
     claim_user_counter,
@@ -9,6 +14,7 @@ import {
     increment_user_counter,
     new_user_counter,
     register_user_counter,
+    stats,
 } from "./package";
 import { UserCounter, UserData } from "./types";
 
@@ -174,6 +180,17 @@ export class SpamClient
             txb.transferObjects([coin], this.signer.toSuiAddress());
         }
         return this.signAndExecute(txb);
+    }
+
+    public async getStats(
+        epochs: number[],
+    ): Promise<unknown>
+    {
+        const txb = new TransactionBlock();
+        stats(txb, this.packageId, this.directorId, epochs);
+        const res = await devInspectAndGetResults(this.suiClient, txb);
+
+        return res[0].returnValues;
     }
 
     private async signAndExecute(
