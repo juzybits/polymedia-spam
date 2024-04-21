@@ -15,7 +15,7 @@ export const PageHome: React.FC = () =>
             The more transactions you send, the more SPAM coins you receive.
         </p>
 
-        <br />
+        <br /><br />
         <Link className="btn" to={wallet ? "/spam" : "/user"}>
             START
         </Link>

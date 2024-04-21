@@ -60,7 +60,7 @@ export const PageSpam: React.FC = () =>
             }
         };
         initialize(wallet);
-    }, [wallet]);
+    }, [wallet, network, suiClient]);
 
     const showInfo = (msg: string) => {
         setInfo(msg);

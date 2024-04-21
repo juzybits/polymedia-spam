@@ -7,7 +7,7 @@ import {
     devInspectAndGetResults,
     getSuiObjectResponseFields,
 } from "@polymedia/suits";
-import { SPAM_IDS } from "./config";
+import { SPAM_DECIMALS, SPAM_IDS, SUI_DECIMALS } from "./config";
 import {
     claim_user_counter,
     destroy_user_counter,
@@ -64,8 +64,8 @@ export class SpamClient
             coinType: `${this.packageId}::spam::SPAM`,
         });
         const balances: UserData["balances"] = {
-            spam: convertBigIntToNumber(BigInt(balanceSpam.totalBalance), 0),
-            sui: convertBigIntToNumber(BigInt(balanceSui.totalBalance), 9),
+            spam: convertBigIntToNumber(BigInt(balanceSpam.totalBalance), SPAM_DECIMALS),
+            sui: convertBigIntToNumber(BigInt(balanceSui.totalBalance), SUI_DECIMALS),
         };
 
         // fetch user counters

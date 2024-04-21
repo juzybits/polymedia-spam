@@ -10,6 +10,7 @@ import { BrowserRouter, Link, Outlet, Route, Routes, useLocation } from "react-r
 import { PageHome } from "./PageHome";
 import { PageNotFound } from "./PageNotFound";
 import { PageSpam } from "./PageSpam";
+import { PageStats } from "./PageStats";
 import { PageUser } from "./PageUser";
 import { Wallet, loadWallet, saveWallet } from "./lib/storage";
 import "./styles/App.less";
@@ -23,6 +24,7 @@ export const AppRouter: React.FC = () => {
             <Route path='/' element={<AppSuiProviders />} >
                 <Route index element={<PageHome />} />
                 <Route path='/user' element={<PageUser />} />
+                <Route path='/stats' element={<PageStats />} />
                 <Route path='/spam' element={<PageSpam />} />
                 <Route path='*' element={<PageNotFound />} />
             </Route>
@@ -187,6 +189,9 @@ const Nav: React.FC<{
     return <nav>
         <Link to='/' className={selected("/")} onClick={onClick}>
             Home
+        </Link>
+        <Link to='/stats' className={selected("/stats")} onClick={onClick}>
+            Stats
         </Link>
 
         <div className='divider' />

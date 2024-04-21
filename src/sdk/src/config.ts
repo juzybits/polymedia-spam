@@ -19,7 +19,10 @@ export const SPAM_IDS: Record<NetworkName, NetworkConfig> = {
         directorId: "",
     },
     localnet: {
-        packageId: "0x14768e58af441f6bec4c9942b24ac179ed4594894402633f030c34b41dd5b411",
-        directorId: "0x2eb2f3faee3ee72ce7b97f6ba210c02fb5b7d6f8ede509368c8cc23d842130bb",
+        packageId: "0x666e98440bcc804242d75450a99196bc80685f061e8f7a241493d04f4d899e03",
+        directorId: "0xf93ee46934859c0dc1c9e0ff3dddfaa65c5cd32040090ba741db787c1dd97bbd",
     },
 };
+
+export const SPAM_DECIMALS = 0;
+export const SUI_DECIMALS = 9;

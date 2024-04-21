@@ -33,7 +33,6 @@ export const BcsStats = bcs.struct('Stats', {
     epochs: bcs.vector(bcs.struct('EpochStats', {
         epoch: bcs.u64(),
         tx_count: bcs.u64(),
-        user_count: bcs.u64(),
     })),
 });
 
