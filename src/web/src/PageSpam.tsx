@@ -16,7 +16,7 @@ export const PageSpam: React.FC = () =>
 {
     /* State */
 
-    const { spamClient } = useOutletContext<AppContext>();
+    const { spammer } = useOutletContext<AppContext>();
     const [ spamView, setSpamView ] = useState<SpamView>();
     // const [ error, setError ] = useState<string|null>(null);
 
@@ -26,15 +26,15 @@ export const PageSpam: React.FC = () =>
 
     useEffect(() =>
     {
-        /* repaint periodically when the SpamClient is not running */
+        /* repaint periodically when the Spammer is not running */
 
         const updateView = async () => {
-            if (spamClient.status === "running") {
+            if (spammer.status === "running") {
                 return;
             }
-            const data = await spamClient.fetchData();
+            const data = await spammer.client.fetchData();
             setSpamView(oldView => ({
-                status: spamClient.status,
+                status: spammer.status,
                 lastMessage: oldView?.lastMessage ?? "-",
                 epoch: data.epoch,
                 userData: data.userData,
@@ -44,39 +44,39 @@ export const PageSpam: React.FC = () =>
 
         const updateViewPeriodically = setInterval(
             updateView,
-            spamClient.network === "localnet" ? 5_000 : 30_000,
+            spammer.client.network === "localnet" ? 5_000 : 30_000,
         );
 
-        /* repaint on demand whenever there is a SpamClient event */
+        /* repaint on demand whenever there is a Spammer event */
 
         const handleEvent: SpamEventHandler = (e) => {
             setSpamView(oldView => ({
-                status: spamClient.status,
+                status: spammer.status,
                 lastMessage: (e.type !== "debug" && e.msg) || oldView?.lastMessage || "-",
-                epoch: spamClient.epoch,
-                userData: spamClient.userData,
+                epoch: spammer.epoch,
+                userData: spammer.userData,
             }));
         };
-        spamClient.addEventHandler(handleEvent);
+        spammer.addEventHandler(handleEvent);
 
         /* clean up on component unmount */
 
         return () => {
             clearInterval(updateViewPeriodically);
-            spamClient.removeEventHandler(handleEvent);
+            spammer.removeEventHandler(handleEvent);
         };
-    }, [spamClient]);
+    }, [spammer]);
 
     const start = () => {
-        if (spamClient.status === "stopped") {
+        if (spammer.status === "stopped") {
             spamView && (spamView.lastMessage = "Starting");
-            spamClient.start();
+            spammer.start();
         }
     };
 
     const stop = () => {
-        if (spamClient.status === "running") {
-            spamClient.stop();
+        if (spammer.status === "running") {
+            spammer.stop();
         }
     };
 
@@ -93,7 +93,7 @@ export const PageSpam: React.FC = () =>
             <h3>{title}</h3>
             {counters.map(counter => (
                 <p key={counter.id}>
-                    id: <LinkToExplorerObj network={spamClient.network} objId={counter.id} /><br/>
+                    id: <LinkToExplorerObj network={spammer.client.network} objId={counter.id} /><br/>
                     epoch: {counter.epoch}<br/>
                     tx_count: {counter.tx_count}<br/>
                     registered: {counter.registered ? "true" : "false"}<br/>

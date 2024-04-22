@@ -6,12 +6,12 @@ import { formatBigInt, formatNumber } from "@polymedia/suits";
 
 export const PageStats: React.FC = () =>
 {
-    const { spamClient } = useOutletContext<AppContext>();
+    const { spammer } = useOutletContext<AppContext>();
     const [ stats, setStats ] = useState<Stats>();
 
     useEffect(() => {
         const initialize = async () => {
-            const newStats = await spamClient.fetchStatsForRecentEpochs(14);
+            const newStats = await spammer.client.fetchStatsForRecentEpochs(14);
             setStats(newStats);
         };
         initialize();

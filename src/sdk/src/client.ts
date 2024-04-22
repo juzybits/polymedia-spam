@@ -11,29 +11,10 @@ import {
     convertBigIntToNumber,
     devInspectAndGetResults,
     getSuiObjectResponseFields,
-    shortenSuiAddress,
-    sleep,
 } from "@polymedia/suits";
 import { SPAM_DECIMALS, SPAM_IDS, SUI_DECIMALS } from "./config";
-import { SpamError, parseSpamError } from "./errors";
-import {
-    claim_user_counter,
-    destroy_user_counter,
-    increment_user_counter,
-    new_user_counter,
-    register_user_counter,
-    stats_for_recent_epochs,
-    stats_for_specific_epochs,
-} from "./package";
+import * as pkg from "./package";
 import { BcsStats, Stats, UserCounter, UserData } from "./types";
-
-export type SpamStatus = "stopped" | "running" | "stopping";
-export type SpamEventType = "debug" | "info" | "warn" | "error";
-export type SpamEvent = {
-    type: SpamEventType;
-    msg: string;
-};
-export type SpamEventHandler = (event: SpamEvent) => void;
 
 export class SpamClient
 {
@@ -44,17 +25,10 @@ export class SpamClient
     public readonly packageId: string;
     public readonly directorId: string;
 
-    public status: SpamStatus;
-    public epoch: number;
-    public userData: UserData;
-    private requestRefresh: boolean;
-    private readonly eventHandlers: Set<SpamEventHandler>;
-
     constructor(
         keypair: Signer,
         network: NetworkName,
         rpcUrl: string,
-        eventHandler: SpamEventHandler,
     ) {
         this.signer = keypair;
         this.network = network;
@@ -62,140 +36,13 @@ export class SpamClient
         this.suiClient = new SuiClient({ url: rpcUrl }),
         this.packageId = SPAM_IDS[network].packageId;
         this.directorId = SPAM_IDS[network].directorId;
-
-        this.status = "stopped";
-        this.epoch = -1;
-        this.userData = {
-            balances: { spam: -1, sui: -1 },
-            counters: { current: null, register: null, claim: [], delete: [] },
-        };
-        this.requestRefresh = true; // so when it starts it pulls the data
-        this.eventHandlers = new Set<SpamEventHandler>([eventHandler]);
     }
 
-    public addEventHandler(handler: SpamEventHandler) {
-        this.eventHandlers.add(handler);
-    }
-
-    public removeEventHandler(handler: SpamEventHandler) {
-        this.eventHandlers.delete(handler);
-    }
-
-    private onEvent(event: SpamEvent) {
-        this.eventHandlers.forEach(handler => handler(event));
-    }
-
-    /* Spam functions */
-
-    public stop() {
-        this.status = "stopping";
-        this.onEvent({ type: "info", msg: "Shutting down" });
-    }
-
-    public async start()
-    {
-        if (this.status == "running") {
-            this.onEvent({ type: "warn", msg: "Already running" });
-            return;
-        }
-
-        if (this.status === "stopping") {
-            this.status = "stopped";
-            this.requestRefresh = true; // so when it starts again it pulls fresh data
-            this.onEvent({ type: "info", msg: "Stopped as requested" });
-            return;
-        }
-
-        this.status = "running";
-
-        try {
-            if (this.requestRefresh) {
-                this.requestRefresh = false;
-                const data = await this.fetchData(); // TODO handle network failures
-                this.epoch = data.epoch;
-                this.userData = data.userData;
-            }
-
-            const counters = this.userData.counters;
-
-            if (counters.register !== null && !counters.register.registered) {
-                this.onEvent({ type: "info", msg: "Registering counter: " + shortenSuiAddress(counters.register.id) });
-                const resp = await this.registerUserCounter(counters.register.id);
-                counters.register.registered = true;
-                this.requestRefresh = true;
-                this.onEvent({
-                    type: "debug",
-                    msg: "registerUserCounter resp: " + JSON.stringify(resp, null, 2),
-                });
-            }
-
-            if (counters.claim.length > 0) {
-                this.onEvent({ type: "info", msg: "Claiming counters: " + counters.claim.map(c => shortenSuiAddress(c.id)).join(", ") });
-                const counterIds = counters.claim.map(counter => counter.id);
-                const resp = await this.claimUserCounters(counterIds);
-                counters.claim = [];
-                this.requestRefresh = true;
-                this.onEvent({
-                    type: "debug",
-                    msg: "destroyUserCounters resp: " + JSON.stringify(resp, null, 2),
-                });
-            }
-
-            if (counters.delete.length > 0) {
-                this.onEvent({ type: "info", msg: "Deleting counters: " + counters.delete.map(c => shortenSuiAddress(c.id)).join(", ") });
-                const counterIds = counters.delete.map(counter => counter.id);
-                const resp = await this.destroyUserCounters(counterIds);
-                counters.delete = [];
-                this.requestRefresh = true;
-                this.onEvent({ type: "debug", msg: "destroyUserCounters resp: " + JSON.stringify(resp, null, 2) });
-            }
-
-            if (counters.current === null) {
-                this.onEvent({ type: "info", msg: "Creating counter" });
-                const resp = await this.newUserCounter();
-                this.requestRefresh = true; // TODO: this happens twice on epoch change (see catch() below)
-                this.onEvent({ type: "debug", msg: "newUserCounter resp: " + JSON.stringify(resp, null, 2) });
-            } else {
-                this.network == "localnet" && await sleep(333); // simulate latency
-                const curr = counters.current;
-                const resp = await this.incrementUserCounter(curr.ref); // TODO check resp.effects.status.status === 'success'
-                curr.tx_count++;
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                curr.ref = resp.effects!.mutated!.find(mutatedObj =>
-                    mutatedObj.reference.objectId == curr.id
-                )!.reference;
-                this.onEvent({ type: "debug", msg: "incrementUserCounter resp: " + JSON.stringify(resp, null, 2) });
-            }
-        }
-        catch (err) {
-            const errStr = String(err);
-            const errCode = parseSpamError(errStr);
-            if (errCode === SpamError.EWrongEpoch) {
-                // Expected error: when the epoch changes, the counter is no longer incrementable
-                this.requestRefresh = true;
-                this.start();
-                this.onEvent({ type: "info", msg: "Epoch change"});
-            }
-            else {
-                // Unexpected error // TODO rotate RPC etc
-                this.onEvent({ type: "warn", msg: String(err) });
-            }
-        }
-        finally {
-            // keep the loop going unless stop was requested
-            if (this.status === "running") {
-                this.status = "stopped";
-            }
-            this.start();
-        }
-    }
-
-    /* Sui RPC functions */
+    /* Data fetching */
 
     public async fetchUserCounters(
     ): Promise<UserCounter[]>
     {
-        // fetch user counters
         const StructType = `${this.packageId}::spam::UserCounter`;
         const pageObjResp = await this.suiClient.getOwnedObjects({
             owner: this.signer.toSuiAddress(),
@@ -294,7 +141,7 @@ export class SpamClient
     ): Promise<SuiTransactionBlockResponse>
     {
         const txb = new TransactionBlock();
-        new_user_counter(txb, this.packageId);
+        pkg.new_user_counter(txb, this.packageId);
         return this.signAndExecute(txb);
     }
 
@@ -303,7 +150,7 @@ export class SpamClient
     ): Promise<SuiTransactionBlockResponse>
     {
         const txb = new TransactionBlock();
-        increment_user_counter(txb, this.packageId, userCounterRef);
+        pkg.increment_user_counter(txb, this.packageId, userCounterRef);
         return this.signAndExecute(txb);
     }
 
@@ -313,7 +160,7 @@ export class SpamClient
     {
         const txb = new TransactionBlock();
         for (const counterId of userCounterIds) {
-            destroy_user_counter(txb, this.packageId, counterId);
+            pkg.destroy_user_counter(txb, this.packageId, counterId);
         }
         return this.signAndExecute(txb);
     }
@@ -323,7 +170,7 @@ export class SpamClient
     ): Promise<SuiTransactionBlockResponse>
     {
         const txb = new TransactionBlock();
-        register_user_counter(txb, this.packageId, this.directorId, userCounterId);
+        pkg.register_user_counter(txb, this.packageId, this.directorId, userCounterId);
         return this.signAndExecute(txb);
     }
 
@@ -333,7 +180,7 @@ export class SpamClient
     {
         const txb = new TransactionBlock();
         for (const counterId of userCounterIds) {
-            const [coin] = claim_user_counter(txb, this.packageId, this.directorId, counterId);
+            const [coin] = pkg.claim_user_counter(txb, this.packageId, this.directorId, counterId);
             txb.transferObjects([coin], this.signer.toSuiAddress());
         }
         return this.signAndExecute(txb);
@@ -344,7 +191,7 @@ export class SpamClient
     ): Promise<Stats>
     {
         const txb = new TransactionBlock();
-        stats_for_specific_epochs(txb, this.packageId, this.directorId, epochNumbers);
+        pkg.stats_for_specific_epochs(txb, this.packageId, this.directorId, epochNumbers);
         return this.deserializeStats(txb);
     }
 
@@ -353,7 +200,7 @@ export class SpamClient
     ): Promise<Stats>
     {
         const txb = new TransactionBlock();
-        stats_for_recent_epochs(txb, this.packageId, this.directorId, epochCount);
+        pkg.stats_for_recent_epochs(txb, this.packageId, this.directorId, epochCount);
         return this.deserializeStats(txb);
     }
 

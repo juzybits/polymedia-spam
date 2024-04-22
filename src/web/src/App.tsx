@@ -1,5 +1,5 @@
 import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
-import { SpamClient, SpamEventHandler } from "@polymedia/spam-sdk";
+import { SpamEventHandler, Spammer } from "@polymedia/spam-sdk";
 import { RPC_ENDPOINTS } from "@polymedia/suits";
 import { LinkExternal, Modal, NetworkSelector, isLocalhost, loadNetwork } from "@polymedia/webutils";
 import { ReactNode, useState } from "react";
@@ -37,15 +37,15 @@ type NetworkName = typeof supportedNetworks[number];
 const defaultNetwork = isLocalhost() ? "localnet" : "mainnet";
 const loadedNetwork = loadNetwork(supportedNetworks, defaultNetwork);
 
-/* SpamClient config */
+/* Spammer config */
 
 const spamEventHandler: SpamEventHandler = (evt) => {
     console[evt.type](`${evt.type}: ${evt.msg}`);
 };
-const loadedSpamClient = new SpamClient(
+const loadedSpammer = new Spammer(
     loadKeypairFromStorage(),
     loadedNetwork,
-    RPC_ENDPOINTS[loadedNetwork][0], // TODO rotate within SpamClient
+    RPC_ENDPOINTS[loadedNetwork][0], // TODO rotate within Spammer
     spamEventHandler,
 );
 
@@ -54,7 +54,7 @@ const loadedSpamClient = new SpamClient(
 export type ReactSetter<T> = React.Dispatch<React.SetStateAction<T>>;
 
 export type AppContext = {
-    spamClient: SpamClient; setSpamClient: ReactSetter<SpamClient>;
+    spammer: Spammer; setSpammer: ReactSetter<Spammer>;
     inProgress: boolean; setInProgress: ReactSetter<boolean>;
     showMobileNav: boolean; setShowMobileNav: ReactSetter<boolean>;
     setModalContent: ReactSetter<ReactNode>;
@@ -63,24 +63,24 @@ export type AppContext = {
 
 const App: React.FC = () =>
 {
-    const [ spamClient, setSpamClient ] = useState(loadedSpamClient);
+    const [ spammer, setSpammer ] = useState(loadedSpammer);
     const [ inProgress, setInProgress ] = useState(false);
     const [ showMobileNav, setShowMobileNav ] = useState(false);
     const [ modalContent, setModalContent ] = useState<ReactNode>(null);
 
     const replaceKeypair = (keypair: Ed25519Keypair): void => {
-        spamClient.stop();
-        setSpamClient(new SpamClient(
+        spammer.stop();
+        setSpammer(new Spammer(
             keypair,
-            spamClient.network,
-            spamClient.rpcUrl,
+            spammer.client.network,
+            spammer.client.rpcUrl,
             spamEventHandler,
         ));
         saveKeypairToStorage(keypair);
     };
 
     const appContext: AppContext = {
-        spamClient, setSpamClient,
+        spammer, setSpammer,
         inProgress, setInProgress,
         showMobileNav, setShowMobileNav,
         setModalContent,
@@ -138,9 +138,9 @@ const App: React.FC = () =>
     const BtnNetwork: React.FC = () =>
     {
         const onSwitchNetwork = (newNet: NetworkName) => {
-            spamClient.stop();
-            setSpamClient(new SpamClient(
-                spamClient.signer,
+            spammer.stop();
+            setSpammer(new Spammer(
+                spammer.client.signer,
                 newNet,
                 RPC_ENDPOINTS[newNet][0], // TODO
                 spamEventHandler,
@@ -148,7 +148,7 @@ const App: React.FC = () =>
             setShowMobileNav(false);
         };
         return <NetworkSelector
-            currentNetwork={spamClient.network}
+            currentNetwork={spammer.client.network}
             supportedNetworks={supportedNetworks}
             disabled={inProgress}
             onSwitch={onSwitchNetwork}
