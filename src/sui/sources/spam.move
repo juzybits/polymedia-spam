@@ -1,10 +1,8 @@
-module spam::spam
-{
+module spam::spam {
     // === Imports ===
 
-    use sui::coin::{Self, Coin, TreasuryCap};
     use sui::table::{Self, Table};
-    use sui::tx_context::{epoch, sender};
+    use sui::coin::{create_currency, Coin, TreasuryCap};
 
     // === Errors ===
 
@@ -74,11 +72,11 @@ module spam::spam
     ) {
         let user_counter = UserCounter {
             id: object::new(ctx),
-            epoch: epoch(ctx),
+            epoch: ctx.epoch(),
             tx_count: 1, // count this transaction
             registered: false,
         };
-        transfer::transfer(user_counter, sender(ctx));
+        transfer::transfer(user_counter, ctx.sender());
     }
 
     /// Users can only increase their tx counter for the current epoch.
@@ -87,8 +85,7 @@ module spam::spam
         user_counter: &mut UserCounter,
         ctx: &TxContext,
     ) {
-        let current_epoch = epoch(ctx);
-        assert!(user_counter.epoch == current_epoch, EWrongEpoch);
+        assert!(user_counter.epoch == ctx.epoch(), EWrongEpoch);
 
         user_counter.tx_count = user_counter.tx_count + 1;
     }
@@ -97,7 +94,7 @@ module spam::spam
         user_counter: UserCounter,
     ) {
         let UserCounter { id, epoch: _, tx_count: _, registered: _} = user_counter;
-        sui::object::delete(id);
+        id.delete();
     }
 
     /// Users can only register their counter during the 1st epoch after UserCounter.epoch.
@@ -107,15 +104,15 @@ module spam::spam
         user_counter: &mut UserCounter,
         ctx: &mut TxContext,
     ) {
-        assert!(director.paused == false, EDirectorIsPaused);
-        assert!(user_counter.registered == false, EUserCounterIsRegistered);
+        assert!(!director.paused, EDirectorIsPaused);
+        assert!(!user_counter.registered, EUserCounterIsRegistered);
 
-        let previous_epoch = epoch(ctx) - 1;
+        let previous_epoch = ctx.epoch() - 1;
         assert!(user_counter.epoch == previous_epoch, EWrongEpoch);
 
-        let sender_addr = sender(ctx);
-        let epoch_counter = get_or_create_epoch_counter(director, previous_epoch, ctx);
-        assert!(epoch_counter.user_counts.contains(sender_addr) == false, EUserIsRegistered);
+        let sender_addr = ctx.sender();
+        let epoch_counter = director.get_or_create_epoch_counter(previous_epoch, ctx);
+        assert!(!epoch_counter.user_counts.contains(sender_addr), EUserIsRegistered);
 
         epoch_counter.user_counts.add(sender_addr, user_counter.tx_count);
         epoch_counter.tx_count = epoch_counter.tx_count + user_counter.tx_count;
@@ -131,17 +128,17 @@ module spam::spam
         user_counter: UserCounter,
         ctx: &mut TxContext,
     ): Coin<SPAM> {
-        let max_allowed_epoch = epoch(ctx) - 2;
+        let max_allowed_epoch = ctx.epoch() - 2;
         assert!(user_counter.epoch <= max_allowed_epoch, EWrongEpoch);
-        assert!(user_counter.registered == true, EUserCounterIsNotRegistered);
+        assert!(user_counter.registered, EUserCounterIsNotRegistered);
 
         let epoch_counter = director.epoch_counters.borrow_mut(user_counter.epoch);
         // we can safely remove the user from the EpochCounter because users
         // are no longer allowed to register() a UserCounter for this epoch
-        let user_txs = epoch_counter.user_counts.remove(sender(ctx));
+        let user_txs = epoch_counter.user_counts.remove(ctx.sender());
         let user_reward = (user_txs * TOTAL_EPOCH_REWARD) / epoch_counter.tx_count;
 
-        destroy_user_counter(user_counter);
+        user_counter.destroy_user_counter();
 
         let coin = director.treasury.mint(user_reward, ctx);
         return coin
@@ -178,10 +175,10 @@ module spam::spam
             i = i + 1;
         };
         return Stats {
-            epoch: epoch(ctx),
+            epoch: ctx.epoch(),
             paused: director.paused,
             tx_count: director.tx_count,
-            supply: coin::total_supply(&director.treasury),
+            supply: director.treasury.total_supply(),
             epochs: epoch_stats,
         }
     }
@@ -193,7 +190,7 @@ module spam::spam
         epoch_count: u64,
         ctx: &TxContext,
     ): Stats {
-        let epoch_now = epoch(ctx);
+        let epoch_now = ctx.epoch();
         let mut epoch_numbers = vector<u64>[];
         let mut i = 0;
         while (i < epoch_count && i < epoch_now) {
@@ -249,7 +246,7 @@ module spam::spam
     fun init(witness: SPAM, ctx: &mut TxContext)
     {
         // Create the coin
-        let (treasury, metadata) = coin::create_currency(
+        let (treasury, metadata) = create_currency(
             witness,
             0, // decimals
             b"SPAM", // symbol
@@ -270,13 +267,14 @@ module spam::spam
             tx_count: 0,
             paused: false, // TODO: switch to true before mainnet
         };
+
         transfer::share_object(director);
 
         // Create the admin capability, and transfer it
         let adminCap = AdminCap {
             id: object::new(ctx),
         };
-        transfer::transfer(adminCap, sender(ctx))
+        transfer::transfer(adminCap, ctx.sender())
     }
 
     // === Test Functions ===

@@ -8,7 +8,9 @@ authors = ["@juzybits (https://polymedia.app)"]
 published-at = "0x0"
 
 [dependencies]
-Sui = { local = "../../../sui/crates/sui-framework/packages/sui-framework" }
+# Sui = { local = "../../../sui/crates/sui-framework/packages/sui-framework" }
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet" }
 
 [addresses]
 spam = "0x0"
+sui = "0x2"
