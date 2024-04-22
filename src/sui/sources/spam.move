@@ -220,7 +220,7 @@ module spam::spam {
         cap: AdminCap,
     ) {
         let AdminCap { id } = cap;
-        object::delete(id);
+        id.delete();
     }
 
     // === Private functions ===
