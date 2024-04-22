@@ -22,7 +22,7 @@ import {
 import { BcsStats, Stats, UserCounter, UserData } from "./types";
 import { SpamError, parseSpamError } from "./errors";
 
-export type SpamStatus = "stopped" | "running" | "stop requested";
+export type SpamStatus = "stopped" | "running" | "stopping";
 export type SpamEventType = "debug" | "info" | "warn" | "error";
 export type SpamEvent = {
     type: SpamEventType;
@@ -83,7 +83,8 @@ export class SpamClient
     /* Spam functions */
 
     public stop() {
-        this.status = "stop requested";
+        this.status = "stopping";
+        this.onEvent({ type: "info", msg: "Shutting down" });
     }
 
     public async start()
@@ -93,9 +94,9 @@ export class SpamClient
             return;
         }
 
-        if (this.status === "stop requested") {
+        if (this.status === "stopping") {
             this.status = "stopped";
-            this.onEvent({ type: "info", msg: "stopped" });
+            this.onEvent({ type: "info", msg: "Stopped as requested" });
             return;
         }
 
@@ -109,7 +110,7 @@ export class SpamClient
             const counters = this.userData.counters;
 
             if (counters.register !== null && !counters.register.registered) {
-                this.onEvent({ type: "info", msg: "registering counter: " + shortenSuiAddress(counters.register.id) });
+                this.onEvent({ type: "info", msg: "Registering counter: " + shortenSuiAddress(counters.register.id) });
                 const resp = await this.registerUserCounter(counters.register.id);
                 counters.register.registered = true;
                 this.onEvent({
@@ -119,7 +120,7 @@ export class SpamClient
             }
 
             if (counters.claim.length > 0) {
-                this.onEvent({ type: "info", msg: "claiming counters: " + counters.claim.map(c => shortenSuiAddress(c.id)).join(", ") });
+                this.onEvent({ type: "info", msg: "Claiming counters: " + counters.claim.map(c => shortenSuiAddress(c.id)).join(", ") });
                 const counterIds = counters.claim.map(counter => counter.id);
                 const resp = await this.claimUserCounters(counterIds);
                 counters.claim = [];
@@ -130,7 +131,7 @@ export class SpamClient
             }
 
             if (counters.delete.length > 0) {
-                this.onEvent({ type: "info", msg: "deleting counters: " + counters.delete.map(c => shortenSuiAddress(c.id)).join(", ") });
+                this.onEvent({ type: "info", msg: "Deleting counters: " + counters.delete.map(c => shortenSuiAddress(c.id)).join(", ") });
                 const counterIds = counters.delete.map(counter => counter.id);
                 const resp = await this.destroyUserCounters(counterIds);
                 counters.delete = [];
@@ -138,7 +139,7 @@ export class SpamClient
             }
 
             if (counters.current === null) {
-                this.onEvent({ type: "info", msg: "creating counter" });
+                this.onEvent({ type: "info", msg: "Creating counter" });
                 const resp = await this.newUserCounter();
                 this.forceRefresh = true; // TODO: this happens twice on epoch change (see catch() below)
                 this.onEvent({ type: "debug", msg: "newUserCounter resp: " + JSON.stringify(resp, null, 2) });
@@ -155,7 +156,7 @@ export class SpamClient
                 // Expected error: when the epoch changes, the counter is no longer incrementable
                 this.forceRefresh = true;
                 this.start();
-                this.onEvent({ type: "info", msg: "epoch change"});
+                this.onEvent({ type: "info", msg: "Epoch change"});
             }
             else {
                 // Unexpected error // TODO rotate RPC etc
@@ -163,6 +164,7 @@ export class SpamClient
             }
         }
         finally {
+            // keep the loop going unless stop was requested
             if (this.status === "running") {
                 this.status = "stopped";
             }
@@ -267,7 +269,7 @@ export class SpamClient
             counters,
         };
 
-        this.onEvent({ type: "info", msg: "loaded user data" });
+        this.onEvent({ type: "info", msg: "Data is ready" });
     }
 
     public async newUserCounter(

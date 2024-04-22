@@ -8,6 +8,7 @@ import { ErrorBox } from "./components/ErrorBox";
 
 type SpamView = {
     status: string;
+    lastMessage: string;
     epoch: number;
     userData: UserData;
 };
@@ -18,7 +19,6 @@ export const PageSpam: React.FC = () =>
 
     const { spamClient } = useOutletContext<AppContext>();
     const [ spamView, setSpamView ] = useState<SpamView>();
-    const [ info, setInfo ] = useState<string>("booting up");
     const [ error, setError ] = useState<string|null>(null);
 
     const isBootingUp = !spamView;
@@ -26,36 +26,25 @@ export const PageSpam: React.FC = () =>
     /* Functions */
 
     useEffect(() => {
-        const initialize = async () => {
-            try {
-                await spamClient.refreshData();
-                setInfo("ready to spam");
-            }
-            catch(err) {
-                setError(String(err));
-            }
-        };
-        initialize();
+        spamClient.refreshData();
 
-        const refreshData = setInterval(() => {
+        const refreshDataPeriodically = setInterval(() => {
             spamClient.refreshData();
         }, spamClient.network === "localnet" ? 5_000 : 20_000);
 
-        const handlerEvent: SpamEventHandler = (evt) => {
-            if (evt.type !== "debug") {
-                setInfo(evt.msg);
-            }
-            setSpamView({
+        const handleEvent: SpamEventHandler = (e) => {
+            setSpamView(oldView => ({
                 status: spamClient.status,
+                lastMessage: (e.type !== "debug" && e.msg) || oldView?.lastMessage || '-',
                 epoch: spamClient.epoch,
                 userData: spamClient.userData,
-            });
+            }));
         };
-        spamClient.addEventHandler(handlerEvent);
+        spamClient.addEventHandler(handleEvent);
 
         return () => {
-            clearInterval(refreshData);
-            spamClient.removeEventHandler(handlerEvent);
+            clearInterval(refreshDataPeriodically);
+            spamClient.removeEventHandler(handleEvent);
         };
     }, [spamClient]);
 
@@ -80,10 +69,10 @@ export const PageSpam: React.FC = () =>
             <h3>{title}</h3>
             {counters.map(counter => (
                 <p key={counter.id}>
-                    id: <LinkToExplorerObj network={spamClient.network} objId={counter.id} /><br />
-                    epoch: {counter.epoch}<br />
-                    tx_count: {counter.tx_count}<br />
-                    registered: {counter.registered ? "true" : "false"}<br />
+                    id: <LinkToExplorerObj network={spamClient.network} objId={counter.id} /><br/>
+                    epoch: {counter.epoch}<br/>
+                    tx_count: {counter.tx_count}<br/>
+                    registered: {counter.registered ? "true" : "false"}<br/>
                 </p>
             ))}
             {counters.length === 0 &&
@@ -99,15 +88,16 @@ export const PageSpam: React.FC = () =>
         <h1>Spam</h1>
         <div>
             <ErrorBox err={error} />
-            <div className="tight">
-                <p>Status: {spamView?.status}</p>
-                <p>Info: {info}</p>
-                <p>Epoch: {spamView?.epoch}</p>
+            <div className="">
+                <p>Status:<br/>{spamView?.status}</p>
+                <p>Last event:<br/>{spamView?.lastMessage}</p>
                 {balances && <>
-                <p>Your balances:</p>
-                <p>{formatNumber(balances.spam, "compact")} SPAM</p>
-                <p>{formatNumber(balances.sui, "compact")} SUI</p>
+                <p>Your balances:<br/>
+                    {formatNumber(balances.sui, "compact")} SUI&nbsp;&nbsp;|&nbsp;&nbsp;
+                    {formatNumber(balances.spam, "compact")} SPAM
+                </p>
                 </>}
+                <p>Current epoch:<br/>{spamView?.epoch}</p>
             </div>
             {isBootingUp
             ? <p>Loading...</p>
