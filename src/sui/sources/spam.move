@@ -70,13 +70,7 @@ module spam::spam {
     entry fun new_user_counter(
         ctx: &mut TxContext,
     ) {
-        let user_counter = UserCounter {
-            id: object::new(ctx),
-            epoch: ctx.epoch(),
-            tx_count: 1, // count this transaction
-            registered: false,
-        };
-        transfer::transfer(user_counter, ctx.sender());
+        transfer::transfer(new_user_counter_impl(ctx), ctx.sender());
     }
 
     /// Users can only increase their tx counter for the current epoch.
@@ -145,6 +139,18 @@ module spam::spam {
     }
 
     // === Public-View Functions ===
+
+    public fun epoch(user_counter: &UserCounter): u64 {
+        user_counter.epoch
+    }
+
+    public fun tx_count(user_counter: &UserCounter): u64 {
+        user_counter.tx_count
+    }
+
+    public fun registered(user_counter: &UserCounter): bool {
+        user_counter.registered
+    }
 
     /// Get Stats for the Director and selected epochs.
     /// Epochs without an EpochCounter are represented with tx_count=0 and user_count=0.
@@ -225,6 +231,15 @@ module spam::spam {
 
     // === Private functions ===
 
+    fun new_user_counter_impl(ctx: &mut TxContext): UserCounter {
+        UserCounter {
+            id: object::new(ctx),
+            epoch: ctx.epoch(),
+            tx_count: 1, // count this transaction
+            registered: false,
+        }
+    }
+
     fun get_or_create_epoch_counter(
         director: &mut Director,
         epoch: u64,
@@ -282,5 +297,10 @@ module spam::spam {
     #[test_only]
     public fun init_for_testing(ctx: &mut TxContext) {
         init(SPAM {}, ctx);
+    }
+
+    #[test_only]
+    public fun new_user_counter_for_testing(ctx: &mut TxContext): UserCounter {
+        new_user_counter_impl(ctx)
     }
 }

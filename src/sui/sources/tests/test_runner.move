@@ -34,6 +34,21 @@ module spam::test_runner {
   }
  }
 
+ public fun increment_epoch(self: &mut TestRunner, value: u64): &mut TestRunner {
+  let current_epoch = self.scenario.ctx().epoch();
+
+  let mut index = current_epoch;
+  let new_epoch = value + current_epoch;
+  
+  while (new_epoch > index) {
+   self.scenario.ctx().increment_epoch_number();
+
+   index = index + 1;
+  };
+
+  self
+ }
+
  public fun next_tx(self: &mut TestRunner, sender: address): &mut TestRunner {
   self.scenario.next_tx(sender);
   self
