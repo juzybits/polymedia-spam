@@ -8,15 +8,9 @@ module spam::spam
 
     // === Errors ===
 
-    const EWrongEpoch: u64 = 100;
+    const EUserAlreadyExists: u64 = 100;
     const EDirectorIsPaused: u64 = 101;
-    const EUserIsRegistered: u64 = 102;
-    const EUserCounterIsRegistered: u64 = 104;
-    const EUserCounterIsNotRegistered: u64 = 103;
-
-    // === Constants ===
-
-    const TOTAL_EPOCH_REWARD: u64 = 1_000_000_000;
+    const ENothingToClaim: u64 = 102;
 
     // === Structs ===
 
@@ -30,177 +24,77 @@ module spam::spam
     public struct Director has key, store {
         id: UID,
         paused: bool,
-        tx_count: u64,
         treasury: TreasuryCap<SPAM>,
-        epoch_counters: Table<u64, EpochCounter>, // keys are epochs
-    }
-
-    /// Can only exist inside the Director.epoch_counters table.
-    /// Tracks how many tx blocks each user completed in one epoch.
-    public struct EpochCounter has store {
-        epoch: u64,
-        tx_count: u64,
-        user_counts: Table<address, u64>,
+        user_counters: Table<address, address>,
+        epoch_txs: Table<u64, u64>,
     }
 
     /// Non transferable owned object tied to a user address.
-    /// Tracks how many tx blocks the user completed in one epoch.
+    /// Tracks how many tx blocks the user completed and claimed.
     public struct UserCounter has key {
         id: UID,
-        epoch: u64,
-        tx_count: u64,
-        registered: bool,
-    }
-
-    public struct Stats has copy, drop {
-        epoch: u64,
-        paused: bool,
-        tx_count: u64,
-        supply: u64,
-        epochs: vector<EpochStats>,
-    }
-
-    public struct EpochStats has copy, drop {
-        epoch: u64,
-        tx_count: u64,
+        claimed_txs: u64,
+        total_txs: u64,
     }
 
     // === Public-Mutative Functions ===
 
-    /// Users can create multiple counters per epoch, but it is pointless
-    /// because they can only register() one of them.
+    /// Each user address can only ever create one UserCounter object.
     entry fun new_user_counter(
+        director: &mut Director,
         ctx: &mut TxContext,
     ) {
-        let user_counter = UserCounter {
-            id: object::new(ctx),
-            epoch: epoch(ctx),
-            tx_count: 1, // count this transaction
-            registered: false,
+        assert!( !director.user_counters.contains(sender(ctx)), EUserAlreadyExists );
+
+        let counter_uid = object::new(ctx);
+        let counter_addr = object::uid_to_address(&counter_uid);
+        let counter = UserCounter {
+            id: counter_uid,
+            claimed_txs: 0,
+            total_txs: 1, // count this tx
         };
-        transfer::transfer(user_counter, sender(ctx));
+        director.user_counters.add(sender(ctx), counter_addr);
+        transfer::transfer(counter, sender(ctx));
     }
 
-    /// Users can only increase their tx counter for the current epoch.
     /// Users can only call this function once per tx block.
     entry fun increment_user_counter(
         user_counter: &mut UserCounter,
-        ctx: &TxContext,
     ) {
-        let current_epoch = epoch(ctx);
-        assert!(user_counter.epoch == current_epoch, EWrongEpoch);
-
-        user_counter.tx_count = user_counter.tx_count + 1;
+        user_counter.total_txs = user_counter.total_txs + 1;
     }
 
-    public fun destroy_user_counter(
-        user_counter: UserCounter,
-    ) {
-        let UserCounter { id, epoch: _, tx_count: _, registered: _} = user_counter;
-        sui::object::delete(id);
-    }
-
-    /// Users can only register their counter during the 1st epoch after UserCounter.epoch.
-    /// Users can only register one UserCounter per epoch.
-    public fun register_user_counter(
+    public fun claim_user_coins(
         director: &mut Director,
-        user_counter: &mut UserCounter,
-        ctx: &mut TxContext,
-    ) {
-        assert!(director.paused == false, EDirectorIsPaused);
-        assert!(user_counter.registered == false, EUserCounterIsRegistered);
-
-        let previous_epoch = epoch(ctx) - 1;
-        assert!(user_counter.epoch == previous_epoch, EWrongEpoch);
-
-        let sender_addr = sender(ctx);
-        let epoch_counter = get_or_create_epoch_counter(director, previous_epoch, ctx);
-        assert!(epoch_counter.user_counts.contains(sender_addr) == false, EUserIsRegistered);
-
-        epoch_counter.user_counts.add(sender_addr, user_counter.tx_count);
-        epoch_counter.tx_count = epoch_counter.tx_count + user_counter.tx_count;
-        director.tx_count = director.tx_count + user_counter.tx_count;
-        user_counter.registered = true;
-    }
-
-    /// Users can only claim their rewards from the 2nd epoch after UserCounter.epoch.
-    /// User rewards are proportional to their share of completed txs in the epoch.
-    /// Director.paused is not checked here so users can always claim past rewards.
-    public fun claim_user_counter(
-        director: &mut Director,
-        user_counter: UserCounter,
+        counter: &mut UserCounter,
         ctx: &mut TxContext,
     ): Coin<SPAM> {
-        let max_allowed_epoch = epoch(ctx) - 2;
-        assert!(user_counter.epoch <= max_allowed_epoch, EWrongEpoch);
-        assert!(user_counter.registered == true, EUserCounterIsNotRegistered);
+        assert!( director.paused == false, EDirectorIsPaused );
+        assert!( counter.claimed_txs < counter.total_txs, ENothingToClaim );
 
-        let epoch_counter = director.epoch_counters.borrow_mut(user_counter.epoch);
-        // we can safely remove the user from the EpochCounter because users
-        // are no longer allowed to register() a UserCounter for this epoch
-        let user_txs = epoch_counter.user_counts.remove(sender(ctx));
-        let user_reward = (user_txs * TOTAL_EPOCH_REWARD) / epoch_counter.tx_count;
+        counter.increment_user_counter(); // count this tx
+        let reward_amount = counter.total_txs - counter.claimed_txs;
+        let reward_coin = director.treasury.mint(reward_amount, ctx);
+        counter.claimed_txs = counter.total_txs; // user claimed all txs
+        increment_epoch_claimed_txs(director, reward_amount, ctx);
 
-        destroy_user_counter(user_counter);
-
-        let coin = director.treasury.mint(user_reward, ctx);
-        return coin
+        return reward_coin
     }
 
-    // === Public-View Functions ===
+    // === Private functions ===
 
-    /// Get Stats for the Director and selected epochs.
-    /// Epochs without an EpochCounter are represented with tx_count=0 and user_count=0.
-    public fun stats_for_specific_epochs(
-        director: &Director,
-        epoch_numbers: vector<u64>,
+    /// Track txs per epoch just for statistical purposes.
+    fun increment_epoch_claimed_txs(
+        director: &mut Director,
+        amount: u64,
         ctx: &TxContext,
-    ): Stats {
-        let mut epoch_stats = vector<EpochStats>[];
-        let mut i = 0;
-        let count = epoch_numbers.length();
-        while (i < count) {
-            let epoch_number = *epoch_numbers.borrow(i);
-            if ( director.epoch_counters.contains(epoch_number) ) {
-                let epoch = director.epoch_counters.borrow(epoch_number);
-                let stats = EpochStats {
-                    epoch: epoch.epoch,
-                    tx_count: epoch.tx_count,
-                };
-                epoch_stats.push_back(stats);
-            } else {
-                let stats = EpochStats {
-                    epoch: epoch_number,
-                    tx_count: 0,
-                };
-                epoch_stats.push_back(stats);
-            };
-            i = i + 1;
+    ) {
+        if ( !director.epoch_txs.contains(epoch(ctx)) ) {
+            director.epoch_txs.add(epoch(ctx), amount);
+        } else {
+            let stored_amount = director.epoch_txs.borrow_mut(epoch(ctx));
+            *stored_amount = *stored_amount + amount;
         };
-        return Stats {
-            epoch: epoch(ctx),
-            paused: director.paused,
-            tx_count: director.tx_count,
-            supply: coin::total_supply(&director.treasury),
-            epochs: epoch_stats,
-        }
-    }
-
-    /// Get Stats for the Director and the latest epochs, in descending order, and starting
-    /// from yesterday's epoch because today's EpochCounter cannot exist (see register()).
-    public fun stats_for_recent_epochs(
-        director: &Director,
-        epoch_count: u64,
-        ctx: &TxContext,
-    ): Stats {
-        let epoch_now = epoch(ctx);
-        let mut epoch_numbers = vector<u64>[];
-        let mut i = 0;
-        while (i < epoch_count && i < epoch_now) {
-            i = i + 1;
-            epoch_numbers.push_back(epoch_now - i);
-        };
-        return stats_for_specific_epochs(director, epoch_numbers, ctx)
     }
 
     // === Admin functions ===
@@ -226,22 +120,65 @@ module spam::spam
         object::delete(id);
     }
 
-    // === Private functions ===
+    // === Stats / Public-View Functions ===
 
-    fun get_or_create_epoch_counter(
-        director: &mut Director,
+    public struct Stats has copy, drop {
+        paused: bool,
+        current_epoch: u64,
+        claimed_total: u64,
+        claimed_epoch: vector<EpochStats>,
+    }
+
+    public struct EpochStats has copy, drop {
         epoch: u64,
-        ctx: &mut TxContext,
-    ): &mut EpochCounter {
-        if ( !director.epoch_counters.contains(epoch) ) {
-            let epoch_counter = EpochCounter {
-                epoch,
-                user_counts: table::new(ctx),
-                tx_count: 0,
+        claimed_txs: u64,
+    }
+
+    /// Get Stats for the Director and selected epochs.
+    /// Epochs without an EpochCounter are represented with tx_count=0 and user_count=0.
+    public fun stats_for_specific_epochs(
+        director: &Director,
+        epochs: vector<u64>,
+        ctx: &TxContext,
+    ): Stats {
+        let mut epoch_stats = vector<EpochStats>[];
+        let mut i = 0;
+        let count = epochs.length();
+        while (i < count) {
+            let epoch = *epochs.borrow(i);
+            if ( director.epoch_txs.contains(epoch) ) {
+                let claimed_txs = *director.epoch_txs.borrow(epoch);
+                let stats = EpochStats { epoch, claimed_txs };
+                epoch_stats.push_back(stats);
+            } else {
+                let stats = EpochStats { epoch, claimed_txs: 0 };
+                epoch_stats.push_back(stats);
             };
-            director.epoch_counters.add(epoch, epoch_counter);
+            i = i + 1;
         };
-        return director.epoch_counters.borrow_mut(epoch)
+        return Stats {
+            paused: director.paused,
+            current_epoch: epoch(ctx),
+            claimed_total: coin::total_supply(&director.treasury),
+            claimed_epoch: epoch_stats,
+        }
+    }
+
+    /// Get Stats for the Director and the latest epochs, in descending order, and starting
+    /// from yesterday's epoch because today's EpochCounter cannot exist (see register()).
+    public fun stats_for_recent_epochs(
+        director: &Director,
+        epoch_count: u64,
+        ctx: &TxContext,
+    ): Stats {
+        let epoch_now = epoch(ctx);
+        let mut epoch_numbers = vector<u64>[];
+        let mut i = 0;
+        while (i < epoch_count && i < epoch_now) {
+            i = i + 1;
+            epoch_numbers.push_back(epoch_now - i);
+        };
+        return stats_for_specific_epochs(director, epoch_numbers, ctx)
     }
 
     // === Initialization ===
@@ -266,9 +203,9 @@ module spam::spam
         let director = Director {
             id: object::new(ctx),
             treasury,
-            epoch_counters: table::new(ctx),
-            tx_count: 0,
             paused: false, // TODO: switch to true before mainnet
+            user_counters: table::new(ctx),
+            epoch_txs: table::new(ctx),
         };
         transfer::share_object(director);
 
