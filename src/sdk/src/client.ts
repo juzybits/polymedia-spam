@@ -23,7 +23,7 @@ import { BcsStats, Stats, UserCounter, UserData } from "./types";
 import { SpamError, parseSpamError } from "./errors";
 
 export type SpamStatus = "stopped" | "running" | "stop requested";
-export type SpamEventType = "debug" | "info" | "warn";
+export type SpamEventType = "debug" | "info" | "warn" | "error";
 export type SpamEvent = {
     type: SpamEventType;
     msg: string;
@@ -38,8 +38,11 @@ export class SpamClient
     public suiClient: SuiClient;
     public packageId: string;
     public directorId: string;
+
     public status: SpamStatus;
-    public userData: UserData|null;
+    public epoch: number;
+    public userData: UserData;
+    public forceRefresh: boolean;
     private eventHandlers: Set<SpamEventHandler>;
 
     constructor(
@@ -54,8 +57,14 @@ export class SpamClient
         this.suiClient = new SuiClient({ url: rpcUrl }),
         this.packageId = SPAM_IDS[network].packageId;
         this.directorId = SPAM_IDS[network].directorId;
+
         this.status = "stopped";
-        this.userData = null;
+        this.epoch = -1;
+        this.userData = {
+            balances: { spam: -1, sui: -1 },
+            counters: { current: null, register: null, claim: [], delete: [] },
+        };
+        this.forceRefresh = true;
         this.eventHandlers = new Set<SpamEventHandler>([eventHandler]);
     }
 
@@ -93,9 +102,8 @@ export class SpamClient
         this.status = "running";
 
         try {
-            if (this.userData === null) { // 1st run
-                this.onEvent({ type: "info", msg: "loading user data" });
-                this.userData = await this.fetchUserData(); // Reassignment not needed
+            if (this.forceRefresh) {
+                await this.refreshData(); // TODO handle network failures
             }
 
             const counters = this.userData.counters;
@@ -132,7 +140,7 @@ export class SpamClient
             if (counters.current === null) {
                 this.onEvent({ type: "info", msg: "creating counter" });
                 const resp = await this.newUserCounter();
-                this.userData = null; // force a re-fetch // TODO: this happens twice on epoch change (see catch() below)
+                this.forceRefresh = true; // TODO: this happens twice on epoch change (see catch() below)
                 this.onEvent({ type: "debug", msg: "newUserCounter resp: " + JSON.stringify(resp, null, 2) });
             } else {
                 this.network == "localnet" && await sleep(333); // simulate latency
@@ -145,7 +153,7 @@ export class SpamClient
             const errCode = parseSpamError(errStr);
             if (errCode === SpamError.EWrongEpoch) {
                 // Expected error: when the epoch changes, the counter is no longer incrementable
-                this.userData = null; // force a re-fetch
+                this.forceRefresh = true;
                 this.start();
                 this.onEvent({ type: "info", msg: "epoch change"});
             }
@@ -178,8 +186,7 @@ export class SpamClient
         return pageObjResp.data.map(objResp => this.parseUserCounter(objResp));
     }
 
-    public async fetchUserData(
-    ): Promise<UserData>
+    public async refreshData()
     {
         // fetch user balances
         const balanceSui = await this.suiClient.getBalance({
@@ -252,13 +259,15 @@ export class SpamClient
             }
         }
 
-        // assemble and return UserData
+        // update data
+        this.forceRefresh = false;
+        this.epoch = currEpoch;
         this.userData = {
-            epoch: currEpoch,
             balances,
             counters,
         };
-        return this.userData;
+
+        this.onEvent({ type: "info", msg: "loaded user data" });
     }
 
     public async newUserCounter(

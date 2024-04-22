@@ -39,7 +39,6 @@ export const BcsStats = bcs.struct("Stats", {
 /* Other types */
 
 export type UserData = {
-    epoch: number;
     balances: {
         spam: number;
         sui: number;
