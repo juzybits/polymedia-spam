@@ -35,7 +35,7 @@ export const PageSpam: React.FC = () =>
             const data = await spamClient.fetchData();
             setSpamView(oldView => ({
                 status: spamClient.status,
-                lastMessage: oldView?.lastMessage || "-",
+                lastMessage: oldView?.lastMessage ?? "-",
                 epoch: data.epoch,
                 userData: data.userData,
             }));

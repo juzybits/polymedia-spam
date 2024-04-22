@@ -1,6 +1,5 @@
 import {
     SuiClient,
-    SuiObjectData,
     SuiObjectRef,
     SuiObjectResponse,
     SuiTransactionBlockResponse,
@@ -161,6 +160,7 @@ export class SpamClient
                 const curr = counters.current;
                 const resp = await this.incrementUserCounter(curr.ref); // TODO check resp.effects.status.status === 'success'
                 curr.tx_count++;
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 curr.ref = resp.effects!.mutated!.find(mutatedObj =>
                     mutatedObj.reference.objectId == curr.id
                 )!.reference;
