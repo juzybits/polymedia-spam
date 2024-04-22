@@ -75,7 +75,7 @@ export class Spammer
         try {
             if (this.requestRefresh) {
                 this.requestRefresh = false;
-                const data = await this.client.fetchData(); // TODO handle network failures
+                const data = await this.client.fetchUserData(); // TODO handle network failures
                 this.epoch = data.epoch;
                 this.userData = data.userData;
             }

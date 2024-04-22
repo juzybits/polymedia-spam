@@ -17,10 +17,10 @@ export const PageSpam: React.FC = () =>
     /* State */
 
     const { spammer } = useOutletContext<AppContext>();
-    const [ spamView, setSpamView ] = useState<SpamView>();
+    const [ view, setView ] = useState<SpamView>();
     // const [ error, setError ] = useState<string|null>(null);
 
-    const isBootingUp = !spamView;
+    const isBootingUp = !view;
 
     /* Functions */
 
@@ -32,8 +32,8 @@ export const PageSpam: React.FC = () =>
             if (spammer.status === "running") {
                 return;
             }
-            const data = await spammer.client.fetchData();
-            setSpamView(oldView => ({
+            const data = await spammer.client.fetchUserData();
+            setView(oldView => ({
                 status: spammer.status,
                 lastMessage: oldView?.lastMessage ?? "-",
                 epoch: data.epoch,
@@ -50,7 +50,7 @@ export const PageSpam: React.FC = () =>
         /* repaint on demand whenever there is a Spammer event */
 
         const handleEvent: SpamEventHandler = (e) => {
-            setSpamView(oldView => ({
+            setView(oldView => ({
                 status: spammer.status,
                 lastMessage: (e.type !== "debug" && e.msg) || oldView?.lastMessage || "-",
                 epoch: spammer.epoch,
@@ -69,7 +69,7 @@ export const PageSpam: React.FC = () =>
 
     const start = () => {
         if (spammer.status === "stopped") {
-            spamView && (spamView.lastMessage = "Starting");
+            view && (view.lastMessage = "Starting");
             spammer.start();
         }
     };
@@ -105,23 +105,23 @@ export const PageSpam: React.FC = () =>
         </div>
     );
 
-    const balances = spamView?.userData.balances;
-    const counters = spamView?.userData.counters;
+    const balances = view?.userData.balances;
+    const counters = view?.userData.counters;
 
     return <>
         <h1>Spam</h1>
         <div>
             {/* <ErrorBox err={error} /> */}
             <div className="">
-                <p style={{textTransform: "capitalize"}}>Status:<br/>{spamView?.status}</p>
-                <p>Last event:<br/>{spamView?.lastMessage}</p>
+                <p style={{textTransform: "capitalize"}}>Status:<br/>{view?.status}</p>
+                <p>Last event:<br/>{view?.lastMessage}</p>
                 {balances && <>
                 <p>Your balances:<br/>
                     {formatNumber(balances.sui, "compact")} SUI&nbsp;&nbsp;|&nbsp;&nbsp;
                     {formatNumber(balances.spam, "compact")} SPAM
                 </p>
                 </>}
-                <p>Current epoch:<br/>{spamView?.epoch}</p>
+                <p>Current epoch:<br/>{view?.epoch}</p>
             </div>
             {isBootingUp
             ? <p>Loading...</p>

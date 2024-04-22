@@ -53,7 +53,7 @@ export class SpamClient
         return pageObjResp.data.map(objResp => this.parseUserCounter(objResp));
     }
 
-    public async fetchData()
+    public async fetchUserData()
     {
         // fetch user balances
         const balanceSui = await this.suiClient.getBalance({
