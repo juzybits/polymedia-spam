@@ -48,7 +48,7 @@ export class SpamClient
     public status: SpamStatus;
     public epoch: number;
     public userData: UserData;
-    public forceRefresh: boolean;
+    private requestRefresh: boolean;
     private eventHandlers: Set<SpamEventHandler>;
 
     constructor(
@@ -70,7 +70,7 @@ export class SpamClient
             balances: { spam: -1, sui: -1 },
             counters: { current: null, register: null, claim: [], delete: [] },
         };
-        this.forceRefresh = true;
+        this.requestRefresh = true; // so when it starts it pulls the data
         this.eventHandlers = new Set<SpamEventHandler>([eventHandler]);
     }
 
@@ -102,6 +102,7 @@ export class SpamClient
 
         if (this.status === "stopping") {
             this.status = "stopped";
+            this.requestRefresh = true; // so when it starts again it pulls fresh data
             this.onEvent({ type: "info", msg: "Stopped as requested" });
             return;
         }
@@ -109,8 +110,11 @@ export class SpamClient
         this.status = "running";
 
         try {
-            if (this.forceRefresh) {
-                await this.refreshData(); // TODO handle network failures
+            if (this.requestRefresh) {
+                this.requestRefresh = false;
+                const data = await this.fetchData(); // TODO handle network failures
+                this.epoch = data.epoch;
+                this.userData = data.userData;
             }
 
             const counters = this.userData.counters;
@@ -119,7 +123,7 @@ export class SpamClient
                 this.onEvent({ type: "info", msg: "Registering counter: " + shortenSuiAddress(counters.register.id) });
                 const resp = await this.registerUserCounter(counters.register.id);
                 counters.register.registered = true;
-                this.forceRefresh = true;
+                this.requestRefresh = true;
                 this.onEvent({
                     type: "debug",
                     msg: "registerUserCounter resp: " + JSON.stringify(resp, null, 2),
@@ -131,7 +135,7 @@ export class SpamClient
                 const counterIds = counters.claim.map(counter => counter.id);
                 const resp = await this.claimUserCounters(counterIds);
                 counters.claim = [];
-                this.forceRefresh = true;
+                this.requestRefresh = true;
                 this.onEvent({
                     type: "debug",
                     msg: "destroyUserCounters resp: " + JSON.stringify(resp, null, 2),
@@ -143,14 +147,14 @@ export class SpamClient
                 const counterIds = counters.delete.map(counter => counter.id);
                 const resp = await this.destroyUserCounters(counterIds);
                 counters.delete = [];
-                this.forceRefresh = true;
+                this.requestRefresh = true;
                 this.onEvent({ type: "debug", msg: "destroyUserCounters resp: " + JSON.stringify(resp, null, 2) });
             }
 
             if (counters.current === null) {
                 this.onEvent({ type: "info", msg: "Creating counter" });
                 const resp = await this.newUserCounter();
-                this.forceRefresh = true; // TODO: this happens twice on epoch change (see catch() below)
+                this.requestRefresh = true; // TODO: this happens twice on epoch change (see catch() below)
                 this.onEvent({ type: "debug", msg: "newUserCounter resp: " + JSON.stringify(resp, null, 2) });
             } else {
                 this.network == "localnet" && await sleep(333); // simulate latency
@@ -168,7 +172,7 @@ export class SpamClient
             const errCode = parseSpamError(errStr);
             if (errCode === SpamError.EWrongEpoch) {
                 // Expected error: when the epoch changes, the counter is no longer incrementable
-                this.forceRefresh = true;
+                this.requestRefresh = true;
                 this.start();
                 this.onEvent({ type: "info", msg: "Epoch change"});
             }
@@ -202,10 +206,8 @@ export class SpamClient
         return pageObjResp.data.map(objResp => this.parseUserCounter(objResp));
     }
 
-    public async refreshData()
+    public async fetchData()
     {
-        this.forceRefresh = false;
-
         // fetch user balances
         const balanceSui = await this.suiClient.getBalance({
             owner: this.signer.toSuiAddress(),
@@ -277,14 +279,13 @@ export class SpamClient
             }
         }
 
-        // update data
-        this.epoch = currEpoch;
-        this.userData = {
-            balances,
-            counters,
+        return {
+            epoch: currEpoch,
+            userData: {
+                balances,
+                counters,
+            },
         };
-
-        this.onEvent({ type: "info", msg: "Data is ready" });
     }
 
     /* Package functions */
