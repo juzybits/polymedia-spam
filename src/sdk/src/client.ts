@@ -37,18 +37,18 @@ export type SpamEventHandler = (event: SpamEvent) => void;
 
 export class SpamClient
 {
-    public signer: Signer;
-    public network: NetworkName;
-    public rpcUrl: string;
-    public suiClient: SuiClient;
-    public packageId: string;
-    public directorId: string;
+    public readonly signer: Signer;
+    public readonly network: NetworkName;
+    public readonly rpcUrl: string;
+    public readonly suiClient: SuiClient;
+    public readonly packageId: string;
+    public readonly directorId: string;
 
     public status: SpamStatus;
     public epoch: number;
     public userData: UserData;
     private requestRefresh: boolean;
-    private eventHandlers: Set<SpamEventHandler>;
+    private readonly eventHandlers: Set<SpamEventHandler>;
 
     constructor(
         keypair: Signer,
