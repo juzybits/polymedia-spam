@@ -11,8 +11,8 @@ module spam::spam
     const EWrongEpoch: u64 = 100;
     const EDirectorIsPaused: u64 = 101;
     const EUserIsRegistered: u64 = 102;
-    const EUserCounterIsRegistered: u64 = 104;
-    const EUserCounterIsNotRegistered: u64 = 103;
+    const EUserCounterIsRegistered: u64 = 103;
+    const EUserCounterIsNotRegistered: u64 = 104;
 
     // === Constants ===
 
