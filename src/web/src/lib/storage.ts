@@ -4,7 +4,7 @@ import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
 const storageKey = "spam.secretKey";
 
 export function loadKeypairFromStorage(): Ed25519Keypair {
-    const secretKey = sessionStorage.getItem(storageKey);
+    const secretKey = localStorage.getItem(storageKey);
     let pair: Ed25519Keypair;
     if (!secretKey) {
         pair = new Ed25519Keypair();
@@ -17,5 +17,5 @@ export function loadKeypairFromStorage(): Ed25519Keypair {
 }
 
 export function saveKeypairToStorage(pair: Ed25519Keypair): void {
-    sessionStorage.setItem(storageKey, pair.getSecretKey());
+    localStorage.setItem(storageKey, pair.getSecretKey());
 }
