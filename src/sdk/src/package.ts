@@ -1,3 +1,4 @@
+import { SuiObjectRef } from "@mysten/sui.js/client";
 import {
     TransactionBlock,
     TransactionResult,
@@ -16,14 +17,12 @@ export function new_user_counter(
 export function increment_user_counter(
     txb: TransactionBlock,
     packageId: string,
-    userCounterId: string,
-    // userCounterRef: SuiObjectRef, // TODO
+    userCounterRef: SuiObjectRef,
 ): TransactionResult {
     return txb.moveCall({
         target: `${packageId}::spam::increment_user_counter`,
         arguments: [
-            txb.object(userCounterId),
-            // txb.objectRef(userCounterRef),
+            txb.objectRef(userCounterRef),
         ],
     });
 }

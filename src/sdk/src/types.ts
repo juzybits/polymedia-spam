@@ -1,4 +1,5 @@
 import { InferBcsType, bcs } from "@mysten/bcs";
+import { SuiObjectRef } from "@mysten/sui.js/client";
 
 /* 1:1 representations of Sui structs */
 
@@ -18,6 +19,7 @@ export type EpochCounter = {
 
 export type UserCounter = {
     id: string;
+    ref:  SuiObjectRef;
     epoch: number;
     tx_count: number;
     registered: boolean;

@@ -1,4 +1,10 @@
-import { SuiClient, SuiObjectResponse, SuiTransactionBlockResponse } from "@mysten/sui.js/client";
+import {
+    SuiClient,
+    SuiObjectData,
+    SuiObjectRef,
+    SuiObjectResponse,
+    SuiTransactionBlockResponse,
+} from "@mysten/sui.js/client";
 import { Signer } from "@mysten/sui.js/cryptography";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import {
@@ -10,6 +16,7 @@ import {
     sleep,
 } from "@polymedia/suits";
 import { SPAM_DECIMALS, SPAM_IDS, SUI_DECIMALS } from "./config";
+import { SpamError, parseSpamError } from "./errors";
 import {
     claim_user_counter,
     destroy_user_counter,
@@ -20,7 +27,6 @@ import {
     stats_for_specific_epochs,
 } from "./package";
 import { BcsStats, Stats, UserCounter, UserData } from "./types";
-import { SpamError, parseSpamError } from "./errors";
 
 export type SpamStatus = "stopped" | "running" | "stopping";
 export type SpamEventType = "debug" | "info" | "warn" | "error";
@@ -148,7 +154,12 @@ export class SpamClient
                 this.onEvent({ type: "debug", msg: "newUserCounter resp: " + JSON.stringify(resp, null, 2) });
             } else {
                 this.network == "localnet" && await sleep(333); // simulate latency
-                const resp = await this.incrementUserCounter(counters.current.id);
+                const curr = counters.current;
+                const resp = await this.incrementUserCounter(curr.ref); // TODO check resp.effects.status.status === 'success'
+                curr.tx_count++;
+                curr.ref = resp.effects!.mutated!.find(mutatedObj =>
+                    mutatedObj.reference.objectId == curr.id
+                )!.reference;
                 this.onEvent({ type: "debug", msg: "incrementUserCounter resp: " + JSON.stringify(resp, null, 2) });
             }
         }
@@ -193,6 +204,8 @@ export class SpamClient
 
     public async refreshData()
     {
+        this.forceRefresh = false;
+
         // fetch user balances
         const balanceSui = await this.suiClient.getBalance({
             owner: this.signer.toSuiAddress(),
@@ -265,7 +278,6 @@ export class SpamClient
         }
 
         // update data
-        this.forceRefresh = false;
         this.epoch = currEpoch;
         this.userData = {
             balances,
@@ -274,6 +286,8 @@ export class SpamClient
 
         this.onEvent({ type: "info", msg: "Data is ready" });
     }
+
+    /* Package functions */
 
     public async newUserCounter(
     ): Promise<SuiTransactionBlockResponse>
@@ -284,11 +298,11 @@ export class SpamClient
     }
 
     public async incrementUserCounter(
-        userCounterId: string,
+        userCounterRef: SuiObjectRef,
     ): Promise<SuiTransactionBlockResponse>
     {
         const txb = new TransactionBlock();
-        increment_user_counter(txb, this.packageId, userCounterId);
+        increment_user_counter(txb, this.packageId, userCounterRef);
         return this.signAndExecute(txb);
     }
 
@@ -385,8 +399,14 @@ export class SpamClient
         resp: SuiObjectResponse,
     ): UserCounter {
         const fields = getSuiObjectResponseFields(resp);
+        const ref: SuiObjectRef = {
+            objectId: resp.data!.objectId,
+            version: resp.data!.version,
+            digest: resp.data!.digest,
+        };
         return {
             id: fields.id.id,
+            ref,
             epoch: Number(fields.epoch),
             tx_count: Number(fields.tx_count),
             registered: Boolean(fields.registered),
