@@ -20,9 +20,9 @@ export const AppRouter: React.FC = () => {
         <Routes>
             <Route path="/" element={<App />} >
                 <Route index element={<PageHome />} />
+                <Route path="/spam" element={<PageSpam />} />
                 <Route path="/user" element={<PageUser />} />
                 <Route path="/stats" element={<PageStats />} />
-                <Route path="/spam" element={<PageSpam />} />
                 <Route path="*" element={<PageNotFound />} />
             </Route>
         </Routes>
@@ -118,6 +118,12 @@ const App: React.FC = () =>
         return <nav>
             <Link to="/" className={selected("/")} onClick={onClick}>
                 Home
+            </Link>
+            <Link to="/spam" className={selected("/spam")} onClick={onClick}>
+                Spam
+            </Link>
+            <Link to="/user" className={selected("/user")} onClick={onClick}>
+                User
             </Link>
             <Link to="/stats" className={selected("/stats")} onClick={onClick}>
                 Stats
