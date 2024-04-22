@@ -104,15 +104,15 @@ module spam::spam {
         user_counter: &mut UserCounter,
         ctx: &mut TxContext,
     ) {
-        assert!(!director.paused, EDirectorIsPaused);
-        assert!(!user_counter.registered, EUserCounterIsRegistered);
+        assert!(director.paused == false, EDirectorIsPaused);
+        assert!(user_counter.registered == false, EUserCounterIsRegistered);
 
         let previous_epoch = ctx.epoch() - 1;
         assert!(user_counter.epoch == previous_epoch, EWrongEpoch);
 
         let sender_addr = ctx.sender();
         let epoch_counter = director.get_or_create_epoch_counter(previous_epoch, ctx);
-        assert!(!epoch_counter.user_counts.contains(sender_addr), EUserIsRegistered);
+        assert!(epoch_counter.user_counts.contains(sender_addr) == false, EUserIsRegistered);
 
         epoch_counter.user_counts.add(sender_addr, user_counter.tx_count);
         epoch_counter.tx_count = epoch_counter.tx_count + user_counter.tx_count;
@@ -130,7 +130,7 @@ module spam::spam {
     ): Coin<SPAM> {
         let max_allowed_epoch = ctx.epoch() - 2;
         assert!(user_counter.epoch <= max_allowed_epoch, EWrongEpoch);
-        assert!(user_counter.registered, EUserCounterIsNotRegistered);
+        assert!(user_counter.registered == true, EUserCounterIsNotRegistered);
 
         let epoch_counter = director.epoch_counters.borrow_mut(user_counter.epoch);
         // we can safely remove the user from the EpochCounter because users
@@ -287,6 +287,14 @@ module spam::spam {
     #[test_only]
     public fun new_user_counter_for_testing(ctx: &mut TxContext) {
         new_user_counter(ctx)
+    }
+
+    #[test_only]
+    public fun increment_user_counter_for_testing(
+        user_counter: &mut UserCounter,
+        ctx: &TxContext,        
+    ) {
+        increment_user_counter(user_counter, ctx);
     }
 
     #[test_only]

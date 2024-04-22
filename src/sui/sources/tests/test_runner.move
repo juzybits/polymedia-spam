@@ -5,7 +5,7 @@ module spam::test_runner {
     use sui::coin::{CoinMetadata};
     use sui::test_scenario::{Self, Scenario};
 
-    use spam::spam::{Self, SPAM, Director};
+    use spam::spam::{Self, SPAM, UserCounter, Director};
 
     const ADMIN: address = @0xa11ce;
 
@@ -32,6 +32,15 @@ module spam::test_runner {
             director,
             metadata
         }
+    }
+
+    public fun increment_user_counter(self: &mut TestRunner, user_counter: &mut UserCounter, count: u64) {
+        let mut index = 0;
+
+        while (count > index) {
+            spam::increment_user_counter_for_testing(user_counter, self.scenario.ctx());
+            index = index + 1;
+        };
     }
 
     public fun increment_epoch(self: &mut TestRunner, value: u64): &mut TestRunner {
