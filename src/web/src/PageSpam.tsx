@@ -37,7 +37,11 @@ export const PageSpam: React.FC = () =>
         };
         initialize();
 
-        const handler: SpamEventHandler = (evt) => {
+        const refreshData = setInterval(() => {
+            spamClient.refreshData();
+        }, spamClient.network === "localnet" ? 5_000 : 20_000);
+
+        const handlerEvent: SpamEventHandler = (evt) => {
             if (evt.type !== "debug") {
                 setInfo(evt.msg);
             }
@@ -47,9 +51,11 @@ export const PageSpam: React.FC = () =>
                 userData: spamClient.userData,
             });
         };
-        spamClient.addEventHandler(handler);
+        spamClient.addEventHandler(handlerEvent);
+
         return () => {
-            spamClient.removeEventHandler(handler);
+            clearInterval(refreshData);
+            spamClient.removeEventHandler(handlerEvent);
         };
     }, [spamClient]);
 
