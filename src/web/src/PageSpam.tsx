@@ -69,12 +69,15 @@ export const PageSpam: React.FC = () =>
 
     const start = () => {
         if (spamClient.status === "stopped") {
+            spamView && (spamView.lastMessage = "Starting");
             spamClient.start();
         }
     };
 
     const stop = () => {
-        spamClient.stop();
+        if (spamClient.status === "running") {
+            spamClient.stop();
+        }
     };
 
     /* HTML */
@@ -110,7 +113,7 @@ export const PageSpam: React.FC = () =>
         <div>
             {/* <ErrorBox err={error} /> */}
             <div className="">
-                <p>Status:<br/>{spamView?.status}</p>
+                <p style={{textTransform: "capitalize"}}>Status:<br/>{spamView?.status}</p>
                 <p>Last event:<br/>{spamView?.lastMessage}</p>
                 {balances && <>
                 <p>Your balances:<br/>
