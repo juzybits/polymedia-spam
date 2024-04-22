@@ -113,6 +113,7 @@ export class SpamClient
                 this.onEvent({ type: "info", msg: "Registering counter: " + shortenSuiAddress(counters.register.id) });
                 const resp = await this.registerUserCounter(counters.register.id);
                 counters.register.registered = true;
+                this.forceRefresh = true;
                 this.onEvent({
                     type: "debug",
                     msg: "registerUserCounter resp: " + JSON.stringify(resp, null, 2),
@@ -124,6 +125,7 @@ export class SpamClient
                 const counterIds = counters.claim.map(counter => counter.id);
                 const resp = await this.claimUserCounters(counterIds);
                 counters.claim = [];
+                this.forceRefresh = true;
                 this.onEvent({
                     type: "debug",
                     msg: "destroyUserCounters resp: " + JSON.stringify(resp, null, 2),
@@ -135,6 +137,7 @@ export class SpamClient
                 const counterIds = counters.delete.map(counter => counter.id);
                 const resp = await this.destroyUserCounters(counterIds);
                 counters.delete = [];
+                this.forceRefresh = true;
                 this.onEvent({ type: "debug", msg: "destroyUserCounters resp: " + JSON.stringify(resp, null, 2) });
             }
 
