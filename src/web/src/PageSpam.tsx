@@ -6,23 +6,29 @@ import { useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
 import { ErrorBox } from "./components/ErrorBox";
 
+type SpamView = {
+    status: string;
+    epoch: number;
+    userData: UserData;
+};
+
 export const PageSpam: React.FC = () =>
 {
     /* State */
 
     const { spamClient } = useOutletContext<AppContext>();
-    const [ userData, setUserData ] = useState<UserData|null>(spamClient.userData);
+    const [ spamView, setSpamView ] = useState<SpamView>();
     const [ info, setInfo ] = useState<string>("booting up");
     const [ error, setError ] = useState<string|null>(null);
 
-    const isBootingUp = !userData;
+    const isBootingUp = !spamView;
 
     /* Functions */
 
     useEffect(() => {
         const initialize = async () => {
             try {
-                setUserData(await spamClient.fetchUserData());
+                await spamClient.refreshData();
                 setInfo("ready to spam");
             }
             catch(err) {
@@ -32,10 +38,14 @@ export const PageSpam: React.FC = () =>
         initialize();
 
         const handler: SpamEventHandler = (evt) => {
-            setUserData(spamClient.userData ? {...spamClient.userData} : null);
             if (evt.type !== "debug") {
                 setInfo(evt.msg);
             }
+            setSpamView({
+                status: spamClient.status,
+                epoch: spamClient.epoch,
+                userData: spamClient.userData,
+            });
         };
         spamClient.addEventHandler(handler);
         return () => {
@@ -76,17 +86,17 @@ export const PageSpam: React.FC = () =>
         </div>
     );
 
-    const balances = userData?.balances;
-    const counters = userData?.counters;
+    const balances = spamView?.userData.balances;
+    const counters = spamView?.userData.counters;
 
     return <>
         <h1>Spam</h1>
         <div>
             <ErrorBox err={error} />
             <div className="tight">
-                <p>Status: {spamClient.status}</p>
+                <p>Status: {spamView?.status}</p>
                 <p>Info: {info}</p>
-                <p>Epoch: {userData?.epoch}</p>
+                <p>Epoch: {spamView?.epoch}</p>
                 {balances && <>
                 <p>Your balances:</p>
                 <p>{formatNumber(balances.spam, "compact")} SPAM</p>
