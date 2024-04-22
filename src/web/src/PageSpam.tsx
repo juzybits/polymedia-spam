@@ -4,7 +4,6 @@ import { LinkToExplorerObj } from "@polymedia/webutils";
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
-import { ErrorBox } from "./components/ErrorBox";
 
 type SpamView = {
     status: string;
@@ -19,37 +18,59 @@ export const PageSpam: React.FC = () =>
 
     const { spamClient } = useOutletContext<AppContext>();
     const [ spamView, setSpamView ] = useState<SpamView>();
-    const [ error, setError ] = useState<string|null>(null);
+    // const [ error, setError ] = useState<string|null>(null);
 
     const isBootingUp = !spamView;
 
     /* Functions */
 
-    useEffect(() => {
-        spamClient.refreshData();
+    useEffect(() =>
+    {
+        /* repaint periodically when the SpamClient is not running */
 
-        const refreshDataPeriodically = setInterval(() => {
-            spamClient.refreshData();
-        }, spamClient.network === "localnet" ? 5_000 : 20_000);
+        const updateView = async () => {
+            if (spamClient.status === "running") {
+                return;
+            }
+            const data = await spamClient.fetchData();
+            setSpamView(oldView => ({
+                status: spamClient.status,
+                lastMessage: oldView?.lastMessage || "-",
+                epoch: data.epoch,
+                userData: data.userData,
+            }));
+        };
+        updateView();
+
+        const updateViewPeriodically = setInterval(
+            updateView,
+            spamClient.network === "localnet" ? 5_000 : 30_000,
+        );
+
+        /* repaint on demand whenever there is a SpamClient event */
 
         const handleEvent: SpamEventHandler = (e) => {
             setSpamView(oldView => ({
                 status: spamClient.status,
-                lastMessage: (e.type !== "debug" && e.msg) || oldView?.lastMessage || '-',
+                lastMessage: (e.type !== "debug" && e.msg) || oldView?.lastMessage || "-",
                 epoch: spamClient.epoch,
                 userData: spamClient.userData,
             }));
         };
         spamClient.addEventHandler(handleEvent);
 
+        /* clean up on component unmount */
+
         return () => {
-            clearInterval(refreshDataPeriodically);
+            clearInterval(updateViewPeriodically);
             spamClient.removeEventHandler(handleEvent);
         };
     }, [spamClient]);
 
     const start = () => {
-        spamClient.start();
+        if (spamClient.status === "stopped") {
+            spamClient.start();
+        }
     };
 
     const stop = () => {
@@ -87,7 +108,7 @@ export const PageSpam: React.FC = () =>
     return <>
         <h1>Spam</h1>
         <div>
-            <ErrorBox err={error} />
+            {/* <ErrorBox err={error} /> */}
             <div className="">
                 <p>Status:<br/>{spamView?.status}</p>
                 <p>Last event:<br/>{spamView?.lastMessage}</p>
