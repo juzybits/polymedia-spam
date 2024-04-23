@@ -1,8 +1,8 @@
 import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
-import { SpamEvent, SpamStatus, Spammer } from "@polymedia/spam-sdk";
+import { SpamEvent, Spammer } from "@polymedia/spam-sdk";
 import { RPC_ENDPOINTS } from "@polymedia/suits";
 import { LinkExternal, Modal, NetworkSelector, isLocalhost, loadNetwork } from "@polymedia/webutils";
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { BrowserRouter, Link, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import { PageHome } from "./PageHome";
 import { PageNotFound } from "./PageNotFound";
@@ -12,6 +12,7 @@ import { PageUser } from "./PageUser";
 import { loadKeypairFromStorage, saveKeypairToStorage } from "./lib/storage";
 import "./styles/shared.app.less";
 import "./styles/App.less";
+import { SpamView } from "./lib/types";
 
 /* App router */
 
@@ -47,6 +48,7 @@ export type AppContext = {
     showMobileNav: boolean; setShowMobileNav: ReactSetter<boolean>;
     setModalContent: ReactSetter<ReactNode>;
     spammer: Spammer; setSpammer: ReactSetter<Spammer>;
+    spamView: SpamView;
     replaceKeypair: (keypair: Ed25519Keypair) => void;
 };
 
@@ -58,7 +60,15 @@ const App: React.FC = () =>
     const [ showMobileNav, setShowMobileNav ] = useState(false);
     const [ modalContent, setModalContent ] = useState<ReactNode>(null);
 
-    const [ spammerStatus, setSpammerStatus ] = useState<SpamStatus>("stopped");
+    const [ spamView, setSpamView ] = useState<SpamView>({
+        status: "stopped",
+        lastMessage: "",
+        epoch: -1,
+        userData: {
+            balances: { spam: -1, sui: -1 },
+            counters: { current: null, register: null, claim: [], delete: [] },
+        }
+    });
     const [ spammer, setSpammer ] = useState(new Spammer(
         loadKeypairFromStorage(),
         loadedNetwork,
@@ -71,14 +81,54 @@ const App: React.FC = () =>
         showMobileNav, setShowMobileNav,
         setModalContent,
         spammer, setSpammer,
+        spamView,
         replaceKeypair,
     };
 
     /* Functions */
 
-    function spamEventHandler(evt: SpamEvent): void {
-        console[evt.type](`${evt.type}: ${evt.msg}`);
-        setSpammerStatus(spammer.status);
+    useEffect(() =>
+    {
+        /* repaint periodically when the Spammer is not running */
+
+        const updateView = async () => {
+            if (spammer.status === "running") {
+                return;
+            }
+            const data = await spammer.client.fetchUserData();
+            setSpamView(oldView => ({
+                status: spammer.status,
+                lastMessage: oldView?.lastMessage ?? "-",
+                epoch: data.epoch,
+                userData: data.userData,
+            }));
+        };
+        updateView();
+
+        const updateViewPeriodically = setInterval(
+            updateView,
+            spammer.client.network === "localnet" ? 5_000 : 30_000,
+        );
+
+        /* repaint on demand whenever there is a Spammer event */
+        spammer.addEventHandler(spamEventHandler);
+
+        /* clean up on component unmount */
+
+        return () => {
+            clearInterval(updateViewPeriodically);
+            spammer.removeEventHandler(spamEventHandler);
+        };
+    }, [spammer]);
+
+    function spamEventHandler(e: SpamEvent) {
+        console[e.type](`${e.type}: ${e.msg}`);
+        setSpamView(oldView => ({
+            status: spammer.status,
+            lastMessage: (e.type !== "debug" && e.msg) || oldView?.lastMessage || "-",
+            epoch: spammer.epoch,
+            userData: spammer.userData,
+        }));
     }
 
     function replaceKeypair(keypair: Ed25519Keypair): void {
@@ -105,7 +155,7 @@ const App: React.FC = () =>
             </Link>
 
             <span id="status-indicator">
-                {spammerStatus}
+                {spamView.status}
             </span>
         </header>;
     };
