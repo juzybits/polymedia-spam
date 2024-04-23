@@ -84,7 +84,7 @@ export const PageSpam: React.FC = () =>
 
     const balances = view?.userData.balances;
     const counters = view?.userData.counters;
-    const isZeroSuiBalance = !balances || balances.sui === 0;
+    const isLowSuiBalance = !balances || balances.sui < 0.001025;
 
     const Balances: React.FC = () => {
         if (!balances) {
@@ -92,14 +92,14 @@ export const PageSpam: React.FC = () =>
         }
         return <>
             <p>Your balances:<br/>
-                {formatNumber(balances.sui, "compact")} SUI&nbsp;&nbsp;|&nbsp;&nbsp;
+                {formatNumber(balances.sui, "compact")} SUI<br/>
                 {formatNumber(balances.spam, "compact")} SPAM
             </p>
         </>
     };
 
     const TopUp: React.FC = () => {
-        if (!isZeroSuiBalance) {
+        if (!isLowSuiBalance) {
             return null;
         }
         return <>
@@ -111,7 +111,7 @@ export const PageSpam: React.FC = () =>
     }
 
     const SpamAndStopButtons: React.FC = () => {
-        if (!view || isZeroSuiBalance) {
+        if (isBootingUp || isLowSuiBalance) {
             return null;
         }
         return view.status === "stopped"
