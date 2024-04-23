@@ -13,6 +13,7 @@ import { loadKeypairFromStorage, saveKeypairToStorage } from "./lib/storage";
 import "./styles/shared.app.less";
 import "./styles/App.less";
 import { SpamView } from "./lib/types";
+import { PageRPCs } from "./PageRPCs";
 
 /* App router */
 
@@ -24,6 +25,7 @@ export const AppRouter: React.FC = () => {
                 <Route index element={<PageHome />} />
                 <Route path="/spam" element={<PageSpam />} />
                 <Route path="/wallet" element={<PageWallet />} />
+                <Route path="/rpcs" element={<PageRPCs />} />
                 <Route path="/stats" element={<PageStats />} />
                 <Route path="*" element={<PageNotFound />} />
             </Route>
@@ -178,6 +180,9 @@ const App: React.FC = () =>
             </Link>
             <Link to="/wallet" className={selected("/wallet")} onClick={onClick}>
                 Wallet
+            </Link>
+            <Link to="/rpcs" className={selected("/rpcs")} onClick={onClick}>
+                RPCs
             </Link>
             <Link to="/stats" className={selected("/stats")} onClick={onClick}>
                 Stats
