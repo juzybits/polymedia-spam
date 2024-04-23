@@ -5,14 +5,15 @@ module spam::test_runner {
     use sui::test_utils::{Self, assert_eq};
     use sui::test_scenario::{Self, Scenario};
 
-    use spam::spam::{Self, SPAM, UserCounter, Director};
+    use spam::spam::{Self, SPAM, UserCounter, AdminCap, Director};
 
     const ADMIN: address = @0x12;
 
     public struct TestRunner {
         scenario: Scenario,
         director: Director,
-        metadata: CoinMetadata<SPAM>
+        metadata: CoinMetadata<SPAM>,
+        cap: AdminCap
     }
 
     public fun start(): TestRunner {
@@ -26,11 +27,13 @@ module spam::test_runner {
 
         let director = scenario_mut.take_shared<Director>();
         let metadata = scenario_mut.take_immutable<CoinMetadata<SPAM>>();
+        let cap = scenario_mut.take_from_sender<AdminCap>();
 
         TestRunner {
             scenario,
             director,
-            metadata
+            metadata,
+            cap
         }
     }
 
@@ -54,6 +57,11 @@ module spam::test_runner {
             index = index + 1;
         };
 
+        self
+    }
+
+    public fun pause_director(self: &mut TestRunner): &mut TestRunner {
+        self.director.admin_pause(&self.cap);
         self
     }
 

@@ -135,8 +135,108 @@ module spam::spam_tests {
         .assert_spam_total_supply(0)
         .assert_director_epoch_tx_count(counter_epoch, alice_tx_count + admim_tx_count + 2);
 
-        admin_counter.destroy_user_counter();
-        alice_counter.destroy_user_counter();
+        assert_user_counter::new(admin_counter)
+        .registered(true)
+        .destroy();        
+
+        assert_user_counter::new(alice_counter)
+        .registered(true)
+        .destroy();    
+
         runner.end();
     }
+
+    #[test]
+    #[expected_failure(abort_code = spam::EDirectorIsPaused)]
+    fun test_register_user_counter_error_director_is_paused() {
+        let mut runner = test_runner::start();
+
+        spam::new_user_counter_for_testing(runner.ctx());
+
+        runner.next_tx();
+
+        let mut user_counter = runner.take_from_sender<UserCounter>();
+
+        runner.increment_user_counter(&mut user_counter, 1);
+        runner.pause_director();
+
+        runner.register_user_counter(&mut user_counter, ADMIN);
+
+        user_counter.destroy_user_counter();
+
+        runner.end();
+    }
+
+    #[test]
+    #[expected_failure(abort_code = spam::EUserCounterIsRegistered)]
+    fun test_register_user_counter_error_counter_is_registered() {
+        let mut runner = test_runner::start();
+
+        spam::new_user_counter_for_testing(runner.ctx());
+
+        runner.next_tx();
+
+        let mut user_counter = runner.take_from_sender<UserCounter>();
+
+        runner.increment_user_counter(&mut user_counter, 1);
+
+        runner.increment_epoch(1);
+
+        runner.register_user_counter(&mut user_counter, ADMIN);
+        runner.register_user_counter(&mut user_counter, ADMIN);
+
+        user_counter.destroy_user_counter();
+
+        runner.end();
+    }    
+
+    #[test]
+    #[expected_failure(abort_code = spam::EWrongEpoch)]
+    fun test_register_user_counter_error_wrong_epoch() {
+        let mut runner = test_runner::start();
+
+        spam::new_user_counter_for_testing(runner.ctx());
+
+        runner.next_tx();
+
+        let mut user_counter = runner.take_from_sender<UserCounter>();
+
+        runner.increment_user_counter(&mut user_counter, 1);
+
+        runner.increment_epoch(2);
+
+        runner.register_user_counter(&mut user_counter, ADMIN);
+
+        user_counter.destroy_user_counter();
+
+        runner.end();
+    }   
+
+    #[test]
+    #[expected_failure(abort_code = spam::EUserIsRegistered)]
+    fun test_register_user_counter_error_user_is_registered() {
+        let mut runner = test_runner::start();
+
+        // Makes two counters
+        spam::new_user_counter_for_testing(runner.ctx());
+        spam::new_user_counter_for_testing(runner.ctx());
+
+        runner.next_tx();
+
+        let mut user_counter = runner.take_from_sender<UserCounter>();
+        let mut user_counter2 = runner.take_from_sender<UserCounter>();
+
+        runner.increment_user_counter(&mut user_counter, 1);
+        runner.increment_user_counter(&mut user_counter2, 2);
+
+        runner.increment_epoch(1);
+
+        runner.register_user_counter(&mut user_counter, ADMIN);
+        runner.register_user_counter(&mut user_counter2, ADMIN);
+
+        user_counter.destroy_user_counter();
+        user_counter2.destroy_user_counter();
+
+        runner.end();
+    }              
 }
