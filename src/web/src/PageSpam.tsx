@@ -1,12 +1,12 @@
-import { SpamEventHandler, UserCounter, UserData } from "@polymedia/spam-sdk";
+import { SpamEventHandler, SpamStatus, UserCounter, UserData } from "@polymedia/spam-sdk";
 import { formatNumber } from "@polymedia/suits";
 import { LinkToExplorerObj } from "@polymedia/webutils";
 import { useEffect, useState } from "react";
-import { useOutletContext } from "react-router-dom";
+import { Link, useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
 
 type SpamView = {
-    status: string;
+    status: SpamStatus;
     lastMessage: string;
     epoch: number;
     userData: UserData;
@@ -82,14 +82,54 @@ export const PageSpam: React.FC = () =>
 
     /* HTML */
 
+    const balances = view?.userData.balances;
+    const counters = view?.userData.counters;
+    const isZeroSuiBalance = !balances || balances.sui === 0;
+
+    const Balances: React.FC = () => {
+        if (!balances) {
+            return null;
+        }
+        return <>
+            <p>Your balances:<br/>
+                {formatNumber(balances.sui, "compact")} SUI&nbsp;&nbsp;|&nbsp;&nbsp;
+                {formatNumber(balances.spam, "compact")} SPAM
+            </p>
+        </>
+    };
+
+    const TopUp: React.FC = () => {
+        if (!isZeroSuiBalance) {
+            return null;
+        }
+        return <>
+            <p>Top up your wallet to start.</p>
+            <Link className="btn" to="/user">
+                TOP UP
+            </Link>
+        </>;
+    }
+
+    const SpamAndStopButtons: React.FC = () => {
+        if (!view || isZeroSuiBalance) {
+            return null;
+        }
+        return view.status === "stopped"
+            ? <button className="btn" onClick={start}>SPAM</button>
+            : <button className="btn" onClick={stop}>STOP</button>;
+    };
+
     const CounterSection: React.FC<{
         title: string;
         counters: UserCounter[];
     }> = ({
         title,
         counters
-    }) => (
-        <div>
+    }) => {
+        if (counters.length === 0) {
+            return null;
+        }
+        return <div>
             <h3>{title}</h3>
             {counters.map(counter => (
                 <p key={counter.id}>
@@ -102,34 +142,24 @@ export const PageSpam: React.FC = () =>
             {counters.length === 0 &&
             <p>None</p>
             }
-        </div>
-    );
-
-    const balances = view?.userData.balances;
-    const counters = view?.userData.counters;
+        </div>;
+    };
 
     return <>
         <h1>Spam</h1>
         <div>
+
             {/* <ErrorBox err={error} /> */}
-            <div className="">
-                <p style={{textTransform: "capitalize"}}>Status:<br/>{view?.status}</p>
-                <p>Last event:<br/>{view?.lastMessage}</p>
-                {balances && <>
-                <p>Your balances:<br/>
-                    {formatNumber(balances.sui, "compact")} SUI&nbsp;&nbsp;|&nbsp;&nbsp;
-                    {formatNumber(balances.spam, "compact")} SPAM
-                </p>
-                </>}
-                <p>Current epoch:<br/>{view?.epoch}</p>
-            </div>
-            {isBootingUp
-            ? <p>Loading...</p>
-            : <>
-                <button className="btn" onClick={start}>SPAM</button>
-                <button className="btn" onClick={stop}>STOP</button>
-            </>
-            }
+
+            <p style={{textTransform: "capitalize"}}>Status:<br/>{view?.status}</p>
+
+            <Balances />
+
+            <TopUp />
+
+            <SpamAndStopButtons />
+
+            {/* <p>Current epoch: {view?.epoch}</p> */}
             {counters &&
             <>
                 <CounterSection title="Current counter" counters={counters.current ? [counters.current] : []} />
@@ -137,6 +167,9 @@ export const PageSpam: React.FC = () =>
                 <CounterSection title="Claimable counters" counters={counters.claim} />
                 <CounterSection title="Deletable counters" counters={counters.delete} />
             </>}
+
+            <h3>Event log</h3> {/* TODO */}
+            <textarea defaultValue={view?.lastMessage} />
         </div>
     </>;
 };
