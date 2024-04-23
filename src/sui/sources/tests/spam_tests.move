@@ -238,5 +238,24 @@ module spam::spam_tests {
         user_counter2.destroy_user_counter();
 
         runner.end();
-    }              
+    }   
+
+    #[test]
+    fun test_admin_functions() {
+        let mut runner = test_runner::start();
+
+        // default
+        runner
+        .assert_director_paused(false);
+
+        runner
+        .pause_director()
+        .assert_director_paused(true);
+
+        runner
+        .resume_director()
+        .assert_director_paused(false);
+
+        runner.end();
+    }                 
 }

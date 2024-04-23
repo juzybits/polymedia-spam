@@ -65,6 +65,11 @@ module spam::test_runner {
         self
     }
 
+    public fun resume_director(self: &mut TestRunner): &mut TestRunner {
+        self.director.admin_resume(&self.cap);
+        self
+    }
+
     public fun take_from_account<T: key>(self: &mut TestRunner, account: address): T {
         self.scenario.take_from_address(account)
     }
