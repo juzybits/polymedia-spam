@@ -1,9 +1,9 @@
 #[test_only]
 module spam::test_runner {
 
-    use sui::coin::{CoinMetadata};
     use sui::test_utils::{Self, assert_eq};
     use sui::test_scenario::{Self, Scenario};
+    use sui::coin::{CoinMetadata, Coin, burn_for_testing};
 
     use spam::spam::{Self, SPAM, UserCounter, AdminCap, Director};
 
@@ -84,13 +84,23 @@ module spam::test_runner {
     }
 
     public fun register_user_counter(self: &mut TestRunner, user_counter: &mut UserCounter, sender: address): &mut TestRunner {
+        next_tx_with_sender(self, sender);
         spam::register_user_counter(&mut self.director, user_counter, self.scenario.ctx());
-        next_tx_with_sender(self, sender)
+        self
+    }
+
+    public fun claim_user_counter(self: &mut TestRunner, user_counter: UserCounter, sender: address): Coin<SPAM> {
+        next_tx_with_sender(self, sender);
+        spam::claim_user_counter(&mut self.director, user_counter, self.scenario.ctx())
     }
 
     public fun assert_director_paused(self: &TestRunner, value: bool): &TestRunner {
         assert_eq(self.director.paused(), value);
         self
+    }
+
+    public fun assert_value(coin: Coin<SPAM>, value: u64) {
+        assert_eq(burn_for_testing(coin), value);
     }
 
     public fun assert_director_tx_count(self: &TestRunner, value: u64): &TestRunner {
