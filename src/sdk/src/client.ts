@@ -45,7 +45,7 @@ export class SpamClient
         const StructType = `${this.packageId}::spam::UserCounter`;
         const pageObjResp = await this.suiClient.getOwnedObjects({
             owner: this.signer.toSuiAddress(),
-            cursor: null, // TODO handle pagination (unlikely to ever be needed)
+            cursor: null, // doesn't handle pagination, but it's unlikely that it will ever be needed
             options: { showContent: true },
             filter: { StructType },
         });

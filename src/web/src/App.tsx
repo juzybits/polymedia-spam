@@ -67,7 +67,7 @@ const App: React.FC = () =>
     const [ spammer, setSpammer ] = useState(new Spammer(
         loadKeypairFromStorage(),
         loadedNetwork,
-        RPC_ENDPOINTS[loadedNetwork][0], // TODO rotate within Spammer
+        RPC_ENDPOINTS[loadedNetwork][0],
         spamEventHandler,
     ));
 
@@ -214,7 +214,7 @@ const App: React.FC = () =>
             setSpammer(new Spammer(
                 spammer.client.signer,
                 newNet,
-                RPC_ENDPOINTS[newNet][0], // TODO
+                RPC_ENDPOINTS[newNet][0],
                 spamEventHandler,
             ));
             setShowMobileNav(false);

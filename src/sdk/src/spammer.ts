@@ -13,6 +13,8 @@ export type SpamEvent = {
 
 export type SpamEventHandler = (event: SpamEvent) => void;
 
+// TODO handle network errors and txn failures (resp.effects.status.status !== "success")
+
 export class Spammer
 {
     public readonly client: SpamClient;
@@ -24,7 +26,7 @@ export class Spammer
     constructor(
         keypair: Signer,
         network: NetworkName,
-        rpcUrl: string,
+        rpcUrl: string, // TODO: auto-rotate
         eventHandler: SpamEventHandler,
     ) {
         this.status = "stopped";
@@ -70,7 +72,7 @@ export class Spammer
         try {
             if (this.requestRefresh) {
                 this.requestRefresh = false;
-                this.userCounters = await this.client.fetchUserCountersAndClassify(); // TODO handle network failures
+                this.userCounters = await this.client.fetchUserCountersAndClassify();
             }
 
             const counters = this.userCounters;
@@ -110,12 +112,12 @@ export class Spammer
             if (counters.current === null) {
                 this.onEvent({ type: "info", msg: "Creating counter" });
                 const resp = await this.client.newUserCounter();
-                this.requestRefresh = true; // TODO: this happens twice on epoch change (see catch() below)
+                this.requestRefresh = true;
                 this.onEvent({ type: "debug", msg: "newUserCounter resp: " + JSON.stringify(resp, null, 2) });
             } else {
                 this.client.network == "localnet" && await sleep(333); // simulate latency
                 const curr = counters.current;
-                const resp = await this.client.incrementUserCounter(curr.ref); // TODO check resp.effects.status.status === 'success'
+                const resp = await this.client.incrementUserCounter(curr.ref);
                 curr.tx_count++;
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 curr.ref = resp.effects!.mutated!.find(mutatedObj =>
@@ -130,11 +132,11 @@ export class Spammer
             if (errCode === SpamError.EWrongEpoch) {
                 // Expected error: when the epoch changes, the counter is no longer incrementable
                 this.requestRefresh = true;
-                this.start();
                 this.onEvent({ type: "info", msg: "Epoch change"});
             }
             else {
-                // Unexpected error // TODO rotate RPC etc
+                // Unexpected error
+                this.status = "stopping";
                 this.onEvent({ type: "warn", msg: String(err) });
             }
         }

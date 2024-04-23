@@ -43,6 +43,7 @@ export const PageWallet: React.FC = () =>
         <div className="btn-group">
             <button className="btn" onClick={onCreateWallet}>NEW WALLET</button>
             <button className="btn">IMPORT</button> {/* TODO */}
+            {/* <button className="btn">WITHDRAW</button> TODO */}
         </div>
     </>;
 };
