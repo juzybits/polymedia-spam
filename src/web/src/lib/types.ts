@@ -1,8 +1,12 @@
-import { SpamStatus, UserData } from "@polymedia/spam-sdk";
+import { SpamStatus, UserCounters } from "@polymedia/spam-sdk";
 
 export type SpamView = {
     status: SpamStatus;
     lastMessage: string;
-    epoch: number;
-    userData: UserData;
+    counters: UserCounters;
+};
+
+export type UserBalances = {
+    sui: number;
+    spam: number;
 };

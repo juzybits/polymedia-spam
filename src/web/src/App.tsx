@@ -1,19 +1,19 @@
 import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
-import { SpamEvent, Spammer, emptyUserData } from "@polymedia/spam-sdk";
-import { RPC_ENDPOINTS } from "@polymedia/suits";
+import { SPAM_DECIMALS, SUI_DECIMALS, SpamEvent, Spammer, emptyUserCounters } from "@polymedia/spam-sdk";
+import { RPC_ENDPOINTS, convertBigIntToNumber } from "@polymedia/suits";
 import { LinkExternal, Modal, NetworkSelector, isLocalhost, loadNetwork } from "@polymedia/webutils";
 import { ReactNode, useEffect, useState } from "react";
 import { BrowserRouter, Link, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import { PageHome } from "./PageHome";
 import { PageNotFound } from "./PageNotFound";
+import { PageRPCs } from "./PageRPCs";
 import { PageSpam } from "./PageSpam";
 import { PageStats } from "./PageStats";
 import { PageWallet } from "./PageWallet";
 import { loadKeypairFromStorage, saveKeypairToStorage } from "./lib/storage";
-import "./styles/shared.app.less";
+import { SpamView, UserBalances } from "./lib/types";
 import "./styles/App.less";
-import { SpamView } from "./lib/types";
-import { PageRPCs } from "./PageRPCs";
+import "./styles/shared.app.less";
 
 /* App router */
 
@@ -49,6 +49,7 @@ export type AppContext = {
     inProgress: boolean; setInProgress: ReactSetter<boolean>;
     showMobileNav: boolean; setShowMobileNav: ReactSetter<boolean>;
     setModalContent: ReactSetter<ReactNode>;
+    balances: UserBalances;
     spammer: Spammer; setSpammer: ReactSetter<Spammer>;
     spamView: SpamView;
     replaceKeypair: (keypair: Ed25519Keypair) => void;
@@ -61,12 +62,11 @@ const App: React.FC = () =>
     const [ inProgress, setInProgress ] = useState(false);
     const [ showMobileNav, setShowMobileNav ] = useState(false);
     const [ modalContent, setModalContent ] = useState<ReactNode>(null);
-
+    const [ balances, setBalances ] = useState<UserBalances>({ sui: -1, spam: -1 });
     const [ spamView, setSpamView ] = useState<SpamView>({
         status: "stopped",
         lastMessage: "",
-        epoch: -1,
-        userData: emptyUserData(),
+        counters: emptyUserCounters(),
     });
     const [ spammer, setSpammer ] = useState(new Spammer(
         loadKeypairFromStorage(),
@@ -79,6 +79,7 @@ const App: React.FC = () =>
         inProgress, setInProgress,
         showMobileNav, setShowMobileNav,
         setModalContent,
+        balances,
         spammer, setSpammer,
         spamView,
         replaceKeypair,
@@ -88,34 +89,50 @@ const App: React.FC = () =>
 
     useEffect(() =>
     {
-        /* repaint periodically when the Spammer is not running */
+        /* repaint on demand whenever there is a Spammer event */
 
-        const updateView = async () => {
-            if (spammer.status === "running") {
-                return;
-            }
-            const data = await spammer.client.fetchUserData();
+        spammer.addEventHandler(spamEventHandler);
+
+        /* repaint periodically when the spammer is not running */
+
+        const updateBalances = async () => {
+            const balanceSui = await spammer.client.suiClient.getBalance({
+                owner: spammer.client.signer.toSuiAddress(),
+            });
+            const balanceSpam = await spammer.client.suiClient.getBalance({
+                owner: spammer.client.signer.toSuiAddress(),
+                coinType: `${spammer.client.packageId}::spam::SPAM`,
+            });
+            setBalances({
+                spam: convertBigIntToNumber(BigInt(balanceSpam.totalBalance), SPAM_DECIMALS),
+                sui: convertBigIntToNumber(BigInt(balanceSui.totalBalance), SUI_DECIMALS),
+            });
+        };
+
+        const updateSpamView = async () => {
+            const counters = await spammer.client.fetchUserCountersAndClassify();
             setSpamView(oldView => ({
                 status: spammer.status,
                 lastMessage: oldView?.lastMessage ?? "-",
-                epoch: data.epoch,
-                userData: data.userData,
+                counters,
             }));
         };
-        updateView();
 
-        const updateViewPeriodically = setInterval(
-            updateView,
-            spammer.client.network === "localnet" ? 5_000 : 30_000,
-        );
+        updateBalances();
+        updateSpamView();
 
-        /* repaint on demand whenever there is a Spammer event */
-        spammer.addEventHandler(spamEventHandler);
+        const updateFrequency = spammer.client.network === "localnet" ? 5_000 : 30_000;
+        const updatePeriodically = setInterval(async () => {
+            if (spammer.status !== "running") {
+                await updateBalances();
+                await updateSpamView();
+            }
+        }, updateFrequency);
 
         /* clean up on component unmount */
 
         return () => {
-            clearInterval(updateViewPeriodically);
+            clearInterval(updatePeriodically);
             spammer.removeEventHandler(spamEventHandler);
         };
     }, [spammer]);
@@ -125,8 +142,7 @@ const App: React.FC = () =>
         setSpamView(oldView => ({
             status: spammer.status,
             lastMessage: (e.type !== "debug" && e.msg) || oldView?.lastMessage || "-",
-            epoch: spammer.epoch,
-            userData: spammer.userData,
+            counters: spammer.userCounters,
         }));
     }
 

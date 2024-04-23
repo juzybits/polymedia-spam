@@ -63,7 +63,7 @@ export class SpamClient
 
         // categorize user counters
         const counters: UserCounters = {
-            epoch: -1,
+            epoch: currEpoch,
             current: null,
             register: null,
             claim: [],

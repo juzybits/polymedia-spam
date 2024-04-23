@@ -8,10 +8,10 @@ export const PageSpam: React.FC = () =>
 {
     /* State */
 
-    const { spammer, spamView } = useOutletContext<AppContext>();
+    const { balances, spammer, spamView } = useOutletContext<AppContext>();
     // const [ error, setError ] = useState<string|null>(null);
 
-    const isBootingUp = spamView.epoch === -1;
+    const isBootingUp = spamView.counters.epoch === -1;
 
     /* Functions */
 
@@ -30,8 +30,7 @@ export const PageSpam: React.FC = () =>
 
     /* HTML */
 
-    const balances = spamView?.userData.balances;
-    const counters = spamView?.userData.counters;
+    const counters = spamView?.counters;
     const isLowSuiBalance = !balances || balances.sui < 0.001025;
 
     const Balances: React.FC = () => {
@@ -58,7 +57,7 @@ export const PageSpam: React.FC = () =>
         </>;
     };
 
-    const SpamAndStopButtons: React.FC = () => {
+    const SpamOrStopButton: React.FC = () => {
         if (isBootingUp || isLowSuiBalance) {
             return null;
         }
@@ -105,7 +104,7 @@ export const PageSpam: React.FC = () =>
 
             <TopUp />
 
-            <SpamAndStopButtons />
+            <SpamOrStopButton />
 
             {/* <p>Current epoch: {view?.epoch}</p> */}
             {counters &&
