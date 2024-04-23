@@ -7,12 +7,20 @@ export const PageHome: React.FC = () =>
 
         <h2>Spam to Earn on Sui</h2>
 
-        <br />
         <p>
             The more transactions you send, the more SPAM coins you receive.
         </p>
 
-        <br/><br/>
+        <br/>
+        <h3>ELI5</h3>
+        <div className="tight">
+            <p>- One billion SPAM coins are minted every day.</p>
+            <p>- You can earn SPAM simply by sending transactions.</p>
+            <p>- The more txs you send, the more SPAM you earn.</p>
+            <p>- There is no proof of work.</p>
+        </div>
+
+        <br/>
         <Link className="btn" to="/spam">
             START
         </Link>
