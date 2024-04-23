@@ -1,7 +1,7 @@
 import { Signer } from "@mysten/sui.js/cryptography";
 import { NetworkName, shortenSuiAddress, sleep } from "@polymedia/suits";
 import { SpamError, parseSpamError } from "./errors";
-import { UserData } from "./types";
+import { UserData, emptyUserData } from "./types";
 import { SpamClient } from "./client";
 
 export type SpamStatus = "stopped" | "running" | "stopping";
@@ -30,10 +30,7 @@ export class Spammer
     ) {
         this.status = "stopped";
         this.epoch = -1;
-        this.userData = {
-            balances: { spam: -1, sui: -1 },
-            counters: { current: null, register: null, claim: [], delete: [] },
-        };
+        this.userData = emptyUserData();
         this.client = new SpamClient(keypair, network, rpcUrl);
         this.requestRefresh = true; // so when it starts it pulls the data
         this.eventHandlers = new Set<SpamEventHandler>([eventHandler]);

@@ -52,3 +52,10 @@ export type UserData = {
         delete: UserCounter[];
     };
 };
+
+export function emptyUserData(): UserData {
+    return {
+        balances: { spam: -1, sui: -1 },
+        counters: { current: null, register: null, claim: [], delete: [] },
+    };
+}

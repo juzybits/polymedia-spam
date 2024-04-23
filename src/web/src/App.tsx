@@ -1,5 +1,5 @@
 import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
-import { SpamEvent, Spammer } from "@polymedia/spam-sdk";
+import { SpamEvent, Spammer, emptyUserData } from "@polymedia/spam-sdk";
 import { RPC_ENDPOINTS } from "@polymedia/suits";
 import { LinkExternal, Modal, NetworkSelector, isLocalhost, loadNetwork } from "@polymedia/webutils";
 import { ReactNode, useEffect, useState } from "react";
@@ -64,10 +64,7 @@ const App: React.FC = () =>
         status: "stopped",
         lastMessage: "",
         epoch: -1,
-        userData: {
-            balances: { spam: -1, sui: -1 },
-            counters: { current: null, register: null, claim: [], delete: [] },
-        }
+        userData: emptyUserData(),
     });
     const [ spammer, setSpammer ] = useState(new Spammer(
         loadKeypairFromStorage(),
