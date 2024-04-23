@@ -15,7 +15,7 @@ module spam::spam {
 
     // === Constants ===
 
-    const TOTAL_EPOCH_REWARD: u64 = 1_000_000_000;
+    const TOTAL_EPOCH_REWARD: u64 = 10_000_000_000_000; // 1 billion (4 decimals)
 
     // === Structs ===
 
