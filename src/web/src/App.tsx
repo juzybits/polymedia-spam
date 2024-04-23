@@ -47,7 +47,7 @@ export type ReactSetter<T> = React.Dispatch<React.SetStateAction<T>>;
 
 export type AppContext = {
     balances: UserBalances;
-    spammer: Spammer; setSpammer: ReactSetter<Spammer>;
+    spammer: Spammer;
     spamView: SpamView;
     replaceKeypair: (keypair: Ed25519Keypair) => void;
 };
@@ -73,7 +73,7 @@ const App: React.FC = () =>
 
     const appContext: AppContext = {
         balances,
-        spammer, setSpammer,
+        spammer,
         spamView,
         replaceKeypair,
     };
@@ -86,7 +86,7 @@ const App: React.FC = () =>
 
         spammer.addEventHandler(spamEventHandler);
 
-        /* repaint periodically when the spammer is not running */
+        /* repaint periodically */
 
         const updateBalances = async () => {
             const balanceSui = await spammer.client.suiClient.getBalance({
@@ -100,6 +100,7 @@ const App: React.FC = () =>
                 spam: convertBigIntToNumber(BigInt(balanceSpam.totalBalance), SPAM_DECIMALS),
                 sui: convertBigIntToNumber(BigInt(balanceSui.totalBalance), SUI_DECIMALS),
             });
+            // console.info("periodic balance update");
         };
 
         const updateSpamView = async () => {
@@ -109,6 +110,7 @@ const App: React.FC = () =>
                 lastMessage: oldView?.lastMessage ?? "-",
                 counters,
             }));
+            // console.info("periodic view update");
         };
 
         updateBalances();
@@ -116,8 +118,10 @@ const App: React.FC = () =>
 
         const updateFrequency = spammer.client.network === "localnet" ? 5_000 : 30_000;
         const updatePeriodically = setInterval(async () => {
-            if (spammer.status !== "running") {
+            if (spammer.status == "running") {
                 await updateBalances();
+            }
+            if (spammer.status != "running") {
                 await updateSpamView();
             }
         }, updateFrequency);
@@ -137,6 +141,7 @@ const App: React.FC = () =>
             lastMessage: (e.type !== "debug" && e.msg) || oldView?.lastMessage || "-",
             counters: spammer.userCounters,
         }));
+        // console.info("on-demand view update");
     }
 
     function replaceKeypair(keypair: Ed25519Keypair): void {
