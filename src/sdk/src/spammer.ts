@@ -1,7 +1,7 @@
 import { Signer } from "@mysten/sui.js/cryptography";
 import { NetworkName, shortenSuiAddress, sleep } from "@polymedia/suits";
 import { SpamError, parseSpamError } from "./errors";
-import { UserData, emptyUserData } from "./types";
+import { UserCounters, emptyUserCounters } from "./types";
 import { SpamClient } from "./client";
 
 export type SpamStatus = "stopped" | "running" | "stopping";
@@ -17,8 +17,7 @@ export class Spammer
 {
     public readonly client: SpamClient;
     public status: SpamStatus;
-    public epoch: number;
-    public userData: UserData;
+    public userCounters: UserCounters;
     private requestRefresh: boolean;
     private eventHandlers: Set<SpamEventHandler>;
 
@@ -29,8 +28,7 @@ export class Spammer
         eventHandler: SpamEventHandler,
     ) {
         this.status = "stopped";
-        this.epoch = -1;
-        this.userData = emptyUserData();
+        this.userCounters = emptyUserCounters();
         this.client = new SpamClient(keypair, network, rpcUrl);
         this.requestRefresh = true; // so when it starts it pulls the data
         this.eventHandlers = new Set<SpamEventHandler>([eventHandler]);
@@ -72,12 +70,10 @@ export class Spammer
         try {
             if (this.requestRefresh) {
                 this.requestRefresh = false;
-                const data = await this.client.fetchUserData(); // TODO handle network failures
-                this.epoch = data.epoch;
-                this.userData = data.userData;
+                this.userCounters = await this.client.fetchUserCountersAndClassify(); // TODO handle network failures
             }
 
-            const counters = this.userData.counters;
+            const counters = this.userCounters;
 
             if (counters.register !== null && !counters.register.registered) {
                 this.onEvent({ type: "info", msg: "Registering counter: " + shortenSuiAddress(counters.register.id) });

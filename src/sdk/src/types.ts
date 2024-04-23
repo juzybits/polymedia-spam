@@ -40,22 +40,20 @@ export const BcsStats = bcs.struct("Stats", {
 
 /* Other types */
 
-export type UserData = {
-    balances: {
-        spam: number;
-        sui: number;
-    };
-    counters: {
-        current: UserCounter | null;
-        register: UserCounter | null;
-        claim: UserCounter[];
-        delete: UserCounter[];
-    };
+export type UserCounters = {
+    epoch: number;
+    current: UserCounter | null;
+    register: UserCounter | null;
+    claim: UserCounter[];
+    delete: UserCounter[];
 };
 
-export function emptyUserData(): UserData {
+export function emptyUserCounters(): UserCounters {
     return {
-        balances: { spam: -1, sui: -1 },
-        counters: { current: null, register: null, claim: [], delete: [] },
+        epoch: -1,
+        current: null,
+        register: null,
+        claim: [],
+        delete: [],
     };
 }

@@ -8,13 +8,12 @@ import { Signer } from "@mysten/sui.js/cryptography";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import {
     NetworkName,
-    convertBigIntToNumber,
     devInspectAndGetResults,
     getSuiObjectResponseFields,
 } from "@polymedia/suits";
-import { SPAM_DECIMALS, SPAM_IDS, SUI_DECIMALS } from "./config";
+import { SPAM_IDS } from "./config";
 import * as pkg from "./package";
-import { BcsStats, Stats, UserCounter, UserData } from "./types";
+import { BcsStats, Stats, UserCounter, UserCounters } from "./types";
 
 export class SpamClient
 {
@@ -53,21 +52,8 @@ export class SpamClient
         return pageObjResp.data.map(objResp => this.parseUserCounter(objResp));
     }
 
-    public async fetchUserData()
+    public async fetchUserCountersAndClassify()
     {
-        // fetch user balances
-        const balanceSui = await this.suiClient.getBalance({
-            owner: this.signer.toSuiAddress(),
-        });
-        const balanceSpam = await this.suiClient.getBalance({
-            owner: this.signer.toSuiAddress(),
-            coinType: `${this.packageId}::spam::SPAM`,
-        });
-        const balances: UserData["balances"] = {
-            spam: convertBigIntToNumber(BigInt(balanceSpam.totalBalance), SPAM_DECIMALS),
-            sui: convertBigIntToNumber(BigInt(balanceSui.totalBalance), SUI_DECIMALS),
-        };
-
         // fetch user counters
         const userCountersArray = await this.fetchUserCounters();
 
@@ -76,7 +62,8 @@ export class SpamClient
         const currEpoch = Number(suiState.epoch);
 
         // categorize user counters
-        const counters: UserData["counters"] = {
+        const counters: UserCounters = {
+            epoch: -1,
             current: null,
             register: null,
             claim: [],
@@ -126,13 +113,7 @@ export class SpamClient
             }
         }
 
-        return {
-            epoch: currEpoch,
-            userData: {
-                balances,
-                counters,
-            },
-        };
+        return counters;
     }
 
     /* Package functions */
