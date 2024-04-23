@@ -1,8 +1,8 @@
 import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
 import { SPAM_DECIMALS, SUI_DECIMALS, SpamEvent, Spammer, emptyUserCounters } from "@polymedia/spam-sdk";
 import { RPC_ENDPOINTS, convertBigIntToNumber } from "@polymedia/suits";
-import { LinkExternal, Modal, NetworkSelector, isLocalhost, loadNetwork } from "@polymedia/webutils";
-import { ReactNode, useEffect, useState } from "react";
+import { LinkExternal, NetworkSelector, isLocalhost, loadNetwork } from "@polymedia/webutils";
+import { useEffect, useState } from "react";
 import { BrowserRouter, Link, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import { PageHome } from "./PageHome";
 import { PageNotFound } from "./PageNotFound";
@@ -46,9 +46,6 @@ const loadedNetwork = loadNetwork(supportedNetworks, defaultNetwork);
 export type ReactSetter<T> = React.Dispatch<React.SetStateAction<T>>;
 
 export type AppContext = {
-    inProgress: boolean; setInProgress: ReactSetter<boolean>;
-    showMobileNav: boolean; setShowMobileNav: ReactSetter<boolean>;
-    setModalContent: ReactSetter<ReactNode>;
     balances: UserBalances;
     spammer: Spammer; setSpammer: ReactSetter<Spammer>;
     spamView: SpamView;
@@ -59,9 +56,8 @@ const App: React.FC = () =>
 {
     /* State */
 
-    const [ inProgress, setInProgress ] = useState(false);
+    const inProgress = false;
     const [ showMobileNav, setShowMobileNav ] = useState(false);
-    const [ modalContent, setModalContent ] = useState<ReactNode>(null);
     const [ balances, setBalances ] = useState<UserBalances>({ sui: -1, spam: -1 });
     const [ spamView, setSpamView ] = useState<SpamView>({
         status: "stopped",
@@ -76,9 +72,6 @@ const App: React.FC = () =>
     ));
 
     const appContext: AppContext = {
-        inProgress, setInProgress,
-        showMobileNav, setShowMobileNav,
-        setModalContent,
         balances,
         spammer, setSpammer,
         spamView,
@@ -284,8 +277,6 @@ const App: React.FC = () =>
         {/* Floating elements */}
 
         <BtnMenu />
-
-        <Modal content={modalContent} />
     </div>
     );
 };
