@@ -1,10 +1,7 @@
-import { Link, useOutletContext } from "react-router-dom";
-import { AppContext } from "./App";
+import { Link } from "react-router-dom";
 
 export const PageHome: React.FC = () =>
 {
-    const { wallet } = useOutletContext<AppContext>();
-
     return <>
         <h1><span className="rainbow">SPAM</span></h1>
 
@@ -16,7 +13,7 @@ export const PageHome: React.FC = () =>
         </p>
 
         <br /><br />
-        <Link className="btn" to={wallet ? "/spam" : "/user"}>
+        <Link className="btn" to="/spam">
             START
         </Link>
     </>;

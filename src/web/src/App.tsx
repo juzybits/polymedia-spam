@@ -1,5 +1,5 @@
 import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
-import { SpamEventHandler, Spammer } from "@polymedia/spam-sdk";
+import { SpamEvent, SpamStatus, Spammer } from "@polymedia/spam-sdk";
 import { RPC_ENDPOINTS } from "@polymedia/suits";
 import { LinkExternal, Modal, NetworkSelector, isLocalhost, loadNetwork } from "@polymedia/webutils";
 import { ReactNode, useState } from "react";
@@ -10,6 +10,7 @@ import { PageSpam } from "./PageSpam";
 import { PageStats } from "./PageStats";
 import { PageUser } from "./PageUser";
 import { loadKeypairFromStorage, saveKeypairToStorage } from "./lib/storage";
+import "./styles/shared.app.less";
 import "./styles/App.less";
 
 /* App router */
@@ -37,38 +38,50 @@ type NetworkName = typeof supportedNetworks[number];
 const defaultNetwork = isLocalhost() ? "localnet" : "mainnet";
 const loadedNetwork = loadNetwork(supportedNetworks, defaultNetwork);
 
-/* Spammer config */
-
-const spamEventHandler: SpamEventHandler = (evt) => {
-    console[evt.type](`${evt.type}: ${evt.msg}`);
-};
-const loadedSpammer = new Spammer(
-    loadKeypairFromStorage(),
-    loadedNetwork,
-    RPC_ENDPOINTS[loadedNetwork][0], // TODO rotate within Spammer
-    spamEventHandler,
-);
-
 /* App */
 
 export type ReactSetter<T> = React.Dispatch<React.SetStateAction<T>>;
 
 export type AppContext = {
-    spammer: Spammer; setSpammer: ReactSetter<Spammer>;
     inProgress: boolean; setInProgress: ReactSetter<boolean>;
     showMobileNav: boolean; setShowMobileNav: ReactSetter<boolean>;
     setModalContent: ReactSetter<ReactNode>;
+    spammer: Spammer; setSpammer: ReactSetter<Spammer>;
     replaceKeypair: (keypair: Ed25519Keypair) => void;
 };
 
 const App: React.FC = () =>
 {
-    const [ spammer, setSpammer ] = useState(loadedSpammer);
+    /* State */
+
     const [ inProgress, setInProgress ] = useState(false);
     const [ showMobileNav, setShowMobileNav ] = useState(false);
     const [ modalContent, setModalContent ] = useState<ReactNode>(null);
 
-    const replaceKeypair = (keypair: Ed25519Keypair): void => {
+    const [ spammerStatus, setSpammerStatus ] = useState<SpamStatus>("stopped");
+    const [ spammer, setSpammer ] = useState(new Spammer(
+        loadKeypairFromStorage(),
+        loadedNetwork,
+        RPC_ENDPOINTS[loadedNetwork][0], // TODO rotate within Spammer
+        spamEventHandler,
+    ));
+
+    const appContext: AppContext = {
+        inProgress, setInProgress,
+        showMobileNav, setShowMobileNav,
+        setModalContent,
+        spammer, setSpammer,
+        replaceKeypair,
+    };
+
+    /* Functions */
+
+    function spamEventHandler(evt: SpamEvent): void {
+        console[evt.type](`${evt.type}: ${evt.msg}`);
+        setSpammerStatus(spammer.status);
+    }
+
+    function replaceKeypair(keypair: Ed25519Keypair): void {
         spammer.stop();
         setSpammer(new Spammer(
             keypair,
@@ -77,15 +90,7 @@ const App: React.FC = () =>
             spamEventHandler,
         ));
         saveKeypairToStorage(keypair);
-    };
-
-    const appContext: AppContext = {
-        spammer, setSpammer,
-        inProgress, setInProgress,
-        showMobileNav, setShowMobileNav,
-        setModalContent,
-        replaceKeypair,
-    };
+    }
 
     /* HTML */
 
@@ -99,7 +104,9 @@ const App: React.FC = () =>
                 </h1>
             </Link>
 
-            {/* <BtnConnect appContext={app} /> */}
+            <span id="status-indicator">
+                {spammerStatus}
+            </span>
         </header>;
     };
 
