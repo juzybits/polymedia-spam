@@ -52,7 +52,7 @@ export const PageSpam: React.FC = () =>
         }
         return <>
             <p>Top up your wallet to start.</p>
-            <Link className="btn" to="/user">
+            <Link className="btn" to="/wallet">
                 TOP UP
             </Link>
         </>;

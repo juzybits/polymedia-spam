@@ -8,7 +8,7 @@ import { PageHome } from "./PageHome";
 import { PageNotFound } from "./PageNotFound";
 import { PageSpam } from "./PageSpam";
 import { PageStats } from "./PageStats";
-import { PageUser } from "./PageUser";
+import { PageWallet } from "./PageWallet";
 import { loadKeypairFromStorage, saveKeypairToStorage } from "./lib/storage";
 import "./styles/shared.app.less";
 import "./styles/App.less";
@@ -23,7 +23,7 @@ export const AppRouter: React.FC = () => {
             <Route path="/" element={<App />} >
                 <Route index element={<PageHome />} />
                 <Route path="/spam" element={<PageSpam />} />
-                <Route path="/user" element={<PageUser />} />
+                <Route path="/wallet" element={<PageWallet />} />
                 <Route path="/stats" element={<PageStats />} />
                 <Route path="*" element={<PageNotFound />} />
             </Route>
@@ -176,13 +176,12 @@ const App: React.FC = () =>
             <Link to="/spam" className={selected("/spam")} onClick={onClick}>
                 Spam
             </Link>
-            <Link to="/user" className={selected("/user")} onClick={onClick}>
-                User
+            <Link to="/wallet" className={selected("/wallet")} onClick={onClick}>
+                Wallet
             </Link>
             <Link to="/stats" className={selected("/stats")} onClick={onClick}>
                 Stats
             </Link>
-
             <div className="divider" />
 
             <BtnNetwork />

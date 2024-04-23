@@ -2,7 +2,7 @@ import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
 import { useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
 
-export const PageUser: React.FC = () =>
+export const PageWallet: React.FC = () =>
 {
     const { replaceKeypair, spammer } = useOutletContext<AppContext>();
 
@@ -16,7 +16,7 @@ export const PageUser: React.FC = () =>
     };
 
     return <>
-        <h1>User</h1>
+        <h1>Wallet</h1>
 
         <p>
             Your public address:<br/>
