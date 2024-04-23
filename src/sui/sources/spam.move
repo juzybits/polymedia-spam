@@ -1,4 +1,5 @@
 module spam::spam {
+
     // === Imports ===
 
     use sui::table::{Self, Table};
@@ -248,7 +249,7 @@ module spam::spam {
         // Create the coin
         let (treasury, metadata) = create_currency(
             witness,
-            0, // decimals
+            4, // decimals
             b"SPAM", // symbol
             b"SPAM", // name
             b"Spam to Earn on Sui", // description
@@ -292,7 +293,7 @@ module spam::spam {
     #[test_only]
     public fun increment_user_counter_for_testing(
         user_counter: &mut UserCounter,
-        ctx: &TxContext,        
+        ctx: &TxContext,
     ) {
         increment_user_counter(user_counter, ctx);
     }
@@ -310,5 +311,5 @@ module spam::spam {
     #[test_only]
     public fun registered(user_counter: &UserCounter): bool {
         user_counter.registered
-    }    
+    }
 }
