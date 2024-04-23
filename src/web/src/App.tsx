@@ -12,8 +12,8 @@ import { PageStats } from "./PageStats";
 import { PageWallet } from "./PageWallet";
 import { loadKeypairFromStorage, saveKeypairToStorage } from "./lib/storage";
 import { SpamView, UserBalances } from "./lib/types";
+import "./styles/.shared.app.less";
 import "./styles/App.less";
-import "./styles/shared.app.less";
 
 /* App router */
 
