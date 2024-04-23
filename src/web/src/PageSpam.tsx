@@ -61,9 +61,13 @@ export const PageSpam: React.FC = () =>
         if (isBootingUp || isLowSuiBalance) {
             return null;
         }
-        return spamView.status === "stopped"
-            ? <button className="btn" onClick={start}>SPAM</button>
-            : <button className="btn" onClick={stop}>STOP</button>;
+        if (spamView.status === "stopped") {
+            return <button className="btn" onClick={start}>SPAM</button>;
+        }
+        if (spamView.status === "running") {
+            return <button className="btn" onClick={stop}>STOP</button>;
+        }
+        return <button className="btn" disabled>STOPPING</button>;
     };
 
     const CounterSection: React.FC<{
