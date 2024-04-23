@@ -312,4 +312,31 @@ module spam::spam {
     public fun registered(user_counter: &UserCounter): bool {
         user_counter.registered
     }
+
+    #[test_only]
+    public fun paused(director: &Director): bool {
+        director.paused
+    }
+
+    #[test_only]
+    public fun director_tx_count(director: &Director): u64 {
+        director.tx_count
+    }
+
+    #[test_only]
+    public fun spam_total_supply(director: &Director): u64 {
+        director.treasury.total_supply()
+    }
+
+    #[test_only]
+    public fun epoch_tx_count(director: &Director, epoch: u64): u64 {
+        if (!director.epoch_counters.contains(epoch)) return 0;
+
+        director.epoch_counters.borrow(epoch).tx_count
+    }  
+
+    #[test_only]
+    public fun epoch_user_counts(director: &Director, epoch: u64, user: address): u64 {
+        *director.epoch_counters.borrow(epoch).user_counts.borrow(user)
+    }        
 }

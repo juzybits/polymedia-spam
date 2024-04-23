@@ -1,11 +1,12 @@
 #[test_only]
 module spam::spam_tests {
 
-    use sui::test_utils::destroy;
-
     use spam::test_runner;
-    use spam::spam::{Self, UserCounter};
     use spam::assert_user_counter;
+    use spam::spam::{Self, UserCounter};
+
+    const ALICE: address = @0xa11ce;
+    const ADMIN: address = @0x12;
 
     #[test]
     fun test_new_user_counter() {
@@ -24,9 +25,8 @@ module spam::spam_tests {
         assert
         .epoch(epoch)
         .tx_count(1)
-        .registered(false);
-
-        destroy(assert);
+        .registered(false)
+        .destroy();
 
         runner.end();
     }
@@ -53,9 +53,8 @@ module spam::spam_tests {
         assert
         .epoch(initial_epoch)
         .tx_count(count + initial_tx_count)
-        .registered(false);
-
-        destroy(assert);
+        .registered(false)
+        .destroy();
 
         runner.end();
     }
@@ -77,6 +76,67 @@ module spam::spam_tests {
 
         user_counter.destroy_user_counter();
 
+        runner.end();
+    }
+
+    #[test]
+    public fun test_register_user_counter() {
+        let mut runner = test_runner::start();
+
+        let admim_tx_count = 15;
+        let alice_tx_count = 17;
+        let counter_epoch = 0;
+
+        // Create Admin User Counter
+        spam::new_user_counter_for_testing(runner.ctx());
+
+        // Increment Txs for Admin
+        runner.next_tx_with_sender(ADMIN);
+        let mut admin_counter = runner.take_from_sender<UserCounter>();
+        runner.increment_user_counter(&mut admin_counter, admim_tx_count);
+
+        // Create Alice User Counter
+        runner.next_tx_with_sender(ALICE);
+        spam::new_user_counter_for_testing(runner.ctx());
+
+         // Increment Txs for Alice
+        runner.next_tx_with_sender(ALICE);
+        let mut alice_counter = runner.take_from_sender<UserCounter>();
+        runner.increment_user_counter(&mut alice_counter, alice_tx_count);
+
+        runner.increment_epoch(1);
+
+        let mut admin_counter = assert_user_counter::new(admin_counter)
+        .epoch(counter_epoch)
+        // Creating the counter counts as 1
+        .tx_count(admim_tx_count + 1)
+        .registered(false)
+        .pop();        
+
+        let mut alice_counter = assert_user_counter::new(alice_counter)
+        .epoch(counter_epoch)
+        // Creating the counter counts as 1
+        .tx_count(alice_tx_count + 1)
+        .registered(false)
+        .pop();
+
+        runner
+        .assert_director_paused(false)
+        .assert_director_tx_count(0)
+        .assert_spam_total_supply(0)
+        .assert_director_epoch_tx_count(counter_epoch, 0);
+
+        runner.register_user_counter(&mut admin_counter, ADMIN);
+        runner.register_user_counter(&mut alice_counter, ALICE);
+
+        runner
+        .assert_director_paused(false)
+        .assert_director_tx_count(alice_tx_count + admim_tx_count + 2)
+        .assert_spam_total_supply(0)
+        .assert_director_epoch_tx_count(counter_epoch, alice_tx_count + admim_tx_count + 2);
+
+        admin_counter.destroy_user_counter();
+        alice_counter.destroy_user_counter();
         runner.end();
     }
 }

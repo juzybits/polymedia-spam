@@ -7,8 +7,8 @@ license = "Apache-2.0"
 published-at = "0x0"
 
 [dependencies]
-Sui = { local = "../../../sui/crates/sui-framework/packages/sui-framework" }
-# Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet" }
+# Sui = { local = "../../../sui/crates/sui-framework/packages/sui-framework" }
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet" }
 
 [addresses]
 spam = "0x0"
