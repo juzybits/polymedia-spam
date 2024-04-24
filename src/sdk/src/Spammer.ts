@@ -86,7 +86,6 @@ export class Spammer
         if (this.status === "stopping") {
             this.status = "stopped";
             this.requestRefresh = true; // so when it starts again it pulls fresh data
-            this.onEvent({ type: "info", msg: "Stopped as requested" });
             return;
         }
 
@@ -167,8 +166,12 @@ export class Spammer
                 this.onEvent({ type: "info", msg: "Epoch change"});
             }
             else if ( errStr.includes("ObjectNotFound") || errStr.includes("not available for consumption") ) {
-                this.onEvent({ type: "warn", msg: `Validator didn't sync yet. Retrying shortly. Original error: ${errStr}` });
+                this.onEvent({ type: "info", msg: `Validator didn't sync yet. Retrying shortly. Original error: ${errStr}` });
                 await sleep(SLEEP_MS_AFTER_OBJECT_NOT_READY);
+            }
+            else if ( /Balance of gas object \d+ is lower than the needed amount/.test(errStr) ) {
+                this.onEvent({ type: "info", msg: `Out of gas. Stopping.` });
+                this.status = "stopping";
             }
             else {
                 // Unexpected error
