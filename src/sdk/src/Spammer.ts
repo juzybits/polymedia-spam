@@ -19,6 +19,7 @@ export type SpamEventHandler = (event: SpamEvent) => void;
 const INCREMENT_TXS_UNTIL_ROTATE = 50;
 const SLEEP_MS_AFTER_RPC_CHANGE = 1000;
 const SLEEP_MS_AFTER_OBJECT_NOT_READY = 1000;
+const SLEEP_MS_AFTER_NETWORK_ERROR = 5000;
 
 // TODO handle network errors and txn failures (resp.effects.status.status !== "success")
 
@@ -86,6 +87,7 @@ export class Spammer
         if (this.status === "stopping") {
             this.status = "stopped";
             this.requestRefresh = true; // so when it starts again it pulls fresh data
+            this.onEvent({ type: "info", msg: "Stopped as requested" });
             return;
         }
 
@@ -160,21 +162,29 @@ export class Spammer
         catch (err) {
             const errStr = String(err);
             const errCode = parseSpamError(errStr);
+
+            // When the epoch changes, the counter is no longer incrementable
             if (errCode === SpamError.EWrongEpoch) {
-                // Expected error: when the epoch changes, the counter is no longer incrementable
                 this.requestRefresh = true;
                 this.onEvent({ type: "info", msg: "Epoch change"});
             }
+            // User ran out of gas
+            else if ( /Balance of gas object \d+ is lower than the needed amount/.test(errStr) ) {
+                this.status = "stopping";
+                this.onEvent({ type: "info", msg: `Out of gas. Stopping.` });
+            }
+            // The validator didn't pick up the object changes yet. Often happens when changing RPCs.
             else if ( errStr.includes("ObjectNotFound") || errStr.includes("not available for consumption") ) {
                 this.onEvent({ type: "info", msg: `Validator didn't sync yet. Retrying shortly. Original error: ${errStr}` });
                 await sleep(SLEEP_MS_AFTER_OBJECT_NOT_READY);
             }
-            else if ( /Balance of gas object \d+ is lower than the needed amount/.test(errStr) ) {
-                this.onEvent({ type: "info", msg: `Out of gas. Stopping.` });
-                this.status = "stopping";
+            // Network error
+            else if ( errStr.includes("Failed to fetch") ) {
+                this.onEvent({ type: "info", msg: `Network error. Retrying shortly. Original error: ${errStr}` });
+                await sleep(SLEEP_MS_AFTER_NETWORK_ERROR);
             }
+            // Unexpected error
             else {
-                // Unexpected error
                 this.status = "stopping";
                 this.onEvent({ type: "warn", msg: errStr });
             }

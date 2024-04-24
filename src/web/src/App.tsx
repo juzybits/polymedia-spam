@@ -97,28 +97,36 @@ const App: React.FC = () =>
         /* repaint periodically */
 
         const updateBalances = async () => {
-            const balanceSui = await spammer.getSuiClient().getBalance({
-                owner: spammer.getSpamClient().signer.toSuiAddress(),
-            });
-            const balanceSpam = await spammer.getSuiClient().getBalance({
-                owner: spammer.getSpamClient().signer.toSuiAddress(),
-                coinType: `${spammer.getSpamClient().packageId}::${SPAM_MODULE}::${SPAM_SYMBOL}`,
-            });
-            setBalances({
-                spam: convertBigIntToNumber(BigInt(balanceSpam.totalBalance), SPAM_DECIMALS),
-                sui: convertBigIntToNumber(BigInt(balanceSui.totalBalance), SUI_DECIMALS),
-            });
-            // console.info("periodic balance update");
+            try {
+                const balanceSui = await spammer.getSuiClient().getBalance({
+                    owner: spammer.getSpamClient().signer.toSuiAddress(),
+                });
+                const balanceSpam = await spammer.getSuiClient().getBalance({
+                    owner: spammer.getSpamClient().signer.toSuiAddress(),
+                    coinType: `${spammer.getSpamClient().packageId}::${SPAM_MODULE}::${SPAM_SYMBOL}`,
+                });
+                setBalances({
+                    spam: convertBigIntToNumber(BigInt(balanceSpam.totalBalance), SPAM_DECIMALS),
+                    sui: convertBigIntToNumber(BigInt(balanceSui.totalBalance), SUI_DECIMALS),
+                });
+                // console.info("balance updated");
+            } catch (err) {
+                console.warn("balance update failed");
+            }
         };
 
         const updateSpamView = async () => {
-            const counters = await spammer.getSpamClient().fetchUserCountersAndClassify();
-            setSpamView(oldView => ({
-                status: spammer.status,
-                lastMessage: oldView?.lastMessage ?? "-",
-                counters,
-            }));
-            // console.info("periodic view update");
+            try {
+                const counters = await spammer.getSpamClient().fetchUserCountersAndClassify();
+                setSpamView(oldView => ({
+                    status: spammer.status,
+                    lastMessage: oldView?.lastMessage ?? "-",
+                    counters,
+                }));
+                // console.info("view updated");
+            } catch (err) {
+                console.warn("view update failed");
+            }
         };
 
         updateBalances();
