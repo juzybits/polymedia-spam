@@ -88,7 +88,7 @@ module spam::spam_tests {
     public fun test_register_user_counter() {
         let mut runner = test_runner::start();
 
-        let admim_tx_count = 15;
+        let admin_tx_count = 15;
         let alice_tx_count = 17;
         let counter_epoch = 0;
 
@@ -98,7 +98,7 @@ module spam::spam_tests {
         // Increment Txs for Admin
         runner.next_tx_with_sender(ADMIN);
         let mut admin_counter = runner.take_from_sender<UserCounter>();
-        runner.increment_user_counter(&mut admin_counter, admim_tx_count);
+        runner.increment_user_counter(&mut admin_counter, admin_tx_count);
 
         // Create Alice User Counter
         runner.next_tx_with_sender(ALICE);
@@ -114,9 +114,9 @@ module spam::spam_tests {
         let mut admin_counter = assert_user_counter::new(admin_counter)
         .epoch(counter_epoch)
         // Creating the counter counts as 1
-        .tx_count(admim_tx_count + 1)
+        .tx_count(admin_tx_count + 1)
         .registered(false)
-        .pop();        
+        .pop();
 
         let mut alice_counter = assert_user_counter::new(alice_counter)
         .epoch(counter_epoch)
@@ -136,17 +136,17 @@ module spam::spam_tests {
 
         runner
         .assert_director_paused(false)
-        .assert_director_tx_count(alice_tx_count + admim_tx_count + 2)
+        .assert_director_tx_count(alice_tx_count + admin_tx_count + 2)
         .assert_spam_total_supply(0)
-        .assert_director_epoch_tx_count(counter_epoch, alice_tx_count + admim_tx_count + 2);
+        .assert_director_epoch_tx_count(counter_epoch, alice_tx_count + admin_tx_count + 2);
 
         assert_user_counter::new(admin_counter)
         .registered(true)
-        .destroy();        
+        .destroy();
 
         assert_user_counter::new(alice_counter)
         .registered(true)
-        .destroy();    
+        .destroy();
 
         runner.end();
     }
@@ -193,7 +193,7 @@ module spam::spam_tests {
         user_counter.destroy_user_counter();
 
         runner.end();
-    }    
+    }
 
     #[test]
     #[expected_failure(abort_code = spam::EWrongEpoch)]
@@ -215,7 +215,7 @@ module spam::spam_tests {
         user_counter.destroy_user_counter();
 
         runner.end();
-    }   
+    }
 
     #[test]
     #[expected_failure(abort_code = spam::EUserIsRegistered)]
@@ -243,15 +243,15 @@ module spam::spam_tests {
         user_counter2.destroy_user_counter();
 
         runner.end();
-    }   
+    }
 
     #[test]
     public fun test_claim_user_counter() {
         let mut runner = test_runner::start();
 
-        let admim_tx_count = 10;
+        let admin_tx_count = 10;
         let alice_tx_count = 20;
-        let total_tx_count = admim_tx_count + alice_tx_count + 2;
+        let total_tx_count = admin_tx_count + alice_tx_count + 2;
 
         // Create Admin User Counter
         spam::new_user_counter_for_testing(runner.ctx());
@@ -259,7 +259,7 @@ module spam::spam_tests {
         // Increment Txs for Admin
         runner.next_tx_with_sender(ADMIN);
         let mut admin_counter = runner.take_from_sender<UserCounter>();
-        runner.increment_user_counter(&mut admin_counter, admim_tx_count);
+        runner.increment_user_counter(&mut admin_counter, admin_tx_count);
 
         // Create Alice User Counter
         runner.next_tx_with_sender(ALICE);
@@ -278,14 +278,14 @@ module spam::spam_tests {
         runner.register_user_counter(&mut admin_counter, ADMIN);
         runner.register_user_counter(&mut alice_counter, ALICE);
 
-        runner.increment_epoch(1); 
+        runner.increment_epoch(1);
 
         let admin_spam = runner.claim_user_counter(admin_counter, ADMIN);
         let alice_spam = runner.claim_user_counter(alice_counter, ALICE);
 
-        admin_spam.assert_value((TOTAL_EPOCH_REWARD * (admim_tx_count + 1)) / total_tx_count);
+        admin_spam.assert_value((TOTAL_EPOCH_REWARD * (admin_tx_count + 1)) / total_tx_count);
         alice_spam.assert_value((TOTAL_EPOCH_REWARD * (alice_tx_count + 1)) / total_tx_count);
-        
+
         runner.assert_spam_total_supply(TOTAL_EPOCH_REWARD);
 
         runner.end();
@@ -317,7 +317,7 @@ module spam::spam_tests {
 
         runner.register_user_counter(&mut admin_counter, ADMIN);
         runner.register_user_counter(&mut alice_counter, ALICE);
-        
+
         let admin_spam = runner.claim_user_counter(admin_counter, ADMIN);
         let alice_spam = runner.claim_user_counter(alice_counter, ALICE);
 
@@ -348,7 +348,7 @@ module spam::spam_tests {
         let alice_counter = runner.take_from_sender<UserCounter>();
 
         runner.increment_epoch(2);
-        
+
         let admin_spam = runner.claim_user_counter(admin_counter, ADMIN);
         let alice_spam = runner.claim_user_counter(alice_counter, ALICE);
 
@@ -375,5 +375,5 @@ module spam::spam_tests {
         .assert_director_paused(false);
 
         runner.end();
-    }                 
+    }
 }
