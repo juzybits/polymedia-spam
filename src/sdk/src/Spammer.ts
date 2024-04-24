@@ -16,8 +16,9 @@ export type SpamEvent = {
 export type SpamEventHandler = (event: SpamEvent) => void;
 
 // Rotate to the next RPC endpoint after these many `increment_user_counter` transactions
-const TXS_UNTIL_ROTATE = 30; // TODO test and tweak
-const TXS_UNTIL_ROTATE_LOCALNET = 10;
+const INCREMENT_TXS_UNTIL_ROTATE = 50;
+const SLEEP_MS_AFTER_RPC_CHANGE = 1000;
+const SLEEP_MS_AFTER_OBJECT_NOT_READY = 1000;
 
 // TODO handle network errors and txn failures (resp.effects.status.status !== "success")
 
@@ -27,7 +28,7 @@ export class Spammer
     public userCounters: UserCounters;
     private requestRefresh: boolean;
     private eventHandlers: Set<SpamEventHandler>;
-    private txsSinceRotate: number;
+    private incrementTxsSinceRotate: number;
     private readonly rotator: SpamClientRotator;
 
     constructor(
@@ -40,7 +41,7 @@ export class Spammer
         this.userCounters = emptyUserCounters();
         this.requestRefresh = true; // so when it starts it pulls the data
         this.eventHandlers = new Set<SpamEventHandler>([eventHandler]);
-        this.txsSinceRotate = 0;
+        this.incrementTxsSinceRotate = 0;
         this.rotator = new SpamClientRotator(keypair, network, rpcUrls);
     }
 
@@ -98,12 +99,11 @@ export class Spammer
             }
 
             const isLocalnet = this.rotator.getSpamClient().network === "localnet";
-            const maxTxsUntilRotate = isLocalnet ? TXS_UNTIL_ROTATE_LOCALNET : TXS_UNTIL_ROTATE;
-            if (this.txsSinceRotate >= maxTxsUntilRotate) {
-                this.onEvent({ type: "info", msg: "Rotating to next RPC" });
-                this.txsSinceRotate = 0;
-                this.rotator.nextSpamClient();
-                await sleep(1000);
+            if (this.incrementTxsSinceRotate >= INCREMENT_TXS_UNTIL_ROTATE) {
+                this.incrementTxsSinceRotate = 0;
+                const nextClient = this.rotator.nextSpamClient();
+                this.onEvent({ type: "info", msg: `Rotating to next RPC: ${nextClient.rpcUrl}` });
+                await sleep(SLEEP_MS_AFTER_RPC_CHANGE);
             }
 
             const counters = this.userCounters;
@@ -149,7 +149,7 @@ export class Spammer
                 isLocalnet && await sleep(333); // simulate latency
                 const curr = counters.current;
                 const resp = await this.rotator.getSpamClient().incrementUserCounter(curr.ref);
-                this.txsSinceRotate += 1; // only count this kind of tx towards rotation limit
+                this.incrementTxsSinceRotate += 1; // only count this kind of tx towards rotation limit
                 curr.tx_count++;
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 curr.ref = resp.effects!.mutated!.find(mutatedObj =>
@@ -166,10 +166,14 @@ export class Spammer
                 this.requestRefresh = true;
                 this.onEvent({ type: "info", msg: "Epoch change"});
             }
+            else if ( errStr.includes("ObjectNotFound") || errStr.includes("not available for consumption") ) {
+                this.onEvent({ type: "warn", msg: `Validator didn't sync yet. Retrying shortly. Original error: ${errStr}` });
+                await sleep(SLEEP_MS_AFTER_OBJECT_NOT_READY);
+            }
             else {
                 // Unexpected error
                 this.status = "stopping";
-                this.onEvent({ type: "warn", msg: String(err) });
+                this.onEvent({ type: "warn", msg: errStr });
             }
         }
         finally {
