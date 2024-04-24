@@ -1,6 +1,7 @@
 import { decodeSuiPrivateKey } from "@mysten/sui.js/cryptography";
 import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
-import { NetworkName, RPC_ENDPOINTS } from "@polymedia/suits";
+import { RPC_ENDPOINTS } from "@polymedia/spam-sdk";
+import { NetworkName } from "@polymedia/suits";
 
 const storageKey = "spam.secretKey";
 

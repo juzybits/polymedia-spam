@@ -220,6 +220,7 @@ export class SpamClient
             signature,
             transactionBlock: bytes,
             options: { showEffects: true },
+            requestType: "WaitForEffectsCert", // redundant because of showEffects, but just in case
         });
     }
 

@@ -1,4 +1,4 @@
-import { SuiClient } from "@mysten/sui.js/client";
+import { SuiClient, getFullnodeUrl } from "@mysten/sui.js/client";
 import { Signer } from "@mysten/sui.js/cryptography";
 import { NetworkName } from "@polymedia/suits";
 import { SpamClient } from "./SpamClient";
@@ -73,3 +73,29 @@ export class SpamClientRotator
         return Math.floor(Math.random() * (maxFloor - minCeil) + minCeil);
       }
 }
+
+export const RPC_ENDPOINTS: Record<NetworkName, string[]> = {
+    "mainnet": [
+    ],
+    "testnet": [
+        getFullnodeUrl("testnet"),
+        "https://testnet.suiet.app",
+        "https://rpc-testnet.suiscan.xyz",
+        "https://sui-testnet-endpoint.blockvision.org",
+        // "https://sui-testnet.public.blastapi.io",       // Slow to sync: "ObjectNotFound" / "Object is not available for consumption"
+        "https://sui-testnet.nodeinfra.com",
+        'https://testnet.sui.rpcpool.com',
+    ],
+    "devnet": [
+        getFullnodeUrl("devnet"),
+        "https://devnet.suiet.app",
+    ],
+    "localnet": [
+        // to simulate multiple RPC endpoints locally
+        getFullnodeUrl("localnet") + "?localnet-1",
+        getFullnodeUrl("localnet") + "?localnet-2",
+        getFullnodeUrl("localnet") + "?localnet-3",
+        getFullnodeUrl("localnet") + "?localnet-4",
+        getFullnodeUrl("localnet") + "?localnet-5",
+    ],
+};
