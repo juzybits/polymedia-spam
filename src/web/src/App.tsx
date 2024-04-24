@@ -1,6 +1,6 @@
 import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
 import { SPAM_DECIMALS, SUI_DECIMALS, SpamEvent, Spammer, emptyUserCounters } from "@polymedia/spam-sdk";
-import { RPC_ENDPOINTS, convertBigIntToNumber } from "@polymedia/suits";
+import { convertBigIntToNumber } from "@polymedia/suits";
 import { LinkExternal, NetworkSelector, isLocalhost, loadNetwork } from "@polymedia/webutils";
 import { useEffect, useState } from "react";
 import { BrowserRouter, Link, Outlet, Route, Routes, useLocation } from "react-router-dom";
@@ -10,7 +10,7 @@ import { PageRPCs } from "./PageRPCs";
 import { PageSpam } from "./PageSpam";
 import { PageStats } from "./PageStats";
 import { PageWallet } from "./PageWallet";
-import { loadKeypairFromStorage, saveKeypairToStorage } from "./lib/storage";
+import { loadKeypairFromStorage, loadRpcEndpointsFromStorage, saveKeypairToStorage } from "./lib/storage";
 import { SpamView, UserBalances } from "./lib/types";
 import "./styles/.shared.app.less";
 import "./styles/App.less";
@@ -67,7 +67,7 @@ const App: React.FC = () =>
     const [ spammer, setSpammer ] = useState(new Spammer(
         loadKeypairFromStorage(),
         loadedNetwork,
-        RPC_ENDPOINTS[loadedNetwork][0],
+        loadRpcEndpointsFromStorage(loadedNetwork),
         spamEventHandler,
     ));
 
@@ -89,12 +89,12 @@ const App: React.FC = () =>
         /* repaint periodically */
 
         const updateBalances = async () => {
-            const balanceSui = await spammer.client.suiClient.getBalance({
-                owner: spammer.client.signer.toSuiAddress(),
+            const balanceSui = await spammer.getSuiClient().getBalance({
+                owner: spammer.getSpamClient().signer.toSuiAddress(),
             });
-            const balanceSpam = await spammer.client.suiClient.getBalance({
-                owner: spammer.client.signer.toSuiAddress(),
-                coinType: `${spammer.client.packageId}::spam::SPAM`,
+            const balanceSpam = await spammer.getSuiClient().getBalance({
+                owner: spammer.getSpamClient().signer.toSuiAddress(),
+                coinType: `${spammer.getSpamClient().packageId}::spam::SPAM`,
             });
             setBalances({
                 spam: convertBigIntToNumber(BigInt(balanceSpam.totalBalance), SPAM_DECIMALS),
@@ -104,7 +104,7 @@ const App: React.FC = () =>
         };
 
         const updateSpamView = async () => {
-            const counters = await spammer.client.fetchUserCountersAndClassify();
+            const counters = await spammer.getSpamClient().fetchUserCountersAndClassify();
             setSpamView(oldView => ({
                 status: spammer.status,
                 lastMessage: oldView?.lastMessage ?? "-",
@@ -116,7 +116,7 @@ const App: React.FC = () =>
         updateBalances();
         updateSpamView();
 
-        const updateFrequency = spammer.client.network === "localnet" ? 5_000 : 30_000;
+        const updateFrequency = spammer.getSpamClient().network === "localnet" ? 5_000 : 30_000;
         const updatePeriodically = setInterval(async () => {
             if (spammer.status == "running") {
                 await updateBalances();
@@ -146,10 +146,11 @@ const App: React.FC = () =>
 
     function replaceKeypair(keypair: Ed25519Keypair): void {
         spammer.stop();
+        const network = spammer.getSpamClient().network;
         setSpammer(new Spammer(
             keypair,
-            spammer.client.network,
-            spammer.client.rpcUrl,
+            network,
+            loadRpcEndpointsFromStorage(network),
             spamEventHandler,
         ));
         saveKeypairToStorage(keypair);
@@ -212,15 +213,15 @@ const App: React.FC = () =>
         const onSwitchNetwork = (newNet: NetworkName) => {
             spammer.stop();
             setSpammer(new Spammer(
-                spammer.client.signer,
+                spammer.getSpamClient().signer,
                 newNet,
-                RPC_ENDPOINTS[newNet][0],
+                loadRpcEndpointsFromStorage(newNet),
                 spamEventHandler,
             ));
             setShowMobileNav(false);
         };
         return <NetworkSelector
-            currentNetwork={spammer.client.network}
+            currentNetwork={spammer.getSpamClient().network}
             supportedNetworks={supportedNetworks}
             disabled={inProgress}
             onSwitch={onSwitchNetwork}

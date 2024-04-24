@@ -19,8 +19,8 @@ export const SPAM_IDS: Record<NetworkName, NetworkConfig> = {
         directorId: "",
     },
     localnet: {
-        packageId: "0xd5a35981727177ea2027459d57d20bf928315a06280cae71e45459f0d0f4b78e",
-        directorId: "0x2086475493f1bdad6b9c41d8b4f043e63eeda61e452a0272b6de8fae4943ebd7",
+        packageId: "0x48815f75e8a5389f412dcb6b95eb49ac082f6043f4d4c2437355913830335ccf",
+        directorId: "0x00268a2806153cf83e50498b58bbf19d470b09a03a7801953a12a631acc35f3a",
     },
 };
 

@@ -11,7 +11,7 @@ export const PageStats: React.FC = () =>
 
     useEffect(() => {
         const initialize = async () => {
-            const newStats = await spammer.client.fetchStatsForRecentEpochs(14);
+            const newStats = await spammer.getSpamClient().fetchStatsForRecentEpochs(14);
             setStats(newStats);
         };
         initialize();

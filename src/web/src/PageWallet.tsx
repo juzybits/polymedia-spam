@@ -21,13 +21,13 @@ export const PageWallet: React.FC = () =>
         <p>
             Your public address:<br/>
             <span className="break-all">
-                {spammer.client.signer.toSuiAddress()}
+                {spammer.getSpamClient().signer.toSuiAddress()}
             </span>
         </p>
         <p>
             Your secret key:<br/>
             <span className="break-all">
-                {(spammer.client.signer as Ed25519Keypair).getSecretKey()}
+                {(spammer.getSpamClient().signer as Ed25519Keypair).getSecretKey()}
             </span>
         </p>
 

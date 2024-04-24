@@ -1,8 +1,10 @@
+import { SuiClient } from "@mysten/sui.js/client";
 import { Signer } from "@mysten/sui.js/cryptography";
 import { NetworkName, shortenSuiAddress, sleep } from "@polymedia/suits";
-import { SpamError, parseSpamError } from "./errors";
-import { UserCounters, emptyUserCounters } from "./types";
 import { SpamClient } from "./client";
+import { SpamError, parseSpamError } from "./errors";
+import { SpamClientRotator } from "./rotator";
+import { UserCounters, emptyUserCounters } from "./types";
 
 export type SpamStatus = "stopped" | "running" | "stopping";
 
@@ -17,24 +19,26 @@ export type SpamEventHandler = (event: SpamEvent) => void;
 
 export class Spammer
 {
-    public readonly client: SpamClient;
     public status: SpamStatus;
     public userCounters: UserCounters;
     private requestRefresh: boolean;
     private eventHandlers: Set<SpamEventHandler>;
+    private readonly rotator: SpamClientRotator;
 
     constructor(
         keypair: Signer,
         network: NetworkName,
-        rpcUrl: string, // TODO: auto-rotate
+        rpcUrls: string[],
         eventHandler: SpamEventHandler,
     ) {
         this.status = "stopped";
         this.userCounters = emptyUserCounters();
-        this.client = new SpamClient(keypair, network, rpcUrl);
+        this.rotator = new SpamClientRotator(keypair, network, rpcUrls);
         this.requestRefresh = true; // so when it starts it pulls the data
         this.eventHandlers = new Set<SpamEventHandler>([eventHandler]);
     }
+
+    /* Events */
 
     public addEventHandler(handler: SpamEventHandler) {
         this.eventHandlers.add(handler);
@@ -47,6 +51,18 @@ export class Spammer
     private onEvent(event: SpamEvent) {
         this.eventHandlers.forEach(handler => handler(event));
     }
+
+    /* Client accessors */
+
+    public getSpamClient(): SpamClient {
+        return this.rotator.getSpamClient();
+    }
+
+    public getSuiClient(): SuiClient  {
+        return this.rotator.getSuiClient();
+    }
+
+    /* Start and stop */
 
     public stop() {
         this.status = "stopping";
@@ -72,14 +88,14 @@ export class Spammer
         try {
             if (this.requestRefresh) {
                 this.requestRefresh = false;
-                this.userCounters = await this.client.fetchUserCountersAndClassify();
+                this.userCounters = await this.rotator.getSpamClient().fetchUserCountersAndClassify();
             }
 
             const counters = this.userCounters;
 
             if (counters.register !== null && !counters.register.registered) {
                 this.onEvent({ type: "info", msg: "Registering counter: " + shortenSuiAddress(counters.register.id) });
-                const resp = await this.client.registerUserCounter(counters.register.id);
+                const resp = await this.rotator.getSpamClient().registerUserCounter(counters.register.id);
                 counters.register.registered = true;
                 this.requestRefresh = true;
                 this.onEvent({
@@ -91,7 +107,7 @@ export class Spammer
             if (counters.claim.length > 0) {
                 this.onEvent({ type: "info", msg: "Claiming counters: " + counters.claim.map(c => shortenSuiAddress(c.id)).join(", ") });
                 const counterIds = counters.claim.map(counter => counter.id);
-                const resp = await this.client.claimUserCounters(counterIds);
+                const resp = await this.rotator.getSpamClient().claimUserCounters(counterIds);
                 counters.claim = [];
                 this.requestRefresh = true;
                 this.onEvent({
@@ -103,7 +119,7 @@ export class Spammer
             if (counters.delete.length > 0) {
                 this.onEvent({ type: "info", msg: "Deleting counters: " + counters.delete.map(c => shortenSuiAddress(c.id)).join(", ") });
                 const counterIds = counters.delete.map(counter => counter.id);
-                const resp = await this.client.destroyUserCounters(counterIds);
+                const resp = await this.rotator.getSpamClient().destroyUserCounters(counterIds);
                 counters.delete = [];
                 this.requestRefresh = true;
                 this.onEvent({ type: "debug", msg: "destroyUserCounters resp: " + JSON.stringify(resp, null, 2) });
@@ -111,13 +127,13 @@ export class Spammer
 
             if (counters.current === null) {
                 this.onEvent({ type: "info", msg: "Creating counter" });
-                const resp = await this.client.newUserCounter();
+                const resp = await this.rotator.getSpamClient().newUserCounter();
                 this.requestRefresh = true;
                 this.onEvent({ type: "debug", msg: "newUserCounter resp: " + JSON.stringify(resp, null, 2) });
             } else {
-                this.client.network == "localnet" && await sleep(333); // simulate latency
+                this.rotator.getSpamClient().network == "localnet" && await sleep(333); // simulate latency
                 const curr = counters.current;
-                const resp = await this.client.incrementUserCounter(curr.ref);
+                const resp = await this.rotator.getSpamClient().incrementUserCounter(curr.ref);
                 curr.tx_count++;
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 curr.ref = resp.effects!.mutated!.find(mutatedObj =>

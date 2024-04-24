@@ -1,5 +1,6 @@
 import { decodeSuiPrivateKey } from "@mysten/sui.js/cryptography";
 import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
+import { NetworkName, RPC_ENDPOINTS } from "@polymedia/suits";
 
 const storageKey = "spam.secretKey";
 
@@ -18,4 +19,8 @@ export function loadKeypairFromStorage(): Ed25519Keypair {
 
 export function saveKeypairToStorage(pair: Ed25519Keypair): void {
     localStorage.setItem(storageKey, pair.getSecretKey());
+}
+
+export function loadRpcEndpointsFromStorage(network: NetworkName): string[] { // TODO
+    return RPC_ENDPOINTS[network];
 }

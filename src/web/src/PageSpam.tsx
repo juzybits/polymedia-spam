@@ -84,7 +84,7 @@ export const PageSpam: React.FC = () =>
             <h3>{title}</h3>
             {counters.map(counter => (
                 <p key={counter.id}>
-                    id: <LinkToExplorerObj network={spammer.client.network} objId={counter.id} /><br/>
+                    id: <LinkToExplorerObj network={spammer.getSpamClient().network} objId={counter.id} /><br/>
                     epoch: {counter.epoch}<br/>
                     tx_count: {counter.tx_count}<br/>
                     registered: {counter.registered ? "true" : "false"}<br/>
