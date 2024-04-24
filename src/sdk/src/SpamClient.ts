@@ -11,7 +11,7 @@ import {
     devInspectAndGetResults,
     getSuiObjectResponseFields,
 } from "@polymedia/suits";
-import { SPAM_IDS } from "./config";
+import { SPAM_IDS, SPAM_MODULE } from "./config";
 import * as pkg from "./package";
 import { BcsStats, Stats, UserCounter, UserCounters } from "./types";
 
@@ -42,7 +42,7 @@ export class SpamClient
     public async fetchUserCounters(
     ): Promise<UserCounter[]>
     {
-        const StructType = `${this.packageId}::spam::UserCounter`;
+        const StructType = `${this.packageId}::${SPAM_MODULE}::UserCounter`;
         const pageObjResp = await this.suiClient.getOwnedObjects({
             owner: this.signer.toSuiAddress(),
             cursor: null, // doesn't handle pagination, but it's unlikely that it will ever be needed

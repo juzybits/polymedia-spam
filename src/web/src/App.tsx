@@ -1,5 +1,13 @@
 import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
-import { SPAM_DECIMALS, SUI_DECIMALS, SpamEvent, Spammer, emptyUserCounters } from "@polymedia/spam-sdk";
+import {
+    SPAM_DECIMALS,
+    SPAM_MODULE,
+    SPAM_SYMBOL,
+    SUI_DECIMALS,
+    SpamEvent,
+    Spammer,
+    emptyUserCounters,
+} from "@polymedia/spam-sdk";
 import { convertBigIntToNumber } from "@polymedia/suits";
 import { LinkExternal, NetworkSelector, isLocalhost, loadNetwork } from "@polymedia/webutils";
 import { useEffect, useState } from "react";
@@ -94,7 +102,7 @@ const App: React.FC = () =>
             });
             const balanceSpam = await spammer.getSuiClient().getBalance({
                 owner: spammer.getSpamClient().signer.toSuiAddress(),
-                coinType: `${spammer.getSpamClient().packageId}::spam::SPAM`,
+                coinType: `${spammer.getSpamClient().packageId}::${SPAM_MODULE}::${SPAM_SYMBOL}`,
             });
             setBalances({
                 spam: convertBigIntToNumber(BigInt(balanceSpam.totalBalance), SPAM_DECIMALS),
