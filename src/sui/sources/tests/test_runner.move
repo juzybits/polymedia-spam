@@ -37,7 +37,11 @@ module spam::test_runner {
         }
     }
 
-    public fun increment_user_counter(self: &mut TestRunner, user_counter: &mut UserCounter, count: u64) {
+    public fun increment_user_counter(
+        self: &mut TestRunner,
+        user_counter: &mut UserCounter,
+        count: u64,
+    ) {
         let mut index = 0;
 
         while (count > index) {
@@ -46,7 +50,10 @@ module spam::test_runner {
         };
     }
 
-    public fun increment_epoch(self: &mut TestRunner, value: u64): &mut TestRunner {
+    public fun increment_epoch(
+        self: &mut TestRunner,
+        value: u64,
+    ): &mut TestRunner {
         let current_epoch = self.scenario.ctx().epoch();
 
         let mut index = current_epoch;
@@ -83,13 +90,21 @@ module spam::test_runner {
         self
     }
 
-    public fun register_user_counter(self: &mut TestRunner, user_counter: &mut UserCounter, sender: address): &mut TestRunner {
+    public fun register_user_counter(
+        self: &mut TestRunner,
+        user_counter: &mut UserCounter,
+        sender: address,
+    ): &mut TestRunner {
         next_tx_with_sender(self, sender);
         spam::register_user_counter(&mut self.director, user_counter, self.scenario.ctx());
         self
     }
 
-    public fun claim_user_counter(self: &mut TestRunner, user_counter: UserCounter, sender: address): Coin<SPAM> {
+    public fun claim_user_counter(
+        self: &mut TestRunner,
+        user_counter: UserCounter,
+        sender: address,
+    ): Coin<SPAM> {
         next_tx_with_sender(self, sender);
         spam::claim_user_counter(&mut self.director, user_counter, self.scenario.ctx())
     }
@@ -113,12 +128,21 @@ module spam::test_runner {
         self
     }
 
-    public fun assert_director_epoch_tx_count(self: &TestRunner, epoch: u64, value: u64): &TestRunner {
+    public fun assert_director_epoch_tx_count(
+        self: &TestRunner,
+        epoch: u64,
+        value: u64,
+    ): &TestRunner {
         assert_eq(self.director.epoch_tx_count(epoch), value);
         self
     }
 
-    public fun assert_director_epoch_user_tx_counts(self: &TestRunner, epoch: u64, user: address, value: u64): &TestRunner {
+    public fun assert_director_epoch_user_tx_counts(
+        self: &TestRunner,
+        epoch: u64,
+        user: address,
+        value: u64,
+    ): &TestRunner {
         assert_eq(self.director.epoch_user_counts(epoch, user), value);
         self
     }
