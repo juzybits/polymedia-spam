@@ -1,7 +1,7 @@
 #[test_only]
 module spam::assert_user_counter {
  
-    use sui::test_utils::assert_eq;
+    use sui::test_utils::{Self, assert_eq};
 
     use spam::spam::UserCounter;
 
@@ -15,18 +15,27 @@ module spam::assert_user_counter {
         }
     }
 
-    public fun epoch(self: &State, value: u64): &State {
+    public fun epoch(self: State, value: u64): State {
         assert_eq(self.inner.epoch(), value);
         self
     }
 
-    public fun tx_count(self: &State, value: u64): &State {
+    public fun tx_count(self: State, value: u64): State {
         assert_eq(self.inner.tx_count(), value);
         self
     }
 
-    public fun registered(self: &State, value: bool): &State {
+    public fun registered(self: State, value: bool): State {
         assert_eq(self.inner.registered(), value);
         self
     } 
+
+    public fun pop(self: State): UserCounter {
+        let State { inner } = self;
+        inner
+    }
+    
+    public fun destroy(self: State) {
+        test_utils::destroy(self);
+    }
 }
