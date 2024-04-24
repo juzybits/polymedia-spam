@@ -1,9 +1,9 @@
 import { SuiClient } from "@mysten/sui.js/client";
 import { Signer } from "@mysten/sui.js/cryptography";
 import { NetworkName, shortenSuiAddress, sleep } from "@polymedia/suits";
-import { SpamClient } from "./client";
+import { SpamClient } from "./SpamClient";
 import { SpamError, parseSpamError } from "./errors";
-import { SpamClientRotator } from "./rotator";
+import { SpamClientRotator } from "./SpamClientRotator";
 import { UserCounters, emptyUserCounters } from "./types";
 
 export type SpamStatus = "stopped" | "running" | "stopping";
