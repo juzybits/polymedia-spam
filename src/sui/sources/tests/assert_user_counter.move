@@ -1,6 +1,6 @@
 #[test_only]
 module spam::assert_user_counter {
- 
+
     use sui::test_utils::{Self, assert_eq};
 
     use spam::spam::UserCounter;
@@ -28,13 +28,13 @@ module spam::assert_user_counter {
     public fun registered(self: State, value: bool): State {
         assert_eq(self.inner.registered(), value);
         self
-    } 
+    }
 
     public fun pop(self: State): UserCounter {
         let State { inner } = self;
         inner
     }
-    
+
     public fun destroy(self: State) {
         test_utils::destroy(self);
     }

@@ -333,10 +333,10 @@ module spam::spam {
         if (!director.epoch_counters.contains(epoch)) return 0;
 
         director.epoch_counters.borrow(epoch).tx_count
-    }  
+    }
 
     #[test_only]
     public fun epoch_user_counts(director: &Director, epoch: u64, user: address): u64 {
         *director.epoch_counters.borrow(epoch).user_counts.borrow(user)
-    }        
+    }
 }

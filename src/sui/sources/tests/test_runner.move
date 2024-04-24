@@ -51,7 +51,7 @@ module spam::test_runner {
 
         let mut index = current_epoch;
         let new_epoch = value + current_epoch;
-  
+
         while (new_epoch > index) {
             self.scenario.ctx().increment_epoch_number();
             index = index + 1;
@@ -111,17 +111,17 @@ module spam::test_runner {
     public fun assert_spam_total_supply(self: &TestRunner, value: u64): &TestRunner {
         assert_eq(self.director.spam_total_supply(), value);
         self
-    } 
+    }
 
     public fun assert_director_epoch_tx_count(self: &TestRunner, epoch: u64, value: u64): &TestRunner {
         assert_eq(self.director.epoch_tx_count(epoch), value);
         self
-    } 
+    }
 
     public fun assert_director_epoch_user_tx_counts(self: &TestRunner, epoch: u64, user: address, value: u64): &TestRunner {
         assert_eq(self.director.epoch_user_counts(epoch, user), value);
         self
-    }  
+    }
 
     public fun next_tx(self: &mut TestRunner): &mut TestRunner {
         self.scenario.next_tx(ADMIN);
