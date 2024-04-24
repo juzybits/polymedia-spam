@@ -22,7 +22,7 @@ module.exports = {
         "@stylistic/member-delimiter-style": [ "error", { "multiline": { "delimiter": "semi" }, "singleline": { "delimiter": "semi" } } ],
         "@stylistic/quotes": [ "error", "double", { "avoidEscape": true } ],
         "@stylistic/semi": [ "error", "always" ],
-        "@typescript-eslint/consistent-type-definitions": ["error", "type"],
+        "@typescript-eslint/consistent-type-definitions": [ "error", "type" ],
         "@typescript-eslint/no-confusing-void-expression": "off",
         "@typescript-eslint/no-floating-promises": "off",
         "@typescript-eslint/no-misused-promises": "off",

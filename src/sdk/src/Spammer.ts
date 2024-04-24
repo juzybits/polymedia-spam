@@ -15,6 +15,10 @@ export type SpamEvent = {
 
 export type SpamEventHandler = (event: SpamEvent) => void;
 
+// Rotate to the next RPC endpoint after these many `increment_user_counter` transactions
+const TXS_UNTIL_ROTATE = 30; // TODO test and tweak
+const TXS_UNTIL_ROTATE_LOCALNET = 10;
+
 // TODO handle network errors and txn failures (resp.effects.status.status !== "success")
 
 export class Spammer
@@ -23,6 +27,7 @@ export class Spammer
     public userCounters: UserCounters;
     private requestRefresh: boolean;
     private eventHandlers: Set<SpamEventHandler>;
+    private txsSinceRotate: number;
     private readonly rotator: SpamClientRotator;
 
     constructor(
@@ -33,9 +38,10 @@ export class Spammer
     ) {
         this.status = "stopped";
         this.userCounters = emptyUserCounters();
-        this.rotator = new SpamClientRotator(keypair, network, rpcUrls);
         this.requestRefresh = true; // so when it starts it pulls the data
         this.eventHandlers = new Set<SpamEventHandler>([eventHandler]);
+        this.txsSinceRotate = 0;
+        this.rotator = new SpamClientRotator(keypair, network, rpcUrls);
     }
 
     /* Events */
@@ -91,6 +97,15 @@ export class Spammer
                 this.userCounters = await this.rotator.getSpamClient().fetchUserCountersAndClassify();
             }
 
+            const isLocalnet = this.rotator.getSpamClient().network === "localnet";
+            const maxTxsUntilRotate = isLocalnet ? TXS_UNTIL_ROTATE_LOCALNET : TXS_UNTIL_ROTATE;
+            if (this.txsSinceRotate >= maxTxsUntilRotate) {
+                this.onEvent({ type: "info", msg: "Rotating to next RPC" });
+                this.txsSinceRotate = 0;
+                this.rotator.nextSpamClient();
+                await sleep(1000);
+            }
+
             const counters = this.userCounters;
 
             if (counters.register !== null && !counters.register.registered) {
@@ -131,9 +146,10 @@ export class Spammer
                 this.requestRefresh = true;
                 this.onEvent({ type: "debug", msg: "newUserCounter resp: " + JSON.stringify(resp, null, 2) });
             } else {
-                this.rotator.getSpamClient().network == "localnet" && await sleep(333); // simulate latency
+                isLocalnet && await sleep(333); // simulate latency
                 const curr = counters.current;
                 const resp = await this.rotator.getSpamClient().incrementUserCounter(curr.ref);
+                this.txsSinceRotate += 1; // only count this kind of tx towards rotation limit
                 curr.tx_count++;
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 curr.ref = resp.effects!.mutated!.find(mutatedObj =>
