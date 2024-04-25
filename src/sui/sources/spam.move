@@ -137,7 +137,9 @@ module spam::spam {
         // we can safely remove the user from the EpochCounter because users
         // are no longer allowed to register() a UserCounter for this epoch
         let user_txs = epoch_counter.user_counts.remove(ctx.sender());
-        let user_reward = (user_txs * TOTAL_EPOCH_REWARD) / epoch_counter.tx_count;
+        let user_reward = (
+            ((TOTAL_EPOCH_REWARD as u128) * (user_txs as u128)) / (epoch_counter.tx_count as u128)
+        as u64);
 
         user_counter.destroy_user_counter();
 
