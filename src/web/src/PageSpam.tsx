@@ -1,4 +1,4 @@
-import { UserCounter } from "@polymedia/spam-sdk";
+import { SpamStatus, UserCounter } from "@polymedia/spam-sdk";
 import { formatNumber } from "@polymedia/suits";
 import { LinkToExplorerObj } from "@polymedia/webutils";
 import { Link, useOutletContext } from "react-router-dom";
@@ -31,17 +31,32 @@ export const PageSpam: React.FC = () =>
     /* HTML */
 
     const counters = spamView?.counters;
+    const hasCounters = Boolean(counters && counters.current || counters.register
+        || counters.claim.length || counters.delete.length);
     const isLowSuiBalance = !balances || balances.sui < 0.001025;
+
+    const StatusSpan: React.FC<{ // TODO use in nav too
+        status?: SpamStatus;
+    }> = ({
+        status,
+    }) => {
+        if (!status) {
+            return <span>loading</span>;
+        }
+        let color: string;
+        if (status === "stopped") { color = "rgb(255 130 130)"; } // red
+        else if (status === "stopping") { color = "rgb(255 190 71)"; } // orange
+        else { color = "lightgreen"; }
+        return <span style={{color}} >{status}</span>
+    };
 
     const Balances: React.FC = () => {
         if (!balances) {
             return null;
         }
         return <>
-            <p>Your balances:<br/>
-                {formatNumber(balances.sui, "compact")} SUI<br/>
-                {formatNumber(balances.spam, "compact")} SPAM
-            </p>
+            <p>SUI balance: {formatNumber(balances.sui, "compact")}</p>
+            <p>SPAM balance: {formatNumber(balances.spam, "compact")}</p>
         </>;
     };
 
@@ -123,16 +138,18 @@ export const PageSpam: React.FC = () =>
 
             {/* <ErrorBox err={error} /> */}
 
-            <p style={{textTransform: "capitalize"}}>Status:<br/>{spamView?.status}</p>
-
-            <Balances />
+            <div className="tight">
+                <p>Status: <StatusSpan status={spamView?.status} /></p>
+                <p>Current epoch: {counters.epoch}</p>
+                <Balances />
+            </div>
 
             <TopUp />
 
             <SpamOrStopButton />
 
             {/* <p>Current epoch: {view?.epoch}</p> */}
-            {counters && <>
+            {hasCounters && <>
                 <br/><br/>
                 <h2>Your counters</h2>
                 <div className="counter-cards">

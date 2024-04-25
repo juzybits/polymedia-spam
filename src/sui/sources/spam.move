@@ -268,7 +268,6 @@ module spam::spam {
             tx_count: 0,
             paused: false, // TODO: switch to true before mainnet
         };
-
         transfer::share_object(director);
 
         // Create the admin capability, and transfer it
