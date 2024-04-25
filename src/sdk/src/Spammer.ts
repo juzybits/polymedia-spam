@@ -31,6 +31,7 @@ export class Spammer
     private eventHandlers: Set<SpamEventHandler>;
     private incrementTxsSinceRotate: number;
     private readonly rotator: SpamClientRotator;
+    private simulateLatencyOnLocalnet: () => Promise<void>;
 
     constructor(
         keypair: Signer,
@@ -44,6 +45,11 @@ export class Spammer
         this.eventHandlers = new Set<SpamEventHandler>([eventHandler]);
         this.incrementTxsSinceRotate = 0;
         this.rotator = new SpamClientRotator(keypair, network, rpcUrls);
+        this.simulateLatencyOnLocalnet = async () => {
+            if (this.getSpamClient().network === "localnet") {
+                await sleep(500);
+            }
+        };
     }
 
     /* Events */
@@ -93,13 +99,15 @@ export class Spammer
 
         this.status = "running";
 
-        try {
+        try
+        {
+            // Refetch data if requested
             if (this.requestRefresh) {
                 this.requestRefresh = false;
-                this.userCounters = await this.rotator.getSpamClient().fetchUserCountersAndClassify();
+                this.userCounters = await this.getSpamClient().fetchUserCountersAndClassify();
             }
 
-            const isLocalnet = this.rotator.getSpamClient().network === "localnet";
+            // Rotate RPCs after a few transactions
             if (this.incrementTxsSinceRotate >= INCREMENT_TXS_UNTIL_ROTATE) {
                 this.incrementTxsSinceRotate = 0;
                 const nextClient = this.rotator.nextSpamClient();
@@ -109,47 +117,61 @@ export class Spammer
 
             const counters = this.userCounters;
 
-            if (counters.register !== null && !counters.register.registered) {
+            // Register counter
+            if (counters.register !== null && !counters.register.registered)
+            {
                 this.onEvent({ type: "info", msg: "Registering counter: " + shortenSuiAddress(counters.register.id) });
-                const resp = await this.rotator.getSpamClient().registerUserCounter(counters.register.id);
-                counters.register.registered = true;
+                await this.simulateLatencyOnLocalnet();
                 this.requestRefresh = true;
+                const resp = await this.getSpamClient().registerUserCounter(counters.register.id);
+                counters.register.registered = true;
                 this.onEvent({
                     type: "debug",
                     msg: "registerUserCounter resp: " + JSON.stringify(resp, null, 2),
                 });
             }
 
-            if (counters.claim.length > 0) {
+            // Claim counters
+            if (counters.claim.length > 0)
+            {
                 this.onEvent({ type: "info", msg: "Claiming counters: " + counters.claim.map(c => shortenSuiAddress(c.id)).join(", ") });
-                const counterIds = counters.claim.map(counter => counter.id);
-                const resp = await this.rotator.getSpamClient().claimUserCounters(counterIds);
-                counters.claim = [];
+                await this.simulateLatencyOnLocalnet();
                 this.requestRefresh = true;
+                const counterIds = counters.claim.map(counter => counter.id);
+                const resp = await this.getSpamClient().claimUserCounters(counterIds);
+                counters.claim = [];
                 this.onEvent({
                     type: "debug",
                     msg: "destroyUserCounters resp: " + JSON.stringify(resp, null, 2),
                 });
             }
 
-            if (counters.delete.length > 0) {
+            // Delete unusable counters
+            if (counters.delete.length > 0)
+            {
                 this.onEvent({ type: "info", msg: "Deleting counters: " + counters.delete.map(c => shortenSuiAddress(c.id)).join(", ") });
-                const counterIds = counters.delete.map(counter => counter.id);
-                const resp = await this.rotator.getSpamClient().destroyUserCounters(counterIds);
-                counters.delete = [];
+                await this.simulateLatencyOnLocalnet();
                 this.requestRefresh = true;
+                const counterIds = counters.delete.map(counter => counter.id);
+                const resp = await this.getSpamClient().destroyUserCounters(counterIds);
+                counters.delete = [];
                 this.onEvent({ type: "debug", msg: "destroyUserCounters resp: " + JSON.stringify(resp, null, 2) });
             }
 
-            if (counters.current === null) {
+            // Create counter for current epoch
+            if (counters.current === null)
+            {
                 this.onEvent({ type: "info", msg: "Creating counter" });
-                const resp = await this.rotator.getSpamClient().newUserCounter();
+                await this.simulateLatencyOnLocalnet();
                 this.requestRefresh = true;
+                const resp = await this.getSpamClient().newUserCounter();
                 this.onEvent({ type: "debug", msg: "newUserCounter resp: " + JSON.stringify(resp, null, 2) });
-            } else {
-                isLocalnet && await sleep(333); // simulate latency
+            }
+            // Increment current counter
+            else {
+                await this.simulateLatencyOnLocalnet();
                 const curr = counters.current;
-                const resp = await this.rotator.getSpamClient().incrementUserCounter(curr.ref);
+                const resp = await this.getSpamClient().incrementUserCounter(curr.ref);
                 this.incrementTxsSinceRotate += 1; // only count this kind of tx towards rotation limit
                 curr.tx_count++;
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -171,7 +193,7 @@ export class Spammer
             // User ran out of gas
             else if ( /Balance of gas object \d+ is lower than the needed amount/.test(errStr) ) {
                 this.status = "stopping";
-                this.onEvent({ type: "info", msg: `Out of gas. Stopping.` });
+                this.onEvent({ type: "info", msg: "Out of gas. Stopping." });
             }
             // The validator didn't pick up the object changes yet. Often happens when changing RPCs.
             else if ( errStr.includes("ObjectNotFound") || errStr.includes("not available for consumption") ) {

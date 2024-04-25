@@ -13,7 +13,7 @@ Spam to Earn on Sui.
 
 ## How it works
 
-The number of txs per user is tracked in `UserCounter` owned objects. Each `UserCounter` tracks the number of txs sent by a user within one epoch. When that epoch ends, the user registers their `UserCounter` in a shared object, so that the total number of txs in the previous epoch can be calculated. And after that next epoch (registration period) ends, users can mint SPAM coins in proportion to the number of txns they sent.
+Single-writer `UserCounter` objects are used to track the number of txs sent by each user within one epoch. When that epoch ends, the user registers their `UserCounter` in a shared object, so that the total number of txs in the previous epoch can be calculated. And after that next epoch (registration period) ends, users can mint SPAM coins in proportion to the number of txns they sent.
 
 #### Timeline:
 - epoch 0) user spams UserCounter.0

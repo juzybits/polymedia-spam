@@ -86,7 +86,7 @@ export const RPC_ENDPOINTS: Record<NetworkName, string[]> = {
         "https://sui-testnet-endpoint.blockvision.org",
         // "https://sui-testnet.public.blastapi.io",       // Slow to sync: "ObjectNotFound" / "Object is not available for consumption"
         "https://sui-testnet.nodeinfra.com",
-        'https://testnet.sui.rpcpool.com',
+        "https://testnet.sui.rpcpool.com",
     ],
     "devnet": [
         getFullnodeUrl("devnet"),
