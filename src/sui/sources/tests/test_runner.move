@@ -39,13 +39,15 @@ module spam::test_runner {
 
     public fun increment_user_counter(
         self: &mut TestRunner,
-        user_counter: &mut UserCounter,
         count: u64,
     ) {
         let mut index = 0;
 
+        let sender = self.scenario.sender();
         while (count > index) {
+            let user_counter = self.take_from_sender<UserCounter>();
             spam::increment_user_counter_for_testing(user_counter, self.scenario.ctx());
+            self.next_tx_with_sender(sender);
             index = index + 1;
         };
     }
@@ -83,6 +85,10 @@ module spam::test_runner {
 
     public fun take_from_sender<T: key>(self: &mut TestRunner): T {
         self.scenario.take_from_sender()
+    }
+
+    public fun return_to_sender<T: key>(self: &mut TestRunner, t: T) {
+        self.scenario.return_to_sender(t)
     }
 
     public fun next_tx_with_sender(self: &mut TestRunner, sender: address): &mut TestRunner {

@@ -43,16 +43,17 @@ module spam::spam_tests {
         let mut runner = test_runner::start();
 
         spam::new_user_counter_for_testing(runner.ctx());
-
         runner.next_tx();
 
-        let mut user_counter = runner.take_from_sender<UserCounter>();
-
+        let user_counter = runner.take_from_sender<UserCounter>();
         let initial_tx_count = user_counter.tx_count();
         let initial_epoch = user_counter.epoch();
+        runner.return_to_sender(user_counter);
+        runner.next_tx();
 
-        runner.increment_user_counter(&mut user_counter, count);
+        runner.increment_user_counter(count);
 
+        let user_counter = runner.take_from_sender<UserCounter>();
         let assert = assert_user_counter::new(user_counter);
 
         assert
@@ -75,11 +76,7 @@ module spam::spam_tests {
         runner.increment_epoch(1);
         runner.next_tx();
 
-        let mut user_counter = runner.take_from_sender<UserCounter>();
-
-        runner.increment_user_counter(&mut user_counter, 1);
-
-        user_counter.destroy_user_counter();
+        runner.increment_user_counter(1);
 
         runner.end();
     }
@@ -93,24 +90,23 @@ module spam::spam_tests {
         let counter_epoch = 0;
 
         // Create Admin User Counter
+        runner.next_tx_with_sender(ADMIN);
         spam::new_user_counter_for_testing(runner.ctx());
-
         // Increment Txs for Admin
         runner.next_tx_with_sender(ADMIN);
-        let mut admin_counter = runner.take_from_sender<UserCounter>();
-        runner.increment_user_counter(&mut admin_counter, admin_tx_count);
+        runner.increment_user_counter(admin_tx_count);
 
         // Create Alice User Counter
         runner.next_tx_with_sender(ALICE);
         spam::new_user_counter_for_testing(runner.ctx());
-
          // Increment Txs for Alice
         runner.next_tx_with_sender(ALICE);
-        let mut alice_counter = runner.take_from_sender<UserCounter>();
-        runner.increment_user_counter(&mut alice_counter, alice_tx_count);
+        runner.increment_user_counter(alice_tx_count);
 
         runner.increment_epoch(1);
 
+        runner.next_tx_with_sender(ADMIN);
+        let admin_counter = runner.take_from_sender<UserCounter>();
         let mut admin_counter = assert_user_counter::new(admin_counter)
         .epoch(counter_epoch)
         // Creating the counter counts as 1
@@ -118,6 +114,8 @@ module spam::spam_tests {
         .registered(false)
         .pop();
 
+        runner.next_tx_with_sender(ALICE);
+        let alice_counter = runner.take_from_sender<UserCounter>();
         let mut alice_counter = assert_user_counter::new(alice_counter)
         .epoch(counter_epoch)
         // Creating the counter counts as 1
@@ -157,16 +155,13 @@ module spam::spam_tests {
         let mut runner = test_runner::start();
 
         spam::new_user_counter_for_testing(runner.ctx());
-
         runner.next_tx();
 
-        let mut user_counter = runner.take_from_sender<UserCounter>();
-
-        runner.increment_user_counter(&mut user_counter, 1);
+        runner.increment_user_counter(1);
         runner.pause_director();
 
+        let mut user_counter = runner.take_from_sender<UserCounter>();
         runner.register_user_counter(&mut user_counter, ADMIN);
-
         user_counter.destroy_user_counter();
 
         runner.end();
@@ -178,15 +173,13 @@ module spam::spam_tests {
         let mut runner = test_runner::start();
 
         spam::new_user_counter_for_testing(runner.ctx());
-
         runner.next_tx();
 
-        let mut user_counter = runner.take_from_sender<UserCounter>();
-
-        runner.increment_user_counter(&mut user_counter, 1);
+        runner.increment_user_counter(1);
 
         runner.increment_epoch(1);
 
+        let mut user_counter = runner.take_from_sender<UserCounter>();
         runner.register_user_counter(&mut user_counter, ADMIN);
         runner.register_user_counter(&mut user_counter, ADMIN);
 
@@ -201,17 +194,14 @@ module spam::spam_tests {
         let mut runner = test_runner::start();
 
         spam::new_user_counter_for_testing(runner.ctx());
-
         runner.next_tx();
 
-        let mut user_counter = runner.take_from_sender<UserCounter>();
-
-        runner.increment_user_counter(&mut user_counter, 1);
+        runner.increment_user_counter(1);
 
         runner.increment_epoch(2);
 
+        let mut user_counter = runner.take_from_sender<UserCounter>();
         runner.register_user_counter(&mut user_counter, ADMIN);
-
         user_counter.destroy_user_counter();
 
         runner.end();
@@ -230,9 +220,6 @@ module spam::spam_tests {
 
         let mut user_counter = runner.take_from_sender<UserCounter>();
         let mut user_counter2 = runner.take_from_sender<UserCounter>();
-
-        runner.increment_user_counter(&mut user_counter, 1);
-        runner.increment_user_counter(&mut user_counter2, 2);
 
         runner.increment_epoch(1);
 
@@ -258,8 +245,7 @@ module spam::spam_tests {
 
         // Increment Txs for Admin
         runner.next_tx_with_sender(ADMIN);
-        let mut admin_counter = runner.take_from_sender<UserCounter>();
-        runner.increment_user_counter(&mut admin_counter, admin_tx_count);
+        runner.increment_user_counter(admin_tx_count);
 
         // Create Alice User Counter
         runner.next_tx_with_sender(ALICE);
@@ -267,15 +253,19 @@ module spam::spam_tests {
 
          // Increment Txs for Alice
         runner.next_tx_with_sender(ALICE);
-        let mut alice_counter = runner.take_from_sender<UserCounter>();
-        runner.increment_user_counter(&mut alice_counter, alice_tx_count);
+        runner.increment_user_counter(alice_tx_count);
 
         runner.increment_epoch(1);
 
         runner
         .assert_spam_total_supply(0);
 
+        runner.next_tx_with_sender(ADMIN);
+        let mut admin_counter = runner.take_from_sender<UserCounter>();
         runner.register_user_counter(&mut admin_counter, ADMIN);
+
+        runner.next_tx_with_sender(ALICE);
+        let mut alice_counter = runner.take_from_sender<UserCounter>();
         runner.register_user_counter(&mut alice_counter, ALICE);
 
         runner.increment_epoch(1);
