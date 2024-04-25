@@ -77,6 +77,7 @@ export class SpamClientRotator
 
 export const RPC_ENDPOINTS: Record<NetworkName, string[]> = {
     "mainnet": [
+        getFullnodeUrl("mainnet"),
     ],
     "testnet": [
         getFullnodeUrl("testnet"),

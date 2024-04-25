@@ -19,7 +19,7 @@ export type SpamEventHandler = (event: SpamEvent) => void;
 const INCREMENT_TXS_UNTIL_ROTATE = 50;
 const SLEEP_MS_AFTER_RPC_CHANGE = 1000;
 const SLEEP_MS_AFTER_OBJECT_NOT_READY = 1000;
-const SLEEP_MS_AFTER_NETWORK_ERROR = 5000;
+const SLEEP_MS_AFTER_NETWORK_ERROR = 3000;
 
 // TODO handle network errors and txn failures (resp.effects.status.status !== "success")
 
