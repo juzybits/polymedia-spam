@@ -1,4 +1,55 @@
+@import "./.shared.constants.less";
+
 .rainbow {
     font-style: normal;
     font-size: 2.5rem;
+}
+
+.counter-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: center;
+    padding: 1rem 0 2rem;
+    font-weight: 500;
+    .counter-card {
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+        min-width: 300px;
+        padding: 1.5rem;
+        border-radius: @radius;
+        > div {
+            display: flex;
+            justify-content: space-between;
+            > div {
+                padding: 0.3rem 0.5rem;
+                border-radius: 0.5rem;
+            }
+        }
+        &.current {
+            background-image: linear-gradient(to bottom, rgb(97, 186, 213), rgb(29, 107, 127));
+            .counter-epoch {
+                background-color: rgb(29, 107, 127);
+            }
+        }
+        &.register {
+            background-image: linear-gradient(to bottom, rgb(216, 195, 72), rgb(142, 121, 0));
+            .counter-epoch {
+                background-color: rgb(142, 121, 0);
+            }
+        }
+        &.claim {
+            background-image: linear-gradient(to bottom, rgb(101, 202, 91), rgb(33, 104, 30));
+            .counter-epoch {
+                background-color: rgb(33, 104, 30);
+            }
+        }
+        &.delete {
+            background-image: linear-gradient(to bottom, rgb(213, 97, 97), rgb(127, 29, 29));
+            .counter-epoch {
+                background-color: rgb(127, 29, 29);
+            }
+        }
+    }
 }

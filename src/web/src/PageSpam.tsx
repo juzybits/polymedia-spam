@@ -70,29 +70,50 @@ export const PageSpam: React.FC = () =>
         return <button className="btn" disabled>STOPPING</button>;
     };
 
-    const CounterSection: React.FC<{
-        title: string;
-        counters: UserCounter[];
+    const CounterCard: React.FC<{
+        type: "current" | "register" | "claim" | "delete";
+        counter: UserCounter;
     }> = ({
-        title,
-        counters
+        type,
+        counter,
     }) => {
-        if (counters.length === 0) {
-            return null;
+        let status: string;
+        if (type === "current") {
+            status = spamView.status === "running" ? "spamming" : "ready to spam";
         }
-        return <div>
-            <h3>{title}</h3>
-            {counters.map(counter => (
-                <p key={counter.id}>
-                    id: <LinkToExplorerObj network={spammer.getSpamClient().network} objId={counter.id} /><br/>
-                    epoch: {counter.epoch}<br/>
-                    tx_count: {counter.tx_count}<br/>
-                    registered: {counter.registered ? "true" : "false"}<br/>
-                </p>
-            ))}
-            {counters.length === 0 &&
-            <p>None</p>
-            }
+        else if (type === "register") {
+            status = !counter.registered ? "ready to register" : "claim on next epoch";
+        }
+        else if (type === "claim") {
+            status = "ready to claim";
+        }
+        else {
+            status = "unusable, will be deleted";
+        }
+        return <div className={`counter-card ${type}`}>
+            <div>
+                <div className="counter-epoch">
+                    Epoch {counter.epoch}
+                </div>
+                <div>
+                    <LinkToExplorerObj network={spammer.getSpamClient().network} objId={counter.id} />
+                </div>
+            </div>
+
+            <div>
+                <div>
+                    {counter.tx_count} txs
+                </div>
+                <div>
+                    {counter.registered ? "Registered" : "Not registered"}
+                </div>
+            </div>
+
+            <div>
+                <div>
+                    Status: {status}
+                </div>
+            </div>
         </div>;
     };
 
@@ -111,15 +132,26 @@ export const PageSpam: React.FC = () =>
             <SpamOrStopButton />
 
             {/* <p>Current epoch: {view?.epoch}</p> */}
-            {counters &&
-            <>
-                <CounterSection title="Current counter" counters={counters.current ? [counters.current] : []} />
-                <CounterSection title="Registered counters" counters={counters.register ? [counters.register] : []} />
-                <CounterSection title="Claimable counters" counters={counters.claim} />
-                <CounterSection title="Deletable counters" counters={counters.delete} />
+            {counters && <>
+                <br/><br/>
+                <h2>Your counters</h2>
+                <div className="counter-cards">
+                    {counters.current &&
+                        <CounterCard type="current" counter={counters.current} />
+                    }
+                    {counters.register &&
+                        <CounterCard type="register" counter={counters.register} />
+                    }
+                    {counters.claim.map(counter =>
+                        <CounterCard type="claim" counter={counter} key={counter.id} />
+                    )}
+                    {counters.delete.map(counter =>
+                        <CounterCard type="delete" counter={counter} key={counter.id} />
+                    )}
+                </div>
             </>}
 
-            <h3>Event log</h3> {/* TODO */}
+            <h2>Event log</h2> {/* TODO */}
             <textarea defaultValue={spamView?.lastMessage} />
         </div>
     </>;

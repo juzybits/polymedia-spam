@@ -113,6 +113,34 @@ export class SpamClient
             }
         }
 
+        // Dev-only
+        // if (!counters.current) {
+        //     counters.current = {
+        //         id: "0x1111111111111111",
+        //         ref: {
+        //             objectId: "0x1111111111111111",
+        //             version: "111",
+        //             digest: "aaaaaaaaa",
+        //         },
+        //         epoch: currEpoch,
+        //         tx_count: 111,
+        //         registered: false,
+        //     };
+        // }
+        // if (!counters.register) {
+        //     counters.register = {
+        //         id: "0x2222222222222222",
+        //         ref: {
+        //             objectId: "0x2222222222222222",
+        //             version: "222",
+        //             digest: "zzzzzzzzz",
+        //         },
+        //         epoch: currEpoch -1,
+        //         tx_count: 222,
+        //         registered: true,
+        //     };
+        // }
+
         return counters;
     }
 
