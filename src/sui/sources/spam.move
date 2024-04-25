@@ -148,7 +148,7 @@ module spam::spam {
     // === Public-View Functions ===
 
     /// Get Stats for the Director and selected epochs.
-    /// Epochs without an EpochCounter are represented with tx_count=0 and user_count=0.
+    /// Epochs without an EpochCounter are represented with tx_count=0.
     public fun stats_for_specific_epochs(
         director: &Director,
         epoch_numbers: vector<u64>,
