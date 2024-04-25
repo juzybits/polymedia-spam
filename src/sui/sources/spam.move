@@ -83,12 +83,12 @@ module spam::spam {
     /// Users can only increase their tx counter for the current epoch.
     /// Users can only call this function once per tx block.
     entry fun increment_user_counter(
-        user_counter: &mut UserCounter,
+        mut user_counter: UserCounter,
         ctx: &TxContext,
     ) {
         assert!(user_counter.epoch == ctx.epoch(), EWrongEpoch);
-
         user_counter.tx_count = user_counter.tx_count + 1;
+        transfer::transfer(user_counter, ctx.sender());
     }
 
     public fun destroy_user_counter(
@@ -291,7 +291,7 @@ module spam::spam {
 
     #[test_only]
     public fun increment_user_counter_for_testing(
-        user_counter: &mut UserCounter,
+        user_counter: UserCounter,
         ctx: &TxContext,
     ) {
         increment_user_counter(user_counter, ctx);
