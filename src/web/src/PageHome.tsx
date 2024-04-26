@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 export const PageHome: React.FC = () =>
 {
     return <>
-        <h1><span className="rainbow">SPAM</span></h1>
+        <h1><span className="rainbow" style={{fontSize: "2.5rem"}}>SPAM</span></h1>
 
         <h2>Spam to Earn on Sui</h2>
 

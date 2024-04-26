@@ -16,7 +16,7 @@ export const PageWallet: React.FC = () =>
     };
 
     return <>
-        <h1>Wallet</h1>
+        <h1><span className="rainbow">Wallet</span></h1>
 
         <p>
             Your public address:<br/>

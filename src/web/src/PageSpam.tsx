@@ -133,7 +133,7 @@ export const PageSpam: React.FC = () =>
     };
 
     return <>
-        <h1>Spam</h1>
+        <h1><span className="rainbow">Spam</span></h1>
         <div>
 
             {/* <ErrorBox err={error} /> */}

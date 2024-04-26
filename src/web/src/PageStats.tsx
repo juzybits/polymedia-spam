@@ -18,7 +18,7 @@ export const PageStats: React.FC = () =>
     }, []);
 
     return <>
-        <h1>Stats</h1>
+        <h1><span className="rainbow">Stats</span></h1>
         {!stats
         ? <p>Loading...</p>
         : <>
