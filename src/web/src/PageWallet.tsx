@@ -34,6 +34,8 @@ export const PageWallet: React.FC = () =>
         const [ secretKey, setSecretKey ] = useState<string>("");
         const [ errMsg, setErrMsg ] = useState<string|null>(null);
 
+        const disableSubmit = errMsg !== null || secretKey.length === 0;
+
         const onInputChange = (evt: React.ChangeEvent<HTMLInputElement>): void  => {
             const newSecretKey = evt.currentTarget.value;
             setSecretKey(newSecretKey);
@@ -49,6 +51,12 @@ export const PageWallet: React.FC = () =>
             }
         };
 
+        const onKeyDown = (evt: React.KeyboardEvent<HTMLInputElement>): void  => {
+            if (evt.key === "Enter" && !disableSubmit) {
+                onSubmit();
+            }
+        };
+
         const onSubmit = (): void => {
             const pair = pairFromSecretKey(secretKey);
             if (spammer.status === "running") {
@@ -56,8 +64,6 @@ export const PageWallet: React.FC = () =>
             }
             confirmAndReplaceWallet(pair);
         };
-
-        const disableSubmit = errMsg !== null || secretKey.length === 0;
 
         return <>
             <h3>Import wallet</h3>
@@ -68,6 +74,7 @@ export const PageWallet: React.FC = () =>
                 type="text"
                 value={secretKey}
                 onChange={onInputChange}
+                onKeyDown={onKeyDown}
                 autoFocus={true}
             />
             <br/>
