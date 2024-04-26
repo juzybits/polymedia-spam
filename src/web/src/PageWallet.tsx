@@ -24,11 +24,11 @@ export const PageWallet: React.FC = () =>
     const BackUpWarning: React.FC = () => {
         return <>
             <h3>Back up your secret key!</h3>
-            <p>
-                - Your spam wallet is stored in your browser, only you have access to it.<br/>
-                - Clearing cookies will delete your wallet, and we cannot recover it for you.<br/>
-                - Copy your secret key and keep it safe, this allows you to restore your wallet.<br/>
-            </p>
+            <div className="tight">
+                <p>▸ Your spam wallet is stored in your browser, only you have access to it.</p>
+                <p>▸ Clearing cookies will delete your wallet, and we cannot recover it for you.</p>
+                <p>▸ Copy your secret key and keep it safe, this allows you to restore your wallet.</p>
+            </div>
         </>;
     };
 
