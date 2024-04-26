@@ -8,6 +8,7 @@ export const PageWallet: React.FC = () =>
 {
     const { replaceKeypair, spammer } = useOutletContext<AppContext>();
     const [ showImport, setShowImport ] = useState<boolean>(false);
+    const [ showSuccess, setShowSuccess ] = useState<boolean>(false);
 
     const confirmAndReplaceWallet = (pair: Ed25519Keypair) => {
         const resp = window.confirm(
@@ -16,6 +17,7 @@ export const PageWallet: React.FC = () =>
         if (resp) {
             replaceKeypair(pair);
             setShowImport(false);
+            setShowSuccess(true);
         }
     };
 
@@ -108,17 +110,18 @@ export const PageWallet: React.FC = () =>
             </div>
         </div>
 
-        <div className="btn-group">
+        <div className="btn-group" style={{paddingBottom: "1.5rem"}}>
             <button className="btn" onClick={() => confirmAndReplaceWallet(new Ed25519Keypair())}>
                 NEW WALLET
             </button>
-            <button className="btn" onClick={() => setShowImport(oldImport => !oldImport)}>
+            <button className="btn" onClick={() => {setShowImport(oldImport => !oldImport); setShowSuccess(false);}}>
                 IMPORT
             </button>
             {/* <button className="btn">WITHDRAW</button> TODO */}
         </div>
 
-        <br/>
+        {showSuccess && <h3 style={{color: "lightgreen"}}>Success!</h3>}
+
         {showImport ? <ImportForm /> : <BackUpWarning />}
     </>;
 };
