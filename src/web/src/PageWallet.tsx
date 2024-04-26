@@ -15,6 +15,7 @@ export const PageWallet: React.FC = () =>
         );
         if (resp) {
             replaceKeypair(pair);
+            setShowImport(false);
         }
     };
 
@@ -31,35 +32,52 @@ export const PageWallet: React.FC = () =>
 
     const ImportForm: React.FC = () => {
         const [ secretKey, setSecretKey ] = useState<string>("");
+        const [ errMsg, setErrMsg ] = useState<string|null>(null);
 
         const onInputChange = (evt: React.ChangeEvent<HTMLInputElement>): void  => {
-            setSecretKey(evt.currentTarget.value);
+            const newSecretKey = evt.currentTarget.value;
+            setSecretKey(newSecretKey);
+            if (newSecretKey.length === 0) {
+                setErrMsg(null);
+                return;
+            }
+            try {
+                pairFromSecretKey(newSecretKey);
+                setErrMsg(null);
+            } catch (err) {
+                setErrMsg(String(err));
+            }
         };
 
         const onSubmit = (): void => {
-            if ( !secretKey.startsWith("suiprivkey") ) {
-                alert("Invalid secret key. It should start with \"suiprivkey...\"");
-                return;
+            const pair = pairFromSecretKey(secretKey);
+            if (spammer.status === "running") {
+                spammer.stop();
             }
-            const pair = pairFromSecretKey(secretKey); // TODO handle errors. Stop spammer.
             confirmAndReplaceWallet(pair);
         };
+
+        const disableSubmit = errMsg !== null || secretKey.length === 0;
 
         return <>
             <h3>Import wallet</h3>
             <p>
-                Paste your private key and click the import button.
+                Paste your secret key and click the import button.
             </p>
             <input
                 type="text"
                 value={secretKey}
                 onChange={onInputChange}
-                placeholder="suiprivkey..."
+                autoFocus={true}
             />
             <br/>
-            <button className="btn" onClick={onSubmit}>
+            <button className="btn" onClick={onSubmit} disabled={disableSubmit}>
                 Import
             </button>
+            {errMsg && <div className="error-box">
+                <div>Invalid secret key:</div>
+                <div>{errMsg}</div>
+            </div>}
         </>;
     };
 
