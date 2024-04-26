@@ -179,8 +179,7 @@ const App: React.FC = () =>
         return <header>
             <Link to="/" onClick={e => { inProgress ? e.preventDefault() : undefined; }}>
                 <h1>
-                    <img alt="polymedia" src="https://assets.polymedia.app/img/all/logo-nomargin-transparent-512x512.webp" className="logo" />
-                    SPAM
+                    <span><img alt="polymedia" src="/img/spam-logo.webp" className="logo" /></span>
                 </h1>
             </Link>
 
