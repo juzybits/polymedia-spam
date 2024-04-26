@@ -12,8 +12,7 @@ export function loadKeypairFromStorage(): Ed25519Keypair {
         pair = new Ed25519Keypair();
         saveKeypairToStorage(pair);
     } else {
-        const parsedPair = decodeSuiPrivateKey(secretKey);
-        pair = Ed25519Keypair.fromSecretKey(parsedPair.secretKey);
+        pair = pairFromSecretKey(secretKey);
     }
     return pair;
 }
@@ -24,4 +23,9 @@ export function saveKeypairToStorage(pair: Ed25519Keypair): void {
 
 export function loadRpcEndpointsFromStorage(network: NetworkName): string[] { // TODO
     return RPC_ENDPOINTS[network];
+}
+
+export function pairFromSecretKey(secretKey: string): Ed25519Keypair {
+    const parsedPair = decodeSuiPrivateKey(secretKey);
+    return Ed25519Keypair.fromSecretKey(parsedPair.secretKey);
 }

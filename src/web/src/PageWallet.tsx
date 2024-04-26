@@ -1,18 +1,66 @@
 import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
+import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
+import { pairFromSecretKey } from "./lib/storage";
 
 export const PageWallet: React.FC = () =>
 {
     const { replaceKeypair, spammer } = useOutletContext<AppContext>();
+    const [ showImport, setShowImport ] = useState<boolean>(false);
 
-    const onCreateWallet = () => {
+    const confirmAndReplaceWallet = (pair: Ed25519Keypair) => {
         const resp = window.confirm(
             "🚨 WARNING 🚨\n\nThis will delete and replace your current wallet.\n\nAre you sure?"
         );
         if (resp) {
-            replaceKeypair(new Ed25519Keypair());
+            replaceKeypair(pair);
         }
+    };
+
+    const BackUpWarning: React.FC = () => {
+        return <>
+            <h3>Back up your secret key!</h3>
+            <p>
+                - Your spam wallet is stored in your browser, only you have access to it.<br/>
+                - Clearing cookies will delete your wallet, and we cannot recover it for you.<br/>
+                - Copy your secret key and keep it safe, this allows you to restore your wallet.<br/>
+            </p>
+        </>;
+    };
+
+    const ImportForm: React.FC = () => {
+        const [ secretKey, setSecretKey ] = useState<string>("");
+
+        const onInputChange = (evt: React.ChangeEvent<HTMLInputElement>): void  => {
+            setSecretKey(evt.currentTarget.value);
+        };
+
+        const onSubmit = (): void => {
+            if ( !secretKey.startsWith("suiprivkey") ) {
+                alert("Invalid secret key. It should start with \"suiprivkey...\"");
+                return;
+            }
+            const pair = pairFromSecretKey(secretKey); // TODO handle errors. Stop spammer.
+            confirmAndReplaceWallet(pair);
+        };
+
+        return <>
+            <h3>Import wallet</h3>
+            <p>
+                Paste your private key and click the import button.
+            </p>
+            <input
+                type="text"
+                value={secretKey}
+                onChange={onInputChange}
+                placeholder="suiprivkey..."
+            />
+            <br/>
+            <button className="btn" onClick={onSubmit}>
+                Import
+            </button>
+        </>;
     };
 
     return <>
@@ -36,17 +84,16 @@ export const PageWallet: React.FC = () =>
         </div>
 
         <div className="btn-group">
-            <button className="btn" onClick={onCreateWallet}>NEW WALLET</button>
-            <button className="btn">IMPORT</button> {/* TODO */}
+            <button className="btn" onClick={() => confirmAndReplaceWallet(new Ed25519Keypair())}>
+                NEW WALLET
+            </button>
+            <button className="btn" onClick={() => setShowImport(oldImport => !oldImport)}>
+                IMPORT
+            </button>
             {/* <button className="btn">WITHDRAW</button> TODO */}
         </div>
 
         <br/>
-        <h3>Back up your secret key!</h3>
-        <p>
-            - Your spam wallet is stored in your browser, only you have access to it.<br/>
-            - Clearing cookies will delete your wallet, and we cannot recover it for you.<br/>
-            - Copy your secret key and keep it safe, this allows you to restore your wallet.<br/>
-        </p>
+        {showImport ? <ImportForm /> : <BackUpWarning />}
     </>;
 };
