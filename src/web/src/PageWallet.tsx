@@ -18,18 +18,28 @@ export const PageWallet: React.FC = () =>
     return <>
         <h1><span className="rainbow">Wallet</span></h1>
 
-        <p>
-            Your public address:<br/>
-            <span className="break-all">
-                {spammer.getSpamClient().signer.toSuiAddress()}
-            </span>
-        </p>
-        <p>
-            Your secret key:<br/>
-            <span className="break-all">
-                {(spammer.getSpamClient().signer as Ed25519Keypair).getSecretKey()}
-            </span>
-        </p>
+        <div id="wallet-info">
+            <div id="wallet-content">
+                <div className="wallet-section">
+                    <h4>Your Sui address:</h4>
+                    <span className="wallet-key-or-address">
+                        {spammer.getSpamClient().signer.toSuiAddress()}
+                    </span>
+                </div>
+                <div className="wallet-section">
+                    <h4>Your secret key:</h4>
+                    <span className="wallet-key-or-address">
+                        {(spammer.getSpamClient().signer as Ed25519Keypair).getSecretKey()}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div className="btn-group">
+            <button className="btn" onClick={onCreateWallet}>NEW WALLET</button>
+            <button className="btn">IMPORT</button> {/* TODO */}
+            {/* <button className="btn">WITHDRAW</button> TODO */}
+        </div>
 
         <br/>
         <h3>Back up your secret key!</h3>
@@ -38,12 +48,5 @@ export const PageWallet: React.FC = () =>
             - Clearing cookies will delete your wallet, and we cannot recover it for you.<br/>
             - Copy your secret key and keep it safe, this allows you to restore your wallet.<br/>
         </p>
-
-        <br/>
-        <div className="btn-group">
-            <button className="btn" onClick={onCreateWallet}>NEW WALLET</button>
-            <button className="btn">IMPORT</button> {/* TODO */}
-            {/* <button className="btn">WITHDRAW</button> TODO */}
-        </div>
     </>;
 };

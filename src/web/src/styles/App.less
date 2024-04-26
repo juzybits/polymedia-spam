@@ -10,6 +10,32 @@ header {
     }
 }
 
+#wallet-info {
+    display: flex;
+    justify-content: center;
+    padding-top: 1rem;
+    padding-bottom: 2rem;
+    #wallet-content {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        max-width: 600px;
+        padding: 0.5rem 1.5rem;
+        font-size: 1.1rem;
+        .wallet-section {
+            h4 {
+                font-size: 1.2rem;
+                padding-bottom: 0.6rem;
+            }
+            .wallet-key-or-address {
+                word-break: break-all;
+                font-family: monospace;
+                font-size: 1rem;
+            }
+        }
+    }
+}
+
 .rainbow {
     font-size: 2.3rem;
 }
