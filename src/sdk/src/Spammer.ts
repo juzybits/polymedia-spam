@@ -170,9 +170,9 @@ export class Spammer
             // Increment current counter
             else {
                 await this.simulateLatencyOnLocalnet();
+                this.incrementTxsSinceRotate += 1; // only count this kind of tx towards rotation limit
                 const curr = counters.current;
                 const resp = await this.getSpamClient().incrementUserCounter(curr.ref);
-                this.incrementTxsSinceRotate += 1; // only count this kind of tx towards rotation limit
                 curr.tx_count++;
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 curr.ref = resp.effects!.mutated!.find(mutatedObj =>
