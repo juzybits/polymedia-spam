@@ -47,7 +47,7 @@ const supportedNetworks = isLocalhost() // TODO add mainnet before launch
     ? ["testnet", "devnet", "localnet"] as const
     : ["testnet", "devnet"] as const;
 type NetworkName = typeof supportedNetworks[number];
-const defaultNetwork = isLocalhost() ? "testnet" : "mainnet";
+const defaultNetwork = isLocalhost() ? "testnet" : "testnet"; // TODO change to mainnet before launch
 const loadedNetwork = loadNetwork(supportedNetworks, defaultNetwork);
 
 /* App */

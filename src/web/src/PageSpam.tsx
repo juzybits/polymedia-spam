@@ -10,9 +10,8 @@ export const PageSpam: React.FC = () =>
     /* State */
 
     const { balances, spammer, spamView } = useOutletContext<AppContext>();
-    // const [ error, setError ] = useState<string|null>(null);
 
-    const isBootingUp = spamView.counters.epoch === -1 || balances.sui === -1;
+    const isLoading = spamView.counters.epoch === -1 || balances.sui === -1;
 
     /* Functions */
 
@@ -42,13 +41,13 @@ export const PageSpam: React.FC = () =>
             return null;
         }
         return <>
-            <p>SUI balance: {isBootingUp ? "loading..." : formatNumber(balances.sui, "compact")}</p>
-            <p>SPAM balance: {isBootingUp ? "loading..." : formatNumber(balances.spam, "compact")}</p>
+            <p>SUI balance: {isLoading ? "loading..." : formatNumber(balances.sui, "compact")}</p>
+            <p>SPAM balance: {isLoading ? "loading..." : formatNumber(balances.spam, "compact")}</p>
         </>;
     };
 
     const TopUp: React.FC = () => {
-        if (isBootingUp || !isLowSuiBalance) {
+        if (isLoading || !isLowSuiBalance) {
             return null;
         }
         return <>
@@ -60,7 +59,7 @@ export const PageSpam: React.FC = () =>
     };
 
     const SpamOrStopButton: React.FC = () => {
-        if (isBootingUp || isLowSuiBalance) {
+        if (isLoading || isLowSuiBalance) {
             return null;
         }
         if (spamView.status === "stopped") {
@@ -123,11 +122,9 @@ export const PageSpam: React.FC = () =>
         <h1><span className="rainbow">Spam</span></h1>
         <div>
 
-            {/* <ErrorBox err={error} /> */}
-
             <div className="tight">
                 <p>Status: <StatusSpan status={spamView.status} /></p>
-                <p>Current epoch: {isBootingUp ? "loading... " : counters.epoch}</p>
+                <p>Current epoch: {isLoading ? "loading... " : counters.epoch}</p>
                 <Balances />
             </div>
 
@@ -135,7 +132,6 @@ export const PageSpam: React.FC = () =>
 
             <SpamOrStopButton />
 
-            {/* <p>Current epoch: {view?.epoch}</p> */}
             {hasCounters && <>
                 <br/><br/>
                 <h2>Your counters</h2>

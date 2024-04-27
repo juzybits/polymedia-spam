@@ -8,7 +8,6 @@ export type SpamClientWithStats = {
     active: boolean;
     txnCount: number;
     errCount: number;
-    // txnTimes: number[]; // TODO
 };
 
 export class SpamClientRotator
