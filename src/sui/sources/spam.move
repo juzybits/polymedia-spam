@@ -248,7 +248,7 @@ module spam::spam {
 
     fun init(witness: SPAM, ctx: &mut TxContext)
     {
-        // Create the coin
+        // Create the coin, and transfer the CoinMetadata
         let (treasury, metadata) = create_currency(
             witness,
             4, // decimals
@@ -258,9 +258,7 @@ module spam::spam {
             option::none(),// icon_url TODO
             ctx,
         );
-
-        // Freeze the metadata
-        transfer::public_freeze_object(metadata);
+        transfer::public_transfer(metadata, ctx.sender());
 
         // Create the only Director that will ever exist, and share it
         let director = Director {

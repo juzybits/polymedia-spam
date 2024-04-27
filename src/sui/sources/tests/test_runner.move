@@ -26,7 +26,7 @@ module spam::test_runner {
         scenario_mut.next_tx(ADMIN);
 
         let director = scenario_mut.take_shared<Director>();
-        let metadata = scenario_mut.take_immutable<CoinMetadata<SPAM>>();
+        let metadata = scenario_mut.take_from_sender<CoinMetadata<SPAM>>();
         let cap = scenario_mut.take_from_sender<AdminCap>();
 
         TestRunner {
