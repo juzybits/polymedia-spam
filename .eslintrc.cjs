@@ -27,7 +27,7 @@ module.exports = {
         "@typescript-eslint/no-floating-promises": "off",
         "@typescript-eslint/no-misused-promises": "off",
         "@typescript-eslint/no-unnecessary-condition": "off",
-        "@typescript-eslint/prefer-nullish-coalescing": [ "error", { "ignoreConditionalTests": true, "ignoreMixedLogicalExpressions": true } ],
+        "@typescript-eslint/prefer-nullish-coalescing": [ "off" ],
         "@typescript-eslint/restrict-template-expressions": "off",
         "@typescript-eslint/use-unknown-in-catch-callback-variable": "off",
         "no-constant-condition": "off",

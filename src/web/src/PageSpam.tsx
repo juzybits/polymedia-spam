@@ -30,9 +30,10 @@ export const PageSpam: React.FC = () =>
 
     /* HTML */
 
-    const counters = spamView?.counters;
-    const hasCounters = Boolean(counters && counters.current || counters.register
-        || counters.claim.length || counters.delete.length);
+    const counters = spamView.counters;
+    const hasCounters = Boolean(
+        counters.current || counters.register || counters.claim.length || counters.delete.length
+    );
     const isLowSuiBalance = !balances || balances.sui < 0.001025;
 
     const StatusSpan: React.FC<{ // TODO use in nav too
