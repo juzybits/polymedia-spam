@@ -11,11 +11,12 @@ export const PageStats: React.FC = () =>
 
     useEffect(() => {
         const initialize = async () => {
+            setStats(undefined);
             const newStats = await spammer.getSpamClient().fetchStatsForRecentEpochs(14);
             setStats(newStats);
         };
         initialize();
-    }, []);
+    }, [spammer]);
 
     return <>
         <h1><span className="rainbow">Stats</span></h1>

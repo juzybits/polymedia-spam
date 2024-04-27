@@ -90,7 +90,7 @@ export const RPC_ENDPOINTS: Record<NetworkName, string[]> = {
     ],
     "devnet": [
         getFullnodeUrl("devnet"),
-        "https://devnet.suiet.app",
+        // "https://devnet.suiet.app",
     ],
     "localnet": [
         // to simulate multiple RPC endpoints locally
