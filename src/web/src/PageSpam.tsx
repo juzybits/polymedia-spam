@@ -11,7 +11,7 @@ export const PageSpam: React.FC = () =>
     const { balances, spammer, spamView } = useOutletContext<AppContext>();
     // const [ error, setError ] = useState<string|null>(null);
 
-    const isBootingUp = spamView.counters.epoch === -1;
+    const isBootingUp = spamView.counters.epoch === -1 || balances.sui === -1;
 
     /* Functions */
 
@@ -34,7 +34,7 @@ export const PageSpam: React.FC = () =>
     const hasCounters = Boolean(
         counters.current || counters.register || counters.claim.length || counters.delete.length
     );
-    const isLowSuiBalance = !balances || balances.sui < 0.001025;
+    const isLowSuiBalance = balances.sui < 0.001025;
 
     const StatusSpan: React.FC<{ // TODO use in nav too
         status?: SpamStatus;
@@ -56,13 +56,13 @@ export const PageSpam: React.FC = () =>
             return null;
         }
         return <>
-            <p>SUI balance: {formatNumber(balances.sui, "compact")}</p>
-            <p>SPAM balance: {formatNumber(balances.spam, "compact")}</p>
+            <p>SUI balance: {isBootingUp ? "loading..." : formatNumber(balances.sui, "compact")}</p>
+            <p>SPAM balance: {isBootingUp ? "loading..." : formatNumber(balances.spam, "compact")}</p>
         </>;
     };
 
     const TopUp: React.FC = () => {
-        if (!isLowSuiBalance) {
+        if (isBootingUp || !isLowSuiBalance) {
             return null;
         }
         return <>
@@ -141,7 +141,7 @@ export const PageSpam: React.FC = () =>
 
             <div className="tight">
                 <p>Status: <StatusSpan status={spamView?.status} /></p>
-                <p>Current epoch: {counters.epoch}</p>
+                <p>Current epoch: {isBootingUp ? "loading... " : counters.epoch}</p>
                 <Balances />
             </div>
 
