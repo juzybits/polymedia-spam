@@ -2,7 +2,7 @@ import { SpamStatus, UserCounters } from "@polymedia/spam-sdk";
 
 export type SpamView = {
     status: SpamStatus;
-    events: { time: string, msg: string }[];
+    events: { time: string; msg: string }[];
     counters: UserCounters;
 };
 

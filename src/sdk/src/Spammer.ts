@@ -26,7 +26,7 @@ export class Spammer
     public status: SpamStatus;
     public userCounters: UserCounters;
     private requestRefresh: boolean;
-    private eventHandlers: Set<SpamEventHandler>;
+    private eventHandler: SpamEventHandler|undefined;
     private incrementTxsSinceRotate: number;
     private readonly rotator: SpamClientRotator;
     private simulateLatencyOnLocalnet: () => Promise<void>;
@@ -35,12 +35,12 @@ export class Spammer
         keypair: Signer,
         network: NetworkName,
         rpcUrls: string[],
-        eventHandler: SpamEventHandler,
+        eventHandler?: SpamEventHandler,
     ) {
         this.status = "stopped";
         this.userCounters = emptyUserCounters();
         this.requestRefresh = true; // so when it starts it pulls the data
-        this.eventHandlers = new Set<SpamEventHandler>([eventHandler]);
+        this.eventHandler = eventHandler;
         this.incrementTxsSinceRotate = 0;
         this.rotator = new SpamClientRotator(keypair, network, rpcUrls);
         this.simulateLatencyOnLocalnet = async () => {
@@ -52,16 +52,16 @@ export class Spammer
 
     /* Events */
 
-    public addEventHandler(handler: SpamEventHandler) {
-        this.eventHandlers.add(handler);
+    public setEventHandler(handler: SpamEventHandler) {
+        this.eventHandler = handler;
     }
 
-    public removeEventHandler(handler: SpamEventHandler) {
-        this.eventHandlers.delete(handler);
+    public removeEventHandler() {
+        this.eventHandler = undefined;
     }
 
     private onEvent(event: SpamEvent) {
-        this.eventHandlers.forEach(handler => handler(event));
+        this.eventHandler && this.eventHandler(event);
     }
 
     /* Client accessors */
@@ -129,7 +129,7 @@ export class Spammer
                 counters.register.registered = true;
                 this.onEvent({
                     type: "debug",
-                    msg: "registerUserCounter resp: " + resp.effects?.status.status,
+                    msg: `registerUserCounter resp: ${resp.effects?.status.status}`,
                 });
             }
 
@@ -144,7 +144,7 @@ export class Spammer
                 counters.claim = [];
                 this.onEvent({
                     type: "debug",
-                    msg: "destroyUserCounters resp: " + resp.effects?.status.status,
+                    msg: `destroyUserCounters resp: ${resp.effects?.status.status}`,
                 });
             }
 
@@ -157,7 +157,7 @@ export class Spammer
                 const counterIds = counters.delete.map(counter => counter.id);
                 const resp = await this.getSpamClient().destroyUserCounters(counterIds);
                 counters.delete = [];
-                this.onEvent({ type: "debug", msg: "destroyUserCounters resp: " + resp.effects?.status.status });
+                this.onEvent({ type: "debug", msg: `destroyUserCounters resp: ${resp.effects?.status.status}` });
             }
 
             // Create counter for current epoch
@@ -167,7 +167,7 @@ export class Spammer
                 await this.simulateLatencyOnLocalnet();
                 this.requestRefresh = true;
                 const resp = await this.getSpamClient().newUserCounter();
-                this.onEvent({ type: "debug", msg: "newUserCounter resp: " + resp.effects?.status.status });
+                this.onEvent({ type: "debug", msg: `newUserCounter resp: ${resp.effects?.status.status}` });
             }
             // Increment current counter
             else {
@@ -180,7 +180,7 @@ export class Spammer
                 curr.ref = resp.effects!.mutated!.find(mutatedObj =>
                     mutatedObj.reference.objectId == curr.id
                 )!.reference;
-                this.onEvent({ type: "debug", msg: "incrementUserCounter resp: " + resp.effects?.status.status });
+                this.onEvent({ type: "debug", msg: `incrementUserCounter resp: ${resp.effects?.status.status}` });
             }
         }
         catch (err) {

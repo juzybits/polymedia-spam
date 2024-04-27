@@ -139,7 +139,7 @@ export const PageSpam: React.FC = () =>
                 {reversedEvents}
             </div>
         </>;
-    }
+    };
 
     return <>
         <h1><span className="rainbow">Spam</span></h1>
