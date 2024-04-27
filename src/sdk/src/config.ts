@@ -12,15 +12,13 @@ export const SPAM_IDS: Record<NetworkName, NetworkConfig> = {
     },
     testnet: {
         // LOL. Change SPAM_MODULE and SPAM_SYMBOL below for this to work.
-        packageId: "0x7f564f428e939e938dbdccfcc658c78ab9c5b3a2fce912138bdeeca0702446ce",
-        directorId: "0x4a3d63044b755a224fde81bbead66bd4faf6bb8a88f24dcd21e0b047d663dd67",
-        // adminCapId: "0x2010974ce9ba8d6051f78b4e9e07ac4e043ca9df4d1ebd44a429a2d1f22a6f79",
-        // upgradeCapId: "0x24f92c47ea6b9d33e2e61f5018e88f46a03cd0afe89144c2f75b52067bb0c695",
-        // coinMetadataId: "0x27dc2fafa451725a085906a2eed0dc1375ca0e69eaa6760450d6293a01709294",
+        packageId: "0x9d26aeba82a31aa1e322ce0d1c5f6cb79c7d6708a2ab2e7c3ad22350287cd093",
+        directorId: "0xda93b051883818115bfc8edd74814acc3dbd6c53073393e9db31fc4a7226d8be",
     },
     devnet: {
-        packageId: "",
-        directorId: "",
+        // LOL. Change SPAM_MODULE and SPAM_SYMBOL below for this to work.
+        packageId: "0x4e826283a47fcbc3264b93b27708ec9d3ec603b3bf4f0a7bf593e900b15d392b",
+        directorId: "0x10b48b8854980935bcc5d404497e7788d555c3f063c77b23e6a94edd0075c6cb",
     },
     localnet: {
         packageId: "0x48815f75e8a5389f412dcb6b95eb49ac082f6043f4d4c2437355913830335ccf",
