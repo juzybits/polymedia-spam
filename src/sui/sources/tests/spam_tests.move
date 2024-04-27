@@ -322,28 +322,16 @@ module spam::spam_tests {
     public fun test_claim_user_counter_error_user_counter_is_not_registered() {
         let mut runner = test_runner::start();
 
-        // Create Admin User Counter
+        // Create and increment Admin User Counter
         spam::new_user_counter_for_testing(runner.ctx());
-
-        // Increment Txs for Admin
         runner.next_tx_with_sender(ADMIN);
         let admin_counter = runner.take_from_sender<UserCounter>();
-
-        // Create Alice User Counter
-        runner.next_tx_with_sender(ALICE);
-        spam::new_user_counter_for_testing(runner.ctx());
-
-         // Increment Txs for Alice
-        runner.next_tx_with_sender(ALICE);
-        let alice_counter = runner.take_from_sender<UserCounter>();
 
         runner.increment_epoch(2);
 
         let admin_spam = runner.claim_user_counter(admin_counter, ADMIN);
-        let alice_spam = runner.claim_user_counter(alice_counter, ALICE);
 
         admin_spam.assert_value(0);
-        alice_spam.assert_value(0);
 
         runner.end();
     }
