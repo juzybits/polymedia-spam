@@ -80,7 +80,7 @@ export class Spammer
         if (this.status === "stopped") {
             this.status = "running";
             this.spam();
-            this.onEvent({ type: "info", msg: "Starting" });
+            this.onEvent({ type: "info", msg: `Starting with RPC: ${this.getSpamClient().rpcUrl}` });
         }
     }
 
