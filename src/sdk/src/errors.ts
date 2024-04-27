@@ -1,9 +1,9 @@
 export enum SpamError {
-    EWrongEpoch = 100,
-    EDirectorIsPaused = 101,
-    EUserIsRegistered = 102,
-    EUserCounterIsRegistered = 104,
-    EUserCounterIsNotRegistered = 103,
+    EWrongEpoch= 100,
+    EDirectorIsPaused= 101,
+    EUserIsRegistered= 102,
+    EUserCounterIsRegistered= 103,
+    EUserCounterIsNotRegistered= 104,
 }
 
 export function parseSpamError(errorMessage: string): SpamError | null {

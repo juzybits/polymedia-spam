@@ -78,27 +78,31 @@ export class Spammer
 
     /* Start and stop */
 
-    public stop() {
-        this.status = "stopping";
-        this.onEvent({ type: "info", msg: "Shutting down" });
+    public start() {
+        if (this.status === "stopped") {
+            this.status = "running";
+            this.spam();
+            this.onEvent({ type: "info", msg: "Starting" });
+        }
     }
 
-    public async start()
-    {
-        if (this.status == "running") {
-            this.onEvent({ type: "warn", msg: "Already running" });
-            return;
+    public stop() {
+        if (this.status === "running") {
+            this.status = "stopping";
+            this.onEvent({ type: "info", msg: "Shutting down" });
         }
+    }
 
+    /* Main loop */
+
+    private async spam()
+    {
         if (this.status === "stopping") {
             this.status = "stopped";
             this.requestRefresh = true; // so when it starts again it pulls fresh data
             this.onEvent({ type: "info", msg: "Stopped as requested" });
             return;
         }
-
-        this.status = "running";
-
         try
         {
             // Refetch data if requested
@@ -212,11 +216,7 @@ export class Spammer
             }
         }
         finally {
-            // keep the loop going unless stop was requested
-            if (this.status === "running") {
-                this.status = "stopped";
-            }
-            this.start();
+            this.spam();
         }
     }
 }
