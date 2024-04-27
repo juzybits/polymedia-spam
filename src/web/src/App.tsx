@@ -60,18 +60,26 @@ export type AppContext = {
     replaceKeypair: (keypair: Ed25519Keypair) => void;
 };
 
+const emptySpamView = (): SpamView => {
+    return {
+        status: "stopped",
+        lastMessage: "",
+        counters: emptyUserCounters(),
+    };
+}
+
+const emptyBalances = (): UserBalances => {
+    return { sui: -1, spam: -1 };
+}
+
 const App: React.FC = () =>
 {
     /* State */
 
     const inProgress = false;
     const [ showMobileNav, setShowMobileNav ] = useState(false);
-    const [ balances, setBalances ] = useState<UserBalances>({ sui: -1, spam: -1 });
-    const [ spamView, setSpamView ] = useState<SpamView>({
-        status: "stopped",
-        lastMessage: "",
-        counters: emptyUserCounters(),
-    });
+    const [ balances, setBalances ] = useState<UserBalances>(emptyBalances());
+    const [ spamView, setSpamView ] = useState<SpamView>(emptySpamView());
     const [ spammer, setSpammer ] = useState(new Spammer(
         loadKeypairFromStorage(),
         loadedNetwork,
@@ -90,6 +98,9 @@ const App: React.FC = () =>
 
     useEffect(() =>
     {
+        setSpamView(emptySpamView());
+        setBalances(emptyBalances());
+
         /* repaint on demand whenever there is a Spammer event */
 
         spammer.addEventHandler(spamEventHandler);
@@ -161,7 +172,9 @@ const App: React.FC = () =>
     }
 
     function replaceKeypair(keypair: Ed25519Keypair): void {
-        spammer.stop();
+        if (spammer.status === "running") {
+            spammer.stop();
+        }
         const network = spammer.getSpamClient().network;
         setSpammer(new Spammer(
             keypair,
