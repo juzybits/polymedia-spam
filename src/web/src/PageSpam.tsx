@@ -17,7 +17,6 @@ export const PageSpam: React.FC = () =>
 
     const start = () => {
         if (spammer.status === "stopped") {
-            spamView && (spamView.lastMessage = "Starting");
             spammer.start();
         }
     };
@@ -118,6 +117,22 @@ export const PageSpam: React.FC = () =>
         </div>;
     };
 
+    const EventLog: React.FC = () => {
+        if (spamView.events.length === 0) {
+            return null;
+        }
+        const reversedEvents = [];
+        for (let i = spamView.events.length - 1; i >= 0; i--) {
+            reversedEvents.push(<p key={i}>{spamView.events[i]}</p>);
+        }
+        return <>
+            <h2>Event log</h2>
+            <div className="tight">
+                {reversedEvents}
+            </div>
+        </>;
+    }
+
     return <>
         <h1><span className="rainbow">Spam</span></h1>
         <div>
@@ -151,8 +166,7 @@ export const PageSpam: React.FC = () =>
                 </div>
             </>}
 
-            <h2>Event log</h2> {/* TODO */}
-            <textarea defaultValue={spamView.lastMessage} />
+            <EventLog />
         </div>
     </>;
 };

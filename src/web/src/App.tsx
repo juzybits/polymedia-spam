@@ -64,7 +64,7 @@ export type AppContext = {
 const emptySpamView = (): SpamView => {
     return {
         status: "stopped",
-        lastMessage: "",
+        events: [],
         counters: emptyUserCounters(),
     };
 }
@@ -132,7 +132,7 @@ const App: React.FC = () =>
                 const counters = await spammer.getSpamClient().fetchUserCountersAndClassify();
                 setSpamView(oldView => ({
                     status: spammer.status,
-                    lastMessage: oldView?.lastMessage ?? "-",
+                    events: oldView.events,
                     counters,
                 }));
                 // console.info("view updated");
@@ -164,11 +164,16 @@ const App: React.FC = () =>
 
     function spamEventHandler(e: SpamEvent) {
         console[e.type](`${e.type}: ${e.msg}`);
-        setSpamView(oldView => ({
-            status: spammer.status,
-            lastMessage: (e.type !== "debug" && e.msg) || oldView?.lastMessage || "-",
-            counters: spammer.userCounters,
-        }));
+        setSpamView(oldView => {
+            if (e.type !== "debug") {
+                oldView.events.push(e.msg);
+            }
+            return {
+                status: spammer.status,
+                events: oldView.events,
+                counters: spammer.userCounters,
+            };
+        });
         // console.info("on-demand view update");
     }
 

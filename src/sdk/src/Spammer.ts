@@ -21,8 +21,6 @@ const SLEEP_MS_AFTER_RPC_CHANGE = 1000;
 const SLEEP_MS_AFTER_OBJECT_NOT_READY = 1000;
 const SLEEP_MS_AFTER_NETWORK_ERROR = 3000;
 
-// TODO handle network errors and txn failures (resp.effects.status.status !== "success")
-
 export class Spammer
 {
     public status: SpamStatus;
