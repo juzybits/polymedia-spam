@@ -144,20 +144,20 @@ const App: React.FC = () =>
         updateBalances();
         updateSpamView();
 
-        const updateFrequency = spammer.getSpamClient().network === "localnet" ? 5_000 : 30_000;
-        const updatePeriodically = setInterval(async () => {
-            if (spammer.status == "running") {
-                await updateBalances();
-            }
-            if (spammer.status != "running") {
-                await updateSpamView();
-            }
-        }, updateFrequency);
+        // const updateFrequency = spammer.getSpamClient().network === "localnet" ? 5_000 : 30_000;
+        // const updatePeriodically = setInterval(async () => {
+        //     if (spammer.status == "running") {
+        //         await updateBalances();
+        //     }
+        //     if (spammer.status != "running") {
+        //         await updateSpamView();
+        //     }
+        // }, updateFrequency);
 
         /* clean up on component unmount */
 
         return () => {
-            clearInterval(updatePeriodically);
+            // clearInterval(updatePeriodically);
             spammer.removeEventHandler(spamEventHandler);
         };
     }, [spammer]);

@@ -13,6 +13,30 @@ header {
     }
 }
 
+#event-log {
+    padding: 1rem 1.5rem;
+    margin-top: 1rem;
+    max-height: 400px;
+    overflow-y: scroll;
+    background: @color-bg-end;
+    border-radius: @radius;
+    .event {
+        padding: 0.3rem 0;
+        line-height: 1.5rem;
+        text-align: left;
+        .event-time {
+            display: inline-block;
+            margin-right: 1rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.5rem;
+            background-color: #1d2742;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        font-family: monospace;
+    }
+}
+
 #wallet-info {
     display: flex;
     justify-content: center;
