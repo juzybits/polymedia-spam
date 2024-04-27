@@ -42,7 +42,9 @@ export const AppRouter: React.FC = () => {
 
 /* Network config */
 
-const supportedNetworks = ["mainnet", "testnet", "devnet", "localnet"] as const;
+const supportedNetworks = isLocalhost() // TODO add mainnet before launch
+    ? ["testnet", "devnet", "localnet"] as const
+    : ["testnet", "devnet"] as const;
 type NetworkName = typeof supportedNetworks[number];
 const defaultNetwork = isLocalhost() ? "testnet" : "mainnet";
 const loadedNetwork = loadNetwork(supportedNetworks, defaultNetwork);
@@ -221,7 +223,9 @@ const App: React.FC = () =>
     const BtnNetwork: React.FC = () =>
     {
         const onSwitchNetwork = (newNet: NetworkName) => {
-            spammer.stop();
+            if (spammer.status === "running") {
+                spammer.stop();
+            }
             setSpammer(new Spammer(
                 spammer.getSpamClient().signer,
                 newNet,
@@ -231,7 +235,7 @@ const App: React.FC = () =>
             setShowMobileNav(false);
         };
         return <NetworkSelector
-            currentNetwork={spammer.getSpamClient().network}
+            currentNetwork={(spammer.getSpamClient().network as NetworkName)}
             supportedNetworks={supportedNetworks}
             disabled={inProgress}
             onSwitch={onSwitchNetwork}

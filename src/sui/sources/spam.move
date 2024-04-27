@@ -266,7 +266,7 @@ module spam::spam {
             treasury,
             epoch_counters: table::new(ctx),
             tx_count: 0,
-            paused: false, // TODO: switch to true before mainnet
+            paused: false, // TODO: switch to true before launch
         };
         transfer::share_object(director);
 
