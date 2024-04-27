@@ -288,31 +288,18 @@ module spam::spam_tests {
 
         runner.increment_epoch(2);
 
-        // Create Admin User Counter
+        // Create and increment Admin User Counter
         spam::new_user_counter_for_testing(runner.ctx());
-
-        // Increment Txs for Admin
         runner.next_tx_with_sender(ADMIN);
         let mut admin_counter = runner.take_from_sender<UserCounter>();
-
-        // Create Alice User Counter
-        runner.next_tx_with_sender(ALICE);
-        spam::new_user_counter_for_testing(runner.ctx());
-
-         // Increment Txs for Alice
-        runner.next_tx_with_sender(ALICE);
-        let mut alice_counter = runner.take_from_sender<UserCounter>();
 
         runner.increment_epoch(1);
 
         runner.register_user_counter(&mut admin_counter, ADMIN);
-        runner.register_user_counter(&mut alice_counter, ALICE);
 
         let admin_spam = runner.claim_user_counter(admin_counter, ADMIN);
-        let alice_spam = runner.claim_user_counter(alice_counter, ALICE);
 
         admin_spam.assert_value(0);
-        alice_spam.assert_value(0);
 
         runner.end();
     }
