@@ -166,7 +166,10 @@ const App: React.FC = () =>
         console[e.type](`${e.type}: ${e.msg}`);
         setSpamView(oldView => {
             if (e.type !== "debug") {
-                oldView.events.push(e.msg);
+                oldView.events.push({
+                    time: (new Date).toLocaleTimeString(),
+                    msg: e.msg,
+                });
             }
             return {
                 status: spammer.status,

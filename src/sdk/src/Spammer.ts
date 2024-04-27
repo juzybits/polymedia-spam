@@ -129,7 +129,7 @@ export class Spammer
                 counters.register.registered = true;
                 this.onEvent({
                     type: "debug",
-                    msg: "registerUserCounter resp: " + JSON.stringify(resp, null, 2),
+                    msg: "registerUserCounter resp: " + resp.effects?.status.status,
                 });
             }
 
@@ -144,7 +144,7 @@ export class Spammer
                 counters.claim = [];
                 this.onEvent({
                     type: "debug",
-                    msg: "destroyUserCounters resp: " + JSON.stringify(resp, null, 2),
+                    msg: "destroyUserCounters resp: " + resp.effects?.status.status,
                 });
             }
 
@@ -157,7 +157,7 @@ export class Spammer
                 const counterIds = counters.delete.map(counter => counter.id);
                 const resp = await this.getSpamClient().destroyUserCounters(counterIds);
                 counters.delete = [];
-                this.onEvent({ type: "debug", msg: "destroyUserCounters resp: " + JSON.stringify(resp, null, 2) });
+                this.onEvent({ type: "debug", msg: "destroyUserCounters resp: " + resp.effects?.status.status });
             }
 
             // Create counter for current epoch
@@ -167,7 +167,7 @@ export class Spammer
                 await this.simulateLatencyOnLocalnet();
                 this.requestRefresh = true;
                 const resp = await this.getSpamClient().newUserCounter();
-                this.onEvent({ type: "debug", msg: "newUserCounter resp: " + JSON.stringify(resp, null, 2) });
+                this.onEvent({ type: "debug", msg: "newUserCounter resp: " + resp.effects?.status.status });
             }
             // Increment current counter
             else {
@@ -180,7 +180,7 @@ export class Spammer
                 curr.ref = resp.effects!.mutated!.find(mutatedObj =>
                     mutatedObj.reference.objectId == curr.id
                 )!.reference;
-                this.onEvent({ type: "debug", msg: "incrementUserCounter resp: " + JSON.stringify(resp, null, 2) });
+                this.onEvent({ type: "debug", msg: "incrementUserCounter resp: " + resp.effects?.status.status });
             }
         }
         catch (err) {
@@ -199,7 +199,7 @@ export class Spammer
             }
             // The validator didn't pick up the object changes yet. Often happens when changing RPCs.
             else if ( errStr.includes("ObjectNotFound") || errStr.includes("not available for consumption") ) {
-                this.onEvent({ type: "info", msg: `Validator didn't sync yet. Retrying shortly. Original error: ${errStr}` });
+                this.onEvent({ type: "debug", msg: `Validator didn't sync yet. Retrying shortly. RPC: ${this.getSpamClient().rpcUrl}.` });
                 await sleep(SLEEP_MS_AFTER_OBJECT_NOT_READY);
             }
             // Network error

@@ -123,11 +123,13 @@ export const PageSpam: React.FC = () =>
         }
         const reversedEvents = [];
         for (let i = spamView.events.length - 1; i >= 0; i--) {
-            reversedEvents.push(<p key={i}>{spamView.events[i]}</p>);
+            reversedEvents.push(<p key={i}>
+                {spamView.events[i].time} | {spamView.events[i].msg}
+            </p>);
         }
         return <>
             <h2>Event log</h2>
-            <div className="tight">
+            <div className="tight" style={{textAlign: "left"}}>
                 {reversedEvents}
             </div>
         </>;
