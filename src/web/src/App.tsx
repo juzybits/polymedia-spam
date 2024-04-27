@@ -113,13 +113,10 @@ const App: React.FC = () =>
 
         /* repaint periodically */
 
-        const updateFrequency = spammer.current.getSpamClient().network === "localnet" ? 5_000 : 30_000;
+        const updateFrequency = network === "localnet" ? 5_000 : 20_000;
         const updatePeriodically = setInterval(async () => {
             if (spammer.current.status == "running") {
                 await updateBalances();
-            }
-            if (spammer.current.status != "running") {
-                await updateSpamView();
             }
         }, updateFrequency);
 
@@ -181,19 +178,18 @@ const App: React.FC = () =>
         // console.info("on-demand view update");
     }
 
-    function replaceKeypair(keypair: Ed25519Keypair): void {
+    function replaceKeypair(newPair: Ed25519Keypair): void {
         if (spammer.current.status === "running") {
             spammer.current.stop();
         }
-        const network = spammer.current.getSpamClient().network;
         spammer.current = new Spammer(
-            keypair,
+            newPair,
             network,
             loadRpcEndpointsFromStorage(network),
             spamEventHandler,
         );
-        setPair(keypair);
-        saveKeypairToStorage(keypair);
+        setPair(newPair);
+        saveKeypairToStorage(newPair);
     }
 
     /* HTML */
@@ -205,7 +201,7 @@ const App: React.FC = () =>
                     spammer.current.stop();
                 }
                 spammer.current = new Spammer(
-                    spammer.current.getSpamClient().signer,
+                    pair,
                     newNet,
                     loadRpcEndpointsFromStorage(newNet),
                     spamEventHandler,
@@ -214,7 +210,7 @@ const App: React.FC = () =>
                 setShowMobileNav(false);
             };
             return <NetworkSelector
-                currentNetwork={(spammer.current.getSpamClient().network as NetworkName)}
+                currentNetwork={network}
                 supportedNetworks={supportedNetworks}
                 disabled={inProgress}
                 onSwitch={onNetworkChange}
