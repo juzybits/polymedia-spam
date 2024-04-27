@@ -9,21 +9,21 @@ export const PageSpam: React.FC = () =>
 {
     /* State */
 
-    const { balances, spammer, spamView } = useOutletContext<AppContext>();
+    const { network, balances, spammer, spamView } = useOutletContext<AppContext>();
 
     const isLoading = spamView.counters.epoch === -1 || balances.sui === -1;
 
     /* Functions */
 
     const start = () => {
-        if (spammer.status === "stopped") {
-            spammer.start();
+        if (spammer.current.status === "stopped") {
+            spammer.current.start();
         }
     };
 
     const stop = () => {
-        if (spammer.status === "running") {
-            spammer.stop();
+        if (spammer.current.status === "running") {
+            spammer.current.stop();
         }
     };
 
@@ -96,7 +96,7 @@ export const PageSpam: React.FC = () =>
                     Epoch {counter.epoch}
                 </div>
                 <div>
-                    <LinkToExplorerObj network={spammer.getSpamClient().network} objId={counter.id} />
+                    <LinkToExplorerObj network={network} objId={counter.id} />
                 </div>
             </div>
 

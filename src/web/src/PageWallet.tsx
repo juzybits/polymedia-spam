@@ -61,8 +61,8 @@ export const PageWallet: React.FC = () =>
 
         const onSubmit = (): void => {
             const pair = pairFromSecretKey(secretKey);
-            if (spammer.status === "running") {
-                spammer.stop();
+            if (spammer.current.status === "running") {
+                spammer.current.stop();
             }
             confirmAndReplaceWallet(pair);
         };
@@ -98,13 +98,13 @@ export const PageWallet: React.FC = () =>
                 <div className="wallet-section">
                     <h4>Your Sui address:</h4>
                     <span className="wallet-key-or-address">
-                        {spammer.getSpamClient().signer.toSuiAddress()}
+                        {spammer.current.getSpamClient().signer.toSuiAddress()}
                     </span>
                 </div>
                 <div className="wallet-section">
                     <h4>Your secret key:</h4>
                     <span className="wallet-key-or-address">
-                        {(spammer.getSpamClient().signer as Ed25519Keypair).getSecretKey()}
+                        {(spammer.current.getSpamClient().signer as Ed25519Keypair).getSecretKey()}
                     </span>
                 </div>
             </div>

@@ -10,7 +10,7 @@ import {
 } from "@polymedia/spam-sdk";
 import { convertBigIntToNumber } from "@polymedia/suits";
 import { LinkExternal, NetworkSelector, isLocalhost, loadNetwork } from "@polymedia/webutils";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BrowserRouter, Link, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import { PageHome } from "./PageHome";
 import { PageNotFound } from "./PageNotFound";
@@ -55,8 +55,9 @@ const loadedNetwork = loadNetwork(supportedNetworks, defaultNetwork);
 export type ReactSetter<T> = React.Dispatch<React.SetStateAction<T>>;
 
 export type AppContext = {
+    network: NetworkName;
     balances: UserBalances;
-    spammer: Spammer;
+    spammer: React.MutableRefObject<Spammer>;
     spamView: SpamView;
     replaceKeypair: (keypair: Ed25519Keypair) => void;
 };
@@ -73,22 +74,28 @@ const emptyBalances = (): UserBalances => {
     return { sui: -1, spam: -1 };
 };
 
+const loadedPair = loadKeypairFromStorage();
+const loadedRpcs = loadRpcEndpointsFromStorage(loadedNetwork);
+
 const App: React.FC = () =>
 {
     /* State */
 
     const inProgress = false;
     const [ showMobileNav, setShowMobileNav ] = useState(false);
+    const [ network, setNetwork ] = useState(loadedNetwork);
+    const [ pair, setPair ] = useState<Ed25519Keypair>(loadedPair);
     const [ balances, setBalances ] = useState<UserBalances>(emptyBalances());
     const [ spamView, setSpamView ] = useState<SpamView>(emptySpamView());
-    const [ spammer, setSpammer ] = useState(new Spammer(
-        loadKeypairFromStorage(),
+    const spammer = useRef(new Spammer(
+        loadedPair,
         loadedNetwork,
-        loadRpcEndpointsFromStorage(loadedNetwork),
+        loadedRpcs,
         spamEventHandler,
     ));
 
     const appContext: AppContext = {
+        network,
         balances,
         spammer,
         spamView,
@@ -101,51 +108,17 @@ const App: React.FC = () =>
     {
         setSpamView(emptySpamView());
         setBalances(emptyBalances());
-
-        /* repaint periodically */
-
-        const updateBalances = async () => {
-            try {
-                const balanceSui = await spammer.getSuiClient().getBalance({
-                    owner: spammer.getSpamClient().signer.toSuiAddress(),
-                });
-                const balanceSpam = await spammer.getSuiClient().getBalance({
-                    owner: spammer.getSpamClient().signer.toSuiAddress(),
-                    coinType: `${spammer.getSpamClient().packageId}::${SPAM_MODULE}::${SPAM_SYMBOL}`,
-                });
-                setBalances({
-                    spam: convertBigIntToNumber(BigInt(balanceSpam.totalBalance), SPAM_DECIMALS),
-                    sui: convertBigIntToNumber(BigInt(balanceSui.totalBalance), SUI_DECIMALS),
-                });
-                // console.info("balance updated");
-            } catch (err) {
-                console.warn("balance update failed");
-            }
-        };
-
-        const updateSpamView = async () => {
-            try {
-                const counters = await spammer.getSpamClient().fetchUserCountersAndClassify();
-                setSpamView(oldView => ({
-                    status: spammer.status,
-                    events: oldView.events,
-                    counters,
-                }));
-                // console.info("view updated");
-            } catch (err) {
-                console.warn("view update failed");
-            }
-        };
-
         updateBalances();
         updateSpamView();
 
-        const updateFrequency = spammer.getSpamClient().network === "localnet" ? 5_000 : 30_000;
+        /* repaint periodically */
+
+        const updateFrequency = spammer.current.getSpamClient().network === "localnet" ? 5_000 : 30_000;
         const updatePeriodically = setInterval(async () => {
-            if (spammer.status == "running") {
+            if (spammer.current.status == "running") {
                 await updateBalances();
             }
-            if (spammer.status != "running") {
+            if (spammer.current.status != "running") {
                 await updateSpamView();
             }
         }, updateFrequency);
@@ -155,7 +128,40 @@ const App: React.FC = () =>
         return () => {
             clearInterval(updatePeriodically);
         };
-    }, [spammer]);
+    }, [network, pair]);
+
+    const updateBalances = async () => {
+        try {
+            const balanceSui = await spammer.current.getSuiClient().getBalance({
+                owner: spammer.current.getSpamClient().signer.toSuiAddress(),
+            });
+            const balanceSpam = await spammer.current.getSuiClient().getBalance({
+                owner: spammer.current.getSpamClient().signer.toSuiAddress(),
+                coinType: `${spammer.current.getSpamClient().packageId}::${SPAM_MODULE}::${SPAM_SYMBOL}`,
+            });
+            setBalances({
+                spam: convertBigIntToNumber(BigInt(balanceSpam.totalBalance), SPAM_DECIMALS),
+                sui: convertBigIntToNumber(BigInt(balanceSui.totalBalance), SUI_DECIMALS),
+            });
+            // console.info("balance updated");
+        } catch (err) {
+            console.warn("balance update failed");
+        }
+    };
+
+    const updateSpamView = async () => {
+        try {
+            const counters = await spammer.current.getSpamClient().fetchUserCountersAndClassify();
+            setSpamView(oldView => ({
+                status: spammer.current.status,
+                events: oldView.events,
+                counters,
+            }));
+            // console.info("view updated");
+        } catch (err) {
+            console.warn("view update failed");
+        }
+    };
 
     function spamEventHandler(e: SpamEvent) {
         console[e.type](`${e.type}: ${e.msg}`);
@@ -167,29 +173,53 @@ const App: React.FC = () =>
                 });
             }
             return {
-                status: spammer.status,
+                status: spammer.current.status,
                 events: oldView.events,
-                counters: spammer.userCounters,
+                counters: spammer.current.userCounters,
             };
         });
         // console.info("on-demand view update");
     }
 
     function replaceKeypair(keypair: Ed25519Keypair): void {
-        if (spammer.status === "running") {
-            spammer.stop();
+        if (spammer.current.status === "running") {
+            spammer.current.stop();
         }
-        const network = spammer.getSpamClient().network;
-        setSpammer(new Spammer(
+        const network = spammer.current.getSpamClient().network;
+        spammer.current = new Spammer(
             keypair,
             network,
             loadRpcEndpointsFromStorage(network),
             spamEventHandler,
-        ));
+        );
+        setPair(keypair);
         saveKeypairToStorage(keypair);
     }
 
     /* HTML */
+
+    const BtnNetwork: React.FC = () =>
+        {
+            const onNetworkChange = (newNet: NetworkName) => {
+                if (spammer.current.status === "running") {
+                    spammer.current.stop();
+                }
+                spammer.current = new Spammer(
+                    spammer.current.getSpamClient().signer,
+                    newNet,
+                    loadRpcEndpointsFromStorage(newNet),
+                    spamEventHandler,
+                );
+                setNetwork(newNet);
+                setShowMobileNav(false);
+            };
+            return <NetworkSelector
+                currentNetwork={(spammer.current.getSpamClient().network as NetworkName)}
+                supportedNetworks={supportedNetworks}
+                disabled={inProgress}
+                onSwitch={onNetworkChange}
+            />;
+        };
 
     const Header: React.FC = () =>
     {
@@ -235,28 +265,6 @@ const App: React.FC = () =>
 
             <BtnNetwork />
         </nav>;
-    };
-
-    const BtnNetwork: React.FC = () =>
-    {
-        const onSwitchNetwork = (newNet: NetworkName) => {
-            if (spammer.status === "running") {
-                spammer.stop();
-            }
-            setSpammer(new Spammer(
-                spammer.getSpamClient().signer,
-                newNet,
-                loadRpcEndpointsFromStorage(newNet),
-                spamEventHandler,
-            ));
-            setShowMobileNav(false);
-        };
-        return <NetworkSelector
-            currentNetwork={(spammer.getSpamClient().network as NetworkName)}
-            supportedNetworks={supportedNetworks}
-            disabled={inProgress}
-            onSwitch={onSwitchNetwork}
-        />;
     };
 
     const BtnMenu: React.FC = () =>

@@ -12,7 +12,7 @@ export const PageStats: React.FC = () =>
     useEffect(() => {
         const initialize = async () => {
             setStats(undefined);
-            const newStats = await spammer.getSpamClient().fetchStatsForRecentEpochs(14);
+            const newStats = await spammer.current.getSpamClient().fetchStatsForRecentEpochs(14);
             setStats(newStats);
         };
         initialize();
