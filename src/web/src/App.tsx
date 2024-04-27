@@ -21,6 +21,7 @@ import { loadKeypairFromStorage, loadRpcEndpointsFromStorage, saveKeypairToStora
 import { SpamView, UserBalances } from "./lib/types";
 import "./styles/.shared.app.less";
 import "./styles/App.less";
+import { StatusSpan } from "./components/StatusSpan";
 
 /* App router */
 
@@ -197,7 +198,7 @@ const App: React.FC = () =>
             </Link>
 
             <span id="status-indicator">
-                {spamView.status}
+                <StatusSpan status={spamView.status} />
             </span>
         </header>;
     };

@@ -1,8 +1,9 @@
-import { SpamStatus, UserCounter } from "@polymedia/spam-sdk";
+import { UserCounter } from "@polymedia/spam-sdk";
 import { formatNumber } from "@polymedia/suits";
 import { LinkToExplorerObj } from "@polymedia/webutils";
 import { Link, useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
+import { StatusSpan } from "./components/StatusSpan";
 
 export const PageSpam: React.FC = () =>
 {
@@ -35,21 +36,6 @@ export const PageSpam: React.FC = () =>
         counters.current || counters.register || counters.claim.length || counters.delete.length
     );
     const isLowSuiBalance = balances.sui < 0.001025;
-
-    const StatusSpan: React.FC<{ // TODO use in nav too
-        status?: SpamStatus;
-    }> = ({
-        status,
-    }) => {
-        if (!status) {
-            return <span>loading</span>;
-        }
-        let color: string;
-        if (status === "stopped") { color = "rgb(255 130 130)"; } // red
-        else if (status === "stopping") { color = "rgb(255 190 71)"; } // orange
-        else { color = "lightgreen"; }
-        return <span style={{color}} >{status}</span>;
-    };
 
     const Balances: React.FC = () => {
         if (!balances) {
@@ -140,7 +126,7 @@ export const PageSpam: React.FC = () =>
             {/* <ErrorBox err={error} /> */}
 
             <div className="tight">
-                <p>Status: <StatusSpan status={spamView?.status} /></p>
+                <p>Status: <StatusSpan status={spamView.status} /></p>
                 <p>Current epoch: {isBootingUp ? "loading... " : counters.epoch}</p>
                 <Balances />
             </div>
@@ -170,7 +156,7 @@ export const PageSpam: React.FC = () =>
             </>}
 
             <h2>Event log</h2> {/* TODO */}
-            <textarea defaultValue={spamView?.lastMessage} />
+            <textarea defaultValue={spamView.lastMessage} />
         </div>
     </>;
 };
