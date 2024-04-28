@@ -16,7 +16,7 @@ export type SpamEvent = {
 export type SpamEventHandler = (event: SpamEvent) => void;
 
 // Rotate to the next RPC endpoint after these many `increment_user_counter` transactions
-const INCREMENT_TXS_UNTIL_ROTATE = 50;
+const TXS_UNTIL_ROTATE = 50;
 const SLEEP_MS_AFTER_RPC_CHANGE = 1000;
 const SLEEP_MS_AFTER_OBJECT_NOT_READY = 1000;
 const SLEEP_MS_AFTER_NETWORK_ERROR = 3000;
@@ -27,7 +27,7 @@ export class Spammer
     public userCounters: UserCounters;
     private requestRefresh: boolean;
     private eventHandler: SpamEventHandler|undefined;
-    private incrementTxsSinceRotate: number;
+    private txsSinceRotate: number;
     private readonly rotator: SpamClientRotator;
     private simulateLatencyOnLocalnet: () => Promise<void>;
 
@@ -41,7 +41,7 @@ export class Spammer
         this.userCounters = emptyUserCounters();
         this.requestRefresh = true; // so when it starts it pulls the data
         this.eventHandler = eventHandler;
-        this.incrementTxsSinceRotate = 0;
+        this.txsSinceRotate = 0;
         this.rotator = new SpamClientRotator(keypair, network, rpcUrls);
         this.simulateLatencyOnLocalnet = async () => {
             if (this.getSpamClient().network === "localnet") {
@@ -110,8 +110,8 @@ export class Spammer
             }
 
             // Rotate RPCs after a few transactions
-            if (this.incrementTxsSinceRotate >= INCREMENT_TXS_UNTIL_ROTATE) {
-                this.incrementTxsSinceRotate = 0;
+            if (this.txsSinceRotate >= TXS_UNTIL_ROTATE) {
+                this.txsSinceRotate = 0;
                 const nextClient = this.rotator.nextSpamClient();
                 this.onEvent({ type: "info", msg: `Rotating to next RPC: ${nextClient.rpcUrl}` });
                 await sleep(SLEEP_MS_AFTER_RPC_CHANGE);
@@ -172,7 +172,7 @@ export class Spammer
             // Increment current counter
             else {
                 await this.simulateLatencyOnLocalnet();
-                this.incrementTxsSinceRotate += 1; // only count this kind of tx towards rotation limit
+                this.txsSinceRotate += 1;
                 const curr = counters.current;
                 const resp = await this.getSpamClient().incrementUserCounter(curr.ref);
                 curr.tx_count++;
@@ -200,11 +200,13 @@ export class Spammer
             // The validator didn't pick up the object changes yet. Often happens when changing RPCs.
             else if ( errStr.includes("ObjectNotFound") || errStr.includes("not available for consumption") ) {
                 this.onEvent({ type: "debug", msg: `Validator didn't sync yet. Retrying shortly. RPC: ${this.getSpamClient().rpcUrl}.` });
+                this.txsSinceRotate += 5; // spend less time on slow RPCs
                 await sleep(SLEEP_MS_AFTER_OBJECT_NOT_READY);
             }
             // Network error
             else if ( errStr.includes("Failed to fetch") ) {
                 this.onEvent({ type: "info", msg: `Network error. Retrying shortly. Original error: ${errStr}` });
+                this.txsSinceRotate += 10; // spend less time on failing RPCs
                 await sleep(SLEEP_MS_AFTER_NETWORK_ERROR);
             }
             // Unexpected error
