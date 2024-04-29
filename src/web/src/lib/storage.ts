@@ -32,8 +32,8 @@ export function pairFromSecretKey(secretKey: string): Ed25519Keypair {
 /* RPC URLs */
 
 export type RpcUrl = {
-    url: string,
-    enabled: boolean,
+    url: string;
+    enabled: boolean;
 };
 
 export function loadRpcUrlsFromStorage(network: NetworkName): RpcUrl[] {

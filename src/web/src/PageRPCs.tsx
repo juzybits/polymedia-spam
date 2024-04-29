@@ -8,6 +8,8 @@ export const PageRPCs: React.FC = () =>
     const { spamView, rpcUrls, replaceRpcUrls } = useOutletContext<AppContext>();
 
     const [ rpcs, setRpcs ] = useState<RpcUrl[]>([...rpcUrls]);
+    const [ hasChanges, setHasChange ] = useState<boolean>(false);
+    const [ showSavedMessage, setShowSavedMessage ] = useState<boolean>(false);
 
     const onCheckboxChange = (url: string) => {
         setRpcs(prevRpcs =>
@@ -15,10 +17,14 @@ export const PageRPCs: React.FC = () =>
                 rpc.url !== url ? rpc : { ...rpc, enabled: !rpc.enabled }
             )
         );
+        setHasChange(true);
     };
 
     const onSubmit = () => {
         replaceRpcUrls(rpcs);
+        setHasChange(false);
+        setShowSavedMessage(true);
+        setTimeout(() => { setShowSavedMessage(false); }, 2000);
     };
 
     return <>
@@ -47,9 +53,12 @@ export const PageRPCs: React.FC = () =>
                 </div>
             ))}
             <p>
-                <button className="btn" onClick={onSubmit}>
+                <button className="btn" onClick={onSubmit} disabled={!hasChanges}>
                     {spamView.status === "running" ? "Save and restart" : "Save"}
                 </button>
+                {showSavedMessage &&
+                    <div style={{color: "lightgreen", paddingLeft: "0.9rem"}}>Done!</div>
+                }
             </p>
         </div>
     </>;

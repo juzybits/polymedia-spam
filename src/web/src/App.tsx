@@ -234,7 +234,7 @@ const App: React.FC = () =>
         );
         setNetwork(newNet);
         setShowMobileNav(false);
-    };
+    }
 
     /* HTML */
 
