@@ -204,7 +204,8 @@ const App: React.FC = () =>
     }
 
     function replaceRpcUrls(newRpcs: RpcUrl[]): void {
-        if (spammer.current.status === "running") { // maybe restart
+        const wasRunning = spammer.current.status === "running";
+        if (wasRunning) {
             spammer.current.stop();
         }
         spammer.current = new Spammer(
@@ -215,6 +216,9 @@ const App: React.FC = () =>
         );
         setRpcUrls(newRpcs);
         saveRpcUrlsToStorage(newRpcs);
+        if (wasRunning) {
+            spammer.current.start();
+        }
     }
 
     /* HTML */

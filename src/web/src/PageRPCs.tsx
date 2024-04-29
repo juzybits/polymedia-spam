@@ -5,7 +5,7 @@ import { RpcUrl } from "./lib/storage";
 
 export const PageRPCs: React.FC = () =>
 {
-    const { network, rpcUrls, replaceRpcUrls } = useOutletContext<AppContext>();
+    const { spamView, rpcUrls, replaceRpcUrls } = useOutletContext<AppContext>();
 
     const [ rpcs, setRpcs ] = useState<RpcUrl[]>([...rpcUrls]);
 
@@ -24,8 +24,6 @@ export const PageRPCs: React.FC = () =>
     return <>
         <h1><span className="rainbow">RPCs</span></h1>
 
-        <p>Network: {network}</p>
-
         <div id="rpc-selector">
             {rpcs.map(rpc => (
                 <div key={rpc.url} className="rpc">
@@ -39,7 +37,11 @@ export const PageRPCs: React.FC = () =>
                 </label>
                 </div>
             ))}
-            <button className="btn" onClick={onSubmit}>Save</button>
+            <p>
+                <button className="btn" onClick={onSubmit}>
+                    {spamView.status === "running" ? "Save and restart" : "Save"}
+                </button>
+            </p>
         </div>
     </>;
 };
