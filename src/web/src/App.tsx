@@ -101,16 +101,16 @@ const App: React.FC = () =>
         loadedPair,
         loadedNetwork,
         loadedRpcs.filter(rpc => rpc.enabled).map(rpc => rpc.url),
-        spamEventHandler,
+        handleSpamEvent,
     ));
 
     const appContext: AppContext = {
         network,
-        rpcUrls, replaceRpcUrls,
+        rpcUrls, replaceRpcUrls: updateRpcUrls,
         balances,
         spammer,
         spamView,
-        replaceKeypair,
+        replaceKeypair: updateKeypair,
     };
 
     /* Functions */
@@ -119,6 +119,7 @@ const App: React.FC = () =>
     {
         setSpamView(emptySpamView());
         setBalances(emptyBalances());
+
         updateBalances();
         updateSpamView();
 
@@ -171,7 +172,7 @@ const App: React.FC = () =>
         }
     };
 
-    function spamEventHandler(e: SpamEvent) {
+    function handleSpamEvent(e: SpamEvent) {
         console[e.type](`${e.type}: ${e.msg}`);
         setSpamView(oldView => {
             if (e.type !== "debug") {
@@ -189,7 +190,7 @@ const App: React.FC = () =>
         // console.info("on-demand view update");
     }
 
-    function replaceKeypair(newPair: Ed25519Keypair): void {
+    function updateKeypair(newPair: Ed25519Keypair): void {
         if (spammer.current.status === "running") {
             spammer.current.stop();
         }
@@ -197,13 +198,13 @@ const App: React.FC = () =>
             newPair,
             network,
             loadRpcUrlsFromStorage(network).filter(rpc => rpc.enabled).map(rpc => rpc.url),
-            spamEventHandler,
+            handleSpamEvent,
         );
         setPair(newPair);
         saveKeypairToStorage(newPair);
     }
 
-    function replaceRpcUrls(newRpcs: RpcUrl[]): void {
+    function updateRpcUrls(newRpcs: RpcUrl[]): void {
         const wasRunning = spammer.current.status === "running";
         if (wasRunning) {
             spammer.current.stop();
@@ -212,7 +213,7 @@ const App: React.FC = () =>
             pair,
             network,
             newRpcs.filter(rpc => rpc.enabled).map(rpc => rpc.url),
-            spamEventHandler,
+            handleSpamEvent,
         );
         setRpcUrls(newRpcs);
         saveRpcUrlsToStorage(newRpcs);
@@ -221,28 +222,29 @@ const App: React.FC = () =>
         }
     }
 
+    function updateNetwork(newNet: NetworkName) {
+        if (spammer.current.status === "running") {
+            spammer.current.stop();
+        }
+        spammer.current = new Spammer(
+            pair,
+            newNet,
+            loadRpcUrlsFromStorage(newNet).filter(rpc => rpc.enabled).map(rpc => rpc.url),
+            handleSpamEvent,
+        );
+        setNetwork(newNet);
+        setShowMobileNav(false);
+    };
+
     /* HTML */
 
     const BtnNetwork: React.FC = () =>
         {
-            const onNetworkChange = (newNet: NetworkName) => {
-                if (spammer.current.status === "running") {
-                    spammer.current.stop();
-                }
-                spammer.current = new Spammer(
-                    pair,
-                    newNet,
-                    loadRpcUrlsFromStorage(newNet).filter(rpc => rpc.enabled).map(rpc => rpc.url),
-                    spamEventHandler,
-                );
-                setNetwork(newNet);
-                setShowMobileNav(false);
-            };
             return <NetworkSelector
                 currentNetwork={network}
                 supportedNetworks={supportedNetworks}
                 disabled={inProgress}
-                onSwitch={onNetworkChange}
+                onSwitch={updateNetwork}
             />;
         };
 
