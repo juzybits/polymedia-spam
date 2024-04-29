@@ -79,9 +79,15 @@ export const PageSpam: React.FC = () =>
         type,
         counter,
     }) => {
+        let txClass = "";
         let status: string;
         if (type === "current") {
-            status = spamView.status === "running" ? "spamming" : "ready to spam";
+            if (spamView.status === "running") {
+                status = "spamming";
+                txClass = "blink";
+            } else {
+                status = isLowSuiBalance ? "top up to spam" : "ready to spam";
+            }
         }
         else if (type === "register") {
             status = !counter.registered ? "ready to register" : "claim on next epoch";
@@ -103,7 +109,7 @@ export const PageSpam: React.FC = () =>
             </div>
 
             <div>
-                <div>
+                <div className={txClass}>
                     {counter.tx_count} txs
                 </div>
                 <div>
