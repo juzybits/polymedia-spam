@@ -216,7 +216,7 @@ const App: React.FC = () =>
             handleSpamEvent,
         );
         setRpcUrls(newRpcs);
-        saveRpcUrlsToStorage(newRpcs);
+        saveRpcUrlsToStorage(network, newRpcs);
         if (wasRunning) {
             spammer.current.start();
         }

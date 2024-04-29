@@ -41,7 +41,7 @@ export const PageRPCs: React.FC = () =>
     const onResetRpcs = () => {
         setRpcs(RPC_ENDPOINTS[network].map(rpcUrl => {
             return { url: rpcUrl, enabled: true };
-        }))
+        }));
         setHasChange(true);
     };
 

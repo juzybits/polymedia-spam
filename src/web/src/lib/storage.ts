@@ -3,10 +3,9 @@ import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
 import { RPC_ENDPOINTS } from "@polymedia/spam-sdk";
 import { NetworkName } from "@polymedia/suits";
 
-const keySecretKey = "spam.secretKey";
-const keyRpcUrls = "spam.rpcUrls";
-
 /* Key pair */
+
+const keySecretKey = "spam.secretKey";
 
 export function loadKeypairFromStorage(): Ed25519Keypair {
     const secretKey = localStorage.getItem(keySecretKey);
@@ -31,25 +30,27 @@ export function pairFromSecretKey(secretKey: string): Ed25519Keypair {
 
 /* RPC URLs */
 
+const keyRpcUrlsBase = "spam.rpcUrls.";
+
 export type RpcUrl = {
     url: string;
     enabled: boolean;
 };
 
 export function loadRpcUrlsFromStorage(network: NetworkName): RpcUrl[] {
-    const rawRpcUrls = localStorage.getItem(keyRpcUrls);
+    const rawRpcUrls = localStorage.getItem(keyRpcUrlsBase + network);
     let rpcUrls: RpcUrl[];
     if (!rawRpcUrls) {
         rpcUrls = getDefaultRpcUrls(network);
-        saveRpcUrlsToStorage(rpcUrls);
+        saveRpcUrlsToStorage(network, rpcUrls);
     } else {
         rpcUrls = JSON.parse(rawRpcUrls) as RpcUrl[];
     }
     return rpcUrls;
 }
 
-export function saveRpcUrlsToStorage(rpcUrls: RpcUrl[]): void {
-    localStorage.setItem(keyRpcUrls, JSON.stringify(rpcUrls));
+export function saveRpcUrlsToStorage(network: string, rpcUrls: RpcUrl[]): void {
+    localStorage.setItem(keyRpcUrlsBase + network, JSON.stringify(rpcUrls));
 }
 
 function getDefaultRpcUrls(network: NetworkName): RpcUrl[] {
