@@ -8,7 +8,7 @@ import {
     Spammer,
     emptyUserCounters,
 } from "@polymedia/spam-sdk";
-import { convertBigIntToNumber } from "@polymedia/suits";
+import { convertBigIntToNumber, sleep } from "@polymedia/suits";
 import { LinkExternal, NetworkSelector, isLocalhost, loadNetwork } from "@polymedia/webutils";
 import { useEffect, useRef, useState } from "react";
 import { BrowserRouter, Link, Outlet, Route, Routes, useLocation } from "react-router-dom";
@@ -64,7 +64,7 @@ export type ReactSetter<T> = React.Dispatch<React.SetStateAction<T>>;
 
 export type AppContext = {
     network: NetworkName;
-    rpcUrls: RpcUrl[]; replaceRpcUrls: (newRpcs: RpcUrl[]) => void;
+    rpcUrls: RpcUrl[]; updateRpcUrls: (newRpcs: RpcUrl[]) => Promise<void>;
     balances: UserBalances;
     spammer: React.MutableRefObject<Spammer>;
     spamView: SpamView;
@@ -105,7 +105,7 @@ const App: React.FC = () =>
 
     const appContext: AppContext = {
         network,
-        rpcUrls, replaceRpcUrls: updateRpcUrls,
+        rpcUrls, updateRpcUrls,
         balances,
         spammer,
         spamView,
@@ -201,7 +201,7 @@ const App: React.FC = () =>
         saveKeypairToStorage(newPair);
     }
 
-    function updateRpcUrls(newRpcs: RpcUrl[]): void {
+    async function updateRpcUrls(newRpcs: RpcUrl[]): Promise<void> {
         const wasRunning = spammer.current.status === "running";
         if (wasRunning) {
             spammer.current.stop();
@@ -215,6 +215,7 @@ const App: React.FC = () =>
         setRpcUrls(newRpcs);
         saveRpcUrlsToStorage(network, newRpcs);
         if (wasRunning) {
+            await sleep(3000); // hack, should start after the previous Spammer shuts down
             spammer.current.start();
         }
     }

@@ -6,7 +6,7 @@ import { RPC_ENDPOINTS } from "@polymedia/spam-sdk";
 
 export const PageRPCs: React.FC = () =>
 {
-    const { network, spammer, rpcUrls, replaceRpcUrls } = useOutletContext<AppContext>();
+    const { network, spammer, rpcUrls, updateRpcUrls } = useOutletContext<AppContext>();
 
     const [ rpcs, setRpcs ] = useState<RpcUrl[]>([...rpcUrls]);
     const [ newRpcUrl, setNewRpcUrl ] = useState("");
@@ -28,8 +28,8 @@ export const PageRPCs: React.FC = () =>
         setHasChange(true);
     };
 
-    const onSubmit = () => {
-        replaceRpcUrls(rpcs);
+    const onSubmit = async () => {
+        await updateRpcUrls(rpcs);
         setHasChange(false);
         setShowSavedMessage(true);
         setTimeout(() => { setShowSavedMessage(false); }, 2000);
