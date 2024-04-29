@@ -133,12 +133,38 @@ export class SpamClient
         //         ref: {
         //             objectId: "0x2222222222222222",
         //             version: "222",
-        //             digest: "zzzzzzzzz",
+        //             digest: "bbbbbbbbb",
         //         },
         //         epoch: currEpoch -1,
         //         tx_count: 222,
         //         registered: true,
         //     };
+        // }
+        // if (counters.claim.length === 0) {
+        //     counters.claim = [{
+        //         id: "0x3333333333333333",
+        //         ref: {
+        //             objectId: "0x3333333333333333",
+        //             version: "333",
+        //             digest: "ccccccccc",
+        //         },
+        //         epoch: currEpoch -1,
+        //         tx_count: 333,
+        //         registered: true,
+        //     }];
+        // }
+        // if (counters.delete.length === 0) {
+        //     counters.delete = [{
+        //         id: "0x4444444444444444",
+        //         ref: {
+        //             objectId: "0x4444444444444444",
+        //             version: "444",
+        //             digest: "ddddddddd",
+        //         },
+        //         epoch: currEpoch -1,
+        //         tx_count: 444,
+        //         registered: false,
+        //     }];
         // }
 
         return counters;

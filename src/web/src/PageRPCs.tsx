@@ -17,7 +17,6 @@ export const PageRPCs: React.FC = () =>
         setRpcs([...rpcUrls]);
         setNewRpcUrl("");
         setHasChange(false);
-        setShowSavedMessage(false);
     }, [rpcUrls]);
 
     const onCheckboxChange = (url: string) => {
