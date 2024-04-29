@@ -70,9 +70,21 @@ export class SpamClientRotator
       }
 }
 
-export const RPC_ENDPOINTS: Record<NetworkName, string[]> = {
+export const RPC_ENDPOINTS: Record<NetworkName, string[]> = { // TODO test mainnet RPCs
     "mainnet": [
         getFullnodeUrl("mainnet"),
+        "https://mainnet.suiet.app",
+        "https://rpc-mainnet.suiscan.xyz",
+        "https://sui-mainnet-endpoint.blockvision.org",
+        "https://sui-mainnet.public.blastapi.io",
+        "https://sui.publicnode.com",
+        "https://sui-mainnet-rpc.bartestnet.com",
+        "https://sui-mainnet-ca-2.cosmostation.io",
+        "https://sui-mainnet-eu-4.cosmostation.io",
+        "https://sui-mainnet-us-2.cosmostation.io",
+        "https://sui-mainnet-rpc.allthatnode.com",
+        "https://sui-mainnet.nodeinfra.com",
+        "https://sui1mainnet-rpc.chainode.tech",
     ],
     "testnet": [
         getFullnodeUrl("testnet"),
