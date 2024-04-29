@@ -37,6 +37,24 @@ header {
     }
 }
 
+#rpc-selector {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    font-size: 1.1rem;
+    padding: 1rem;
+    font-weight: @text-weight;
+    .rpc {
+        *:hover {
+            cursor: pointer;
+        }
+        input[type=checkbox] {
+            margin-right: 0.5rem;
+        }
+    }
+}
+
 #wallet-info {
     display: flex;
     justify-content: center;

@@ -151,6 +151,11 @@ export const PageSpam: React.FC = () =>
                 <Balances />
             </div>
 
+            <div className="tight">
+                <p>Current RPC:</p>
+                <p>{spammer.current.getSpamClient().rpcUrl}</p>
+            </div>
+
             <TopUp />
 
             <SpamOrStopButton />

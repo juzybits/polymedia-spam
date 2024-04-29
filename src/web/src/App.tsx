@@ -19,7 +19,13 @@ import { PageSpam } from "./PageSpam";
 import { PageStats } from "./PageStats";
 import { PageWallet } from "./PageWallet";
 import { StatusSpan } from "./components/StatusSpan";
-import { loadKeypairFromStorage, loadRpcUrlsFromStorage, saveKeypairToStorage, saveRpcUrlsToStorage } from "./lib/storage";
+import {
+    RpcUrl,
+    loadKeypairFromStorage,
+    loadRpcUrlsFromStorage,
+    saveKeypairToStorage,
+    saveRpcUrlsToStorage,
+} from "./lib/storage";
 import { SpamView, UserBalances } from "./lib/types";
 import "./styles/.shared.app.less";
 import "./styles/App.less";
@@ -58,7 +64,7 @@ export type ReactSetter<T> = React.Dispatch<React.SetStateAction<T>>;
 
 export type AppContext = {
     network: NetworkName;
-    rpcUrls: string[]; replaceRpcUrls: (newRpcs: string[]) => void;
+    rpcUrls: RpcUrl[]; replaceRpcUrls: (newRpcs: RpcUrl[]) => void;
     balances: UserBalances;
     spammer: React.MutableRefObject<Spammer>;
     spamView: SpamView;
@@ -88,13 +94,13 @@ const App: React.FC = () =>
     const [ showMobileNav, setShowMobileNav ] = useState(false);
     const [ network, setNetwork ] = useState(loadedNetwork);
     const [ pair, setPair ] = useState<Ed25519Keypair>(loadedPair);
-    const [ rpcUrls, setRpcUrls ] = useState<string[]>(loadedRpcs);
+    const [ rpcUrls, setRpcUrls ] = useState<RpcUrl[]>(loadedRpcs);
     const [ balances, setBalances ] = useState<UserBalances>(emptyBalances());
     const [ spamView, setSpamView ] = useState<SpamView>(emptySpamView());
     const spammer = useRef(new Spammer(
         loadedPair,
         loadedNetwork,
-        loadedRpcs,
+        loadedRpcs.filter(rpc => rpc.enabled).map(rpc => rpc.url),
         spamEventHandler,
     ));
 
@@ -190,21 +196,21 @@ const App: React.FC = () =>
         spammer.current = new Spammer(
             newPair,
             network,
-            loadRpcUrlsFromStorage(network),
+            loadRpcUrlsFromStorage(network).filter(rpc => rpc.enabled).map(rpc => rpc.url),
             spamEventHandler,
         );
         setPair(newPair);
         saveKeypairToStorage(newPair);
     }
 
-    function replaceRpcUrls(newRpcs: string[]): void {
+    function replaceRpcUrls(newRpcs: RpcUrl[]): void {
         if (spammer.current.status === "running") { // maybe restart
             spammer.current.stop();
         }
         spammer.current = new Spammer(
             pair,
             network,
-            newRpcs,
+            newRpcs.filter(rpc => rpc.enabled).map(rpc => rpc.url),
             spamEventHandler,
         );
         setRpcUrls(newRpcs);
@@ -222,7 +228,7 @@ const App: React.FC = () =>
                 spammer.current = new Spammer(
                     pair,
                     newNet,
-                    loadRpcUrlsFromStorage(newNet),
+                    loadRpcUrlsFromStorage(newNet).filter(rpc => rpc.enabled).map(rpc => rpc.url),
                     spamEventHandler,
                 );
                 setNetwork(newNet);

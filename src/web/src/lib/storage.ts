@@ -31,18 +31,29 @@ export function pairFromSecretKey(secretKey: string): Ed25519Keypair {
 
 /* RPC URLs */
 
-export function loadRpcUrlsFromStorage(network: NetworkName): string[] {
+export type RpcUrl = {
+    url: string,
+    enabled: boolean,
+};
+
+export function loadRpcUrlsFromStorage(network: NetworkName): RpcUrl[] {
     const rawRpcUrls = localStorage.getItem(keyRpcUrls);
-    let rpcUrls: string[];
+    let rpcUrls: RpcUrl[];
     if (!rawRpcUrls) {
-        rpcUrls = RPC_ENDPOINTS[network];
+        rpcUrls = getDefaultRpcUrls(network);
         saveRpcUrlsToStorage(rpcUrls);
     } else {
-        rpcUrls = JSON.parse(rawRpcUrls) as string[];
+        rpcUrls = JSON.parse(rawRpcUrls) as RpcUrl[];
     }
     return rpcUrls;
 }
 
-export function saveRpcUrlsToStorage(rpcUrls: string[]): void {
+export function saveRpcUrlsToStorage(rpcUrls: RpcUrl[]): void {
     localStorage.setItem(keyRpcUrls, JSON.stringify(rpcUrls));
+}
+
+function getDefaultRpcUrls(network: NetworkName): RpcUrl[] {
+    return RPC_ENDPOINTS[network].map(url => {
+        return { url, enabled: true };
+    });
 }
