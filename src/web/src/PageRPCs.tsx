@@ -8,6 +8,7 @@ export const PageRPCs: React.FC = () =>
     const { spamView, rpcUrls, replaceRpcUrls } = useOutletContext<AppContext>();
 
     const [ rpcs, setRpcs ] = useState<RpcUrl[]>([...rpcUrls]);
+    const [ newRpcUrl, setNewRpcUrl ] = useState("");
     const [ hasChanges, setHasChange ] = useState<boolean>(false);
     const [ showSavedMessage, setShowSavedMessage ] = useState<boolean>(false);
 
@@ -25,6 +26,15 @@ export const PageRPCs: React.FC = () =>
         setHasChange(false);
         setShowSavedMessage(true);
         setTimeout(() => { setShowSavedMessage(false); }, 2000);
+    };
+
+    const onAddRpcUrl = () => {
+        const trimmedUrl = newRpcUrl.trim();
+        if (trimmedUrl && !rpcs.find(rpc => rpc.url === trimmedUrl)) {
+            setRpcs(rpcs.concat({ url: trimmedUrl, enabled: true }));
+            setNewRpcUrl("");
+            setHasChange(true);
+        }
     };
 
     return <>
@@ -60,6 +70,17 @@ export const PageRPCs: React.FC = () =>
                     <div style={{color: "lightgreen", paddingLeft: "0.9rem"}}>Done!</div>
                 }
             </p>
+
+            <div>
+                <input
+                    type="text"
+                    value={newRpcUrl}
+                    onChange={e => setNewRpcUrl(e.target.value)}
+                    placeholder="Add new RPC"
+                />
+                <br/>
+                <button className="btn" onClick={onAddRpcUrl}>Add</button>
+            </div>
         </div>
     </>;
 };
