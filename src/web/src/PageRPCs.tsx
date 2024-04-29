@@ -48,38 +48,40 @@ export const PageRPCs: React.FC = () =>
     return <>
         <h1><span className="rainbow">RPCs</span></h1>
 
-        <div className="tight">
+        <div id="page-rpc" className="tight">
             <p>
                 You can choose which RPCs to use for spamming transactions.
             </p>
             <p>
                 The app rotates between enabled RPCs to avoid hitting rate limits.
             </p>
-        </div>
 
-        <div id="rpc-selector">
-            {rpcs.map(rpc => (
-                <div key={rpc.url} className="rpc">
-                <label>
-                    <input
-                        type="checkbox"
-                        checked={rpc.enabled}
-                        onChange={() => onCheckboxChange(rpc.url)}
-                    />
-                    {rpc.url}
-                </label>
+            <div id="rpc-selector">
+                {rpcs.map(rpc => (
+                    <div key={rpc.url} className="rpc">
+                    <label>
+                        <input
+                            type="checkbox"
+                            checked={rpc.enabled}
+                            onChange={() => onCheckboxChange(rpc.url)}
+                        />
+                        {rpc.url}
+                    </label>
+                    </div>
+                ))}
+
+                <div>
+                    <button className="btn" onClick={onSubmit} disabled={!hasChanges}>
+                        {spammer.current.status === "running" ? "Save and restart" : "Save"}
+                    </button>
+                    {showSavedMessage &&
+                        <div style={{color: "lightgreen"}}>Done!</div>
+                    }
                 </div>
-            ))}
-            <div>
-                <button className="btn" onClick={onSubmit} disabled={!hasChanges}>
-                    {spammer.current.status === "running" ? "Save and restart" : "Save"}
-                </button>
-                {showSavedMessage &&
-                    <div style={{color: "lightgreen", paddingLeft: "0.9rem"}}>Done!</div>
-                }
             </div>
 
-            <div>
+            <div className="subsection">
+                <p>You can also add a custom RPC:</p>
                 <input
                     type="text"
                     value={newRpcUrl}
@@ -87,15 +89,14 @@ export const PageRPCs: React.FC = () =>
                     placeholder="Add new RPC"
                 />
                 <br/>
-                <button className="btn" onClick={onAddRpcUrl}>Add</button>
+                <button className="btn" onClick={onAddRpcUrl}>Add RPC</button>
             </div>
 
-            <div>
-                <p>
+            <div className="subsection">
+                <p>Restore the default RPC list:</p>
                 <button className="btn" onClick={onResetRpcs}>
-                    Reset RPC list
+                    Reset RPCs
                 </button>
-                </p>
             </div>
         </div>
     </>;

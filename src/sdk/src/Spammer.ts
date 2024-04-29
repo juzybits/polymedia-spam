@@ -80,7 +80,7 @@ export class Spammer
         if (this.status === "stopped") {
             this.status = "running";
             this.spam();
-            this.onEvent({ type: "info", msg: `Starting with RPC: ${this.getSpamClient().rpcUrl}` });
+            this.onEvent({ type: "info", msg: "Starting"});
         }
     }
 
@@ -113,7 +113,7 @@ export class Spammer
             if (this.txsSinceRotate >= TXS_UNTIL_ROTATE) {
                 this.txsSinceRotate = 0;
                 const nextClient = this.rotator.nextSpamClient();
-                this.onEvent({ type: "info", msg: `Rotating to next RPC: ${nextClient.rpcUrl}` });
+                this.onEvent({ type: "debug", msg: `Rotating to next RPC: ${nextClient.rpcUrl}` });
                 await sleep(SLEEP_MS_AFTER_RPC_CHANGE);
             }
 
