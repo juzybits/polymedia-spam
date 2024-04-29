@@ -197,7 +197,7 @@ const App: React.FC = () =>
         spammer.current = new Spammer(
             newPair,
             network,
-            loadRpcUrlsFromStorage(network).filter(rpc => rpc.enabled).map(rpc => rpc.url),
+            rpcUrls.filter(rpc => rpc.enabled).map(rpc => rpc.url),
             handleSpamEvent,
         );
         setPair(newPair);
@@ -226,13 +226,15 @@ const App: React.FC = () =>
         if (spammer.current.status === "running") {
             spammer.current.stop();
         }
+        const loadedRpcs = loadRpcUrlsFromStorage(newNet);
         spammer.current = new Spammer(
             pair,
             newNet,
-            loadRpcUrlsFromStorage(newNet).filter(rpc => rpc.enabled).map(rpc => rpc.url),
+            loadedRpcs.filter(rpc => rpc.enabled).map(rpc => rpc.url),
             handleSpamEvent,
         );
         setNetwork(newNet);
+        setRpcUrls(loadedRpcs);
         setShowMobileNav(false);
     }
 

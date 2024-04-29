@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
 import { RpcUrl } from "./lib/storage";
@@ -6,12 +6,19 @@ import { RPC_ENDPOINTS } from "@polymedia/spam-sdk";
 
 export const PageRPCs: React.FC = () =>
 {
-    const { network, spammer, rpcUrls, replaceRpcUrls } = useOutletContext<AppContext>();
+    const { network, spamView, rpcUrls, replaceRpcUrls } = useOutletContext<AppContext>();
 
     const [ rpcs, setRpcs ] = useState<RpcUrl[]>([...rpcUrls]);
     const [ newRpcUrl, setNewRpcUrl ] = useState("");
     const [ hasChanges, setHasChange ] = useState<boolean>(false);
     const [ showSavedMessage, setShowSavedMessage ] = useState<boolean>(false);
+
+    useEffect(() => {
+        setRpcs([...rpcUrls]);
+        setNewRpcUrl("");
+        setHasChange(false);
+        setShowSavedMessage(false);
+    }, [rpcUrls]);
 
     const onCheckboxChange = (url: string) => {
         setRpcs(prevRpcs =>
@@ -72,7 +79,7 @@ export const PageRPCs: React.FC = () =>
 
                 <div>
                     <button className="btn" onClick={onSubmit} disabled={!hasChanges}>
-                        {spammer.current.status === "running" ? "Save and restart" : "Save"}
+                        {spamView.status === "running" ? "Save and restart" : "Save"}
                     </button>
                     {showSavedMessage &&
                         <div style={{color: "lightgreen"}}>Done!</div>
