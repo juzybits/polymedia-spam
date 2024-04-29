@@ -60,7 +60,7 @@ export class Spammer
         this.eventHandler = undefined;
     }
 
-    private onEvent(event: SpamEvent) {
+    private event(event: SpamEvent) {
         this.eventHandler && this.eventHandler(event);
     }
 
@@ -80,14 +80,14 @@ export class Spammer
         if (this.status === "stopped") {
             this.status = "running";
             this.spam();
-            this.onEvent({ type: "info", msg: "Starting"});
+            this.event({ type: "info", msg: "Starting"});
         }
     }
 
     public stop() {
         if (this.status === "running") {
             this.status = "stopping";
-            this.onEvent({ type: "info", msg: "Shutting down" });
+            this.event({ type: "info", msg: "Shutting down" });
         }
     }
 
@@ -98,7 +98,7 @@ export class Spammer
         if (this.status === "stopping") {
             this.status = "stopped";
             this.requestRefresh = true; // so when it starts again it pulls fresh data
-            this.onEvent({ type: "info", msg: "Stopped as requested" });
+            this.event({ type: "info", msg: "Stopped as requested" });
             return;
         }
         try
@@ -113,7 +113,7 @@ export class Spammer
             if (this.txsSinceRotate >= TXS_UNTIL_ROTATE) {
                 this.txsSinceRotate = 0;
                 const nextClient = this.rotator.nextSpamClient();
-                this.onEvent({ type: "debug", msg: `Rotating to next RPC: ${nextClient.rpcUrl}` });
+                this.event({ type: "debug", msg: `Rotating to next RPC: ${nextClient.rpcUrl}` });
                 await sleep(SLEEP_MS_AFTER_RPC_CHANGE);
             }
 
@@ -122,12 +122,12 @@ export class Spammer
             // Register counter
             if (counters.register !== null && !counters.register.registered)
             {
-                this.onEvent({ type: "info", msg: "Registering counter: " + shortenSuiAddress(counters.register.id) });
+                this.event({ type: "info", msg: "Registering counter: " + shortenSuiAddress(counters.register.id) });
                 await this.simulateLatencyOnLocalnet();
                 this.requestRefresh = true;
                 const resp = await this.getSpamClient().registerUserCounter(counters.register.id);
                 counters.register.registered = true;
-                this.onEvent({
+                this.event({
                     type: "debug",
                     msg: `registerUserCounter resp: ${resp.effects?.status.status}`,
                 });
@@ -136,13 +136,13 @@ export class Spammer
             // Claim counters
             if (counters.claim.length > 0)
             {
-                this.onEvent({ type: "info", msg: "Claiming counters: " + counters.claim.map(c => shortenSuiAddress(c.id)).join(", ") });
+                this.event({ type: "info", msg: "Claiming counters: " + counters.claim.map(c => shortenSuiAddress(c.id)).join(", ") });
                 await this.simulateLatencyOnLocalnet();
                 this.requestRefresh = true;
                 const counterIds = counters.claim.map(counter => counter.id);
                 const resp = await this.getSpamClient().claimUserCounters(counterIds);
                 counters.claim = [];
-                this.onEvent({
+                this.event({
                     type: "debug",
                     msg: `destroyUserCounters resp: ${resp.effects?.status.status}`,
                 });
@@ -151,23 +151,23 @@ export class Spammer
             // Delete unusable counters
             if (counters.delete.length > 0)
             {
-                this.onEvent({ type: "info", msg: "Deleting counters: " + counters.delete.map(c => shortenSuiAddress(c.id)).join(", ") });
+                this.event({ type: "info", msg: "Deleting counters: " + counters.delete.map(c => shortenSuiAddress(c.id)).join(", ") });
                 await this.simulateLatencyOnLocalnet();
                 this.requestRefresh = true;
                 const counterIds = counters.delete.map(counter => counter.id);
                 const resp = await this.getSpamClient().destroyUserCounters(counterIds);
                 counters.delete = [];
-                this.onEvent({ type: "debug", msg: `destroyUserCounters resp: ${resp.effects?.status.status}` });
+                this.event({ type: "debug", msg: `destroyUserCounters resp: ${resp.effects?.status.status}` });
             }
 
             // Create counter for current epoch
             if (counters.current === null)
             {
-                this.onEvent({ type: "info", msg: "Creating counter" });
+                this.event({ type: "info", msg: "Creating counter" });
                 await this.simulateLatencyOnLocalnet();
                 this.requestRefresh = true;
                 const resp = await this.getSpamClient().newUserCounter();
-                this.onEvent({ type: "debug", msg: `newUserCounter resp: ${resp.effects?.status.status}` });
+                this.event({ type: "debug", msg: `newUserCounter resp: ${resp.effects?.status.status}` });
             }
             // Increment current counter
             else {
@@ -180,7 +180,7 @@ export class Spammer
                 curr.ref = resp.effects!.mutated!.find(mutatedObj =>
                     mutatedObj.reference.objectId == curr.id
                 )!.reference;
-                this.onEvent({ type: "debug", msg: `incrementUserCounter resp: ${resp.effects?.status.status}` });
+                this.event({ type: "debug", msg: `incrementUserCounter resp: ${resp.effects?.status.status}` });
             }
         }
         catch (err) {
@@ -190,28 +190,28 @@ export class Spammer
             // When the epoch changes, the counter is no longer incrementable
             if (errCode === SpamError.EWrongEpoch) {
                 this.requestRefresh = true;
-                this.onEvent({ type: "info", msg: "Epoch change"});
+                this.event({ type: "info", msg: "Epoch change"});
             }
             // User ran out of gas
             else if ( /Balance of gas object \d+ is lower than the needed amount/.test(errStr) ) {
                 this.status = "stopping";
-                this.onEvent({ type: "info", msg: "Out of gas. Stopping." });
+                this.event({ type: "info", msg: "Out of gas. Stopping." });
             }
             // The validator didn't pick up the object changes yet. Often happens when changing RPCs.
             else if ( errStr.includes("ObjectNotFound") || errStr.includes("not available for consumption") ) {
-                this.onEvent({ type: "debug", msg: `Validator didn't sync yet. Retrying shortly. RPC: ${this.getSpamClient().rpcUrl}.` });
+                this.event({ type: "debug", msg: `Validator didn't sync yet. Retrying shortly. RPC: ${this.getSpamClient().rpcUrl}.` });
                 this.txsSinceRotate += 5; // spend less time on slow RPCs
                 await sleep(SLEEP_MS_AFTER_OBJECT_NOT_READY);
             }
             // Network error
             else if ( errStr.includes("Failed to fetch") ) {
-                this.onEvent({ type: "info", msg: `Network error. Retrying shortly. Original error: ${errStr}` });
+                this.event({ type: "info", msg: `Network error. Retrying shortly. Original error: ${errStr}` });
                 this.txsSinceRotate += 17; // spend less time on failing RPCs
                 await sleep(SLEEP_MS_AFTER_NETWORK_ERROR);
             }
             // Unexpected error
             else {
-                this.onEvent({ type: "info", msg: `Unexpected error. Retrying shortly. Original error: ${errStr}` });
+                this.event({ type: "info", msg: `Unexpected error. Retrying shortly. Original error: ${errStr}` });
                 this.txsSinceRotate += 17; // spend less time on failing RPCs
                 await sleep(SLEEP_MS_AFTER_NETWORK_ERROR);
             }
