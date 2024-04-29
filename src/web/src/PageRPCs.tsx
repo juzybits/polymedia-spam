@@ -2,10 +2,11 @@ import React, { useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
 import { RpcUrl } from "./lib/storage";
+import { RPC_ENDPOINTS } from "@polymedia/spam-sdk";
 
 export const PageRPCs: React.FC = () =>
 {
-    const { spamView, rpcUrls, replaceRpcUrls } = useOutletContext<AppContext>();
+    const { network, spammer, rpcUrls, replaceRpcUrls } = useOutletContext<AppContext>();
 
     const [ rpcs, setRpcs ] = useState<RpcUrl[]>([...rpcUrls]);
     const [ newRpcUrl, setNewRpcUrl ] = useState("");
@@ -37,6 +38,13 @@ export const PageRPCs: React.FC = () =>
         }
     };
 
+    const onResetRpcs = () => {
+        setRpcs(RPC_ENDPOINTS[network].map(rpcUrl => {
+            return { url: rpcUrl, enabled: true };
+        }))
+        setHasChange(true);
+    };
+
     return <>
         <h1><span className="rainbow">RPCs</span></h1>
 
@@ -62,14 +70,14 @@ export const PageRPCs: React.FC = () =>
                 </label>
                 </div>
             ))}
-            <p>
+            <div>
                 <button className="btn" onClick={onSubmit} disabled={!hasChanges}>
-                    {spamView.status === "running" ? "Save and restart" : "Save"}
+                    {spammer.current.status === "running" ? "Save and restart" : "Save"}
                 </button>
                 {showSavedMessage &&
                     <div style={{color: "lightgreen", paddingLeft: "0.9rem"}}>Done!</div>
                 }
-            </p>
+            </div>
 
             <div>
                 <input
@@ -80,6 +88,14 @@ export const PageRPCs: React.FC = () =>
                 />
                 <br/>
                 <button className="btn" onClick={onAddRpcUrl}>Add</button>
+            </div>
+
+            <div>
+                <p>
+                <button className="btn" onClick={onResetRpcs}>
+                    Reset RPC list
+                </button>
+                </p>
             </div>
         </div>
     </>;
