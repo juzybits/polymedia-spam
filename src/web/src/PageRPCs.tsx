@@ -24,6 +24,15 @@ export const PageRPCs: React.FC = () =>
     return <>
         <h1><span className="rainbow">RPCs</span></h1>
 
+        <div className="tight">
+            <p>
+                You can choose which RPCs to use for spamming transactions.
+            </p>
+            <p>
+                The app rotates between enabled RPCs to avoid hitting rate limits.
+            </p>
+        </div>
+
         <div id="rpc-selector">
             {rpcs.map(rpc => (
                 <div key={rpc.url} className="rpc">
