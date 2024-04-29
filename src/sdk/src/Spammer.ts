@@ -206,13 +206,14 @@ export class Spammer
             // Network error
             else if ( errStr.includes("Failed to fetch") ) {
                 this.onEvent({ type: "info", msg: `Network error. Retrying shortly. Original error: ${errStr}` });
-                this.txsSinceRotate += 10; // spend less time on failing RPCs
+                this.txsSinceRotate += 17; // spend less time on failing RPCs
                 await sleep(SLEEP_MS_AFTER_NETWORK_ERROR);
             }
             // Unexpected error
             else {
-                this.status = "stopping";
-                this.onEvent({ type: "warn", msg: errStr });
+                this.onEvent({ type: "info", msg: `Unexpected error. Retrying shortly. Original error: ${errStr}` });
+                this.txsSinceRotate += 17; // spend less time on failing RPCs
+                await sleep(SLEEP_MS_AFTER_NETWORK_ERROR);
             }
         }
         finally {
