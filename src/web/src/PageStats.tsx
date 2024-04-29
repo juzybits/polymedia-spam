@@ -16,7 +16,7 @@ export const PageStats: React.FC = () =>
             setStats(newStats);
         };
         initialize();
-    }, [spammer]);
+    }, [spammer.current]);
 
     return <>
         <h1><span className="rainbow">Stats</span></h1>
