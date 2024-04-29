@@ -63,10 +63,10 @@ export const PageSpam: React.FC = () =>
         if (isLoading || isLowSuiBalance) {
             return null;
         }
-        if (spamView.status === "stopped") {
+        if (spammer.current.status === "stopped") {
             return <button className="btn" onClick={start}>SPAM</button>;
         }
-        if (spamView.status === "running") {
+        if (spammer.current.status === "running") {
             return <button className="btn" onClick={stop}>STOP</button>;
         }
         return <button className="btn" disabled>STOPPING</button>;
@@ -82,7 +82,7 @@ export const PageSpam: React.FC = () =>
         let txClass = "";
         let status: string;
         if (type === "current") {
-            if (spamView.status === "running") {
+            if (spammer.current.status === "running") {
                 status = "spamming";
                 txClass = "blink";
             } else {
@@ -154,7 +154,7 @@ export const PageSpam: React.FC = () =>
         <div>
 
             <div className="tight">
-                <p>Status: <StatusSpan status={spamView.status} /></p>
+                <p>Status: <StatusSpan status={spammer.current.status} /></p>
                 <p>Current epoch: {isLoading ? "loading... " : counters.epoch}</p>
                 <Balances />
             </div>

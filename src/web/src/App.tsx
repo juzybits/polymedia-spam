@@ -73,7 +73,6 @@ export type AppContext = {
 
 const emptySpamView = (): SpamView => {
     return {
-        status: "stopped",
         events: [],
         counters: emptyUserCounters(),
     };
@@ -121,7 +120,7 @@ const App: React.FC = () =>
         setBalances(emptyBalances());
 
         updateBalances();
-        updateSpamView();
+        resetSpamView();
 
         /* repaint periodically */
 
@@ -158,17 +157,16 @@ const App: React.FC = () =>
         }
     };
 
-    const updateSpamView = async () => {
+    const resetSpamView = async () => {
         try {
             const counters = await spammer.current.getSpamClient().fetchUserCountersAndClassify();
-            setSpamView(oldView => ({
-                status: spammer.current.status,
-                events: oldView.events,
+            setSpamView({
+                events: [],
                 counters,
-            }));
+            });
             // console.info("view updated");
         } catch (err) {
-            console.warn("view update failed");
+            console.warn("view reset failed");
         }
     };
 
@@ -182,7 +180,6 @@ const App: React.FC = () =>
                 });
             }
             return {
-                status: spammer.current.status,
                 events: oldView.events,
                 counters: spammer.current.userCounters,
             };
@@ -260,7 +257,7 @@ const App: React.FC = () =>
             </Link>
 
             <span id="status-indicator">
-                <StatusSpan status={spamView.status} />
+                <StatusSpan status={spammer.current.status} />
             </span>
         </header>;
     };

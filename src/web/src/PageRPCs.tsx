@@ -6,7 +6,7 @@ import { RPC_ENDPOINTS } from "@polymedia/spam-sdk";
 
 export const PageRPCs: React.FC = () =>
 {
-    const { network, spamView, rpcUrls, replaceRpcUrls } = useOutletContext<AppContext>();
+    const { network, spammer, rpcUrls, replaceRpcUrls } = useOutletContext<AppContext>();
 
     const [ rpcs, setRpcs ] = useState<RpcUrl[]>([...rpcUrls]);
     const [ newRpcUrl, setNewRpcUrl ] = useState("");
@@ -78,7 +78,7 @@ export const PageRPCs: React.FC = () =>
 
                 <div>
                     <button className="btn" onClick={onSubmit} disabled={!hasChanges}>
-                        {spamView.status === "running" ? "Save and restart" : "Save"}
+                        {spammer.current.status === "running" ? "Save and restart" : "Save"}
                     </button>
                     {showSavedMessage &&
                         <div style={{color: "lightgreen"}}>Done!</div>
