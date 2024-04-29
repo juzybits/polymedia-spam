@@ -6,8 +6,6 @@ import { SpamClient } from "./SpamClient";
 export type SpamClientWithStats = {
     spamClient: SpamClient;
     active: boolean;
-    txnCount: number;
-    errCount: number;
 };
 
 export class SpamClientRotator
@@ -28,8 +26,6 @@ export class SpamClientRotator
         for (const url of rpcUrls) {
             this.spamClients.push({
                 spamClient: new SpamClient(keypair, network, url),
-                txnCount: 0,
-                errCount: 0,
                 active: true,
             });
         }

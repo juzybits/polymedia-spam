@@ -14,6 +14,7 @@ import { useEffect, useRef, useState } from "react";
 import { BrowserRouter, Link, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import { PageHome } from "./PageHome";
 import { PageNotFound } from "./PageNotFound";
+import { PageRPCs } from "./PageRPCs";
 import { PageSpam } from "./PageSpam";
 import { PageStats } from "./PageStats";
 import { PageWallet } from "./PageWallet";
@@ -33,6 +34,7 @@ export const AppRouter: React.FC = () => {
                 <Route index element={<PageHome />} />
                 <Route path="/spam" element={<PageSpam />} />
                 <Route path="/wallet" element={<PageWallet />} />
+                <Route path="/rpcs" element={<PageRPCs />} />
                 <Route path="/stats" element={<PageStats />} />
                 <Route path="*" element={<PageNotFound />} />
             </Route>
@@ -253,6 +255,9 @@ const App: React.FC = () =>
             </Link>
             <Link to="/wallet" className={selected("/wallet")} onClick={onClick}>
                 Wallet
+            </Link>
+            <Link to="/rpcs" className={selected("/rpcs")} onClick={onClick}>
+                RPCs
             </Link>
             <Link to="/stats" className={selected("/stats")} onClick={onClick}>
                 Stats
