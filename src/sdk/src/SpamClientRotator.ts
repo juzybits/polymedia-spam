@@ -82,7 +82,6 @@ export const RPC_ENDPOINTS: Record<NetworkName, string[]> = {
         "https://sui1mainnet-rpc.chainode.tech",
         "https://mainnet.sui.rpcpool.com",
         "https://sui-mainnet-ca-2.cosmostation.io",
-
         // "https://rpc-mainnet.suiscan.xyz",               // Slow to sync (ObjectNotFound error)
         // "https://sui.publicnode.com",                    // CORS error
         // "https://sui-mainnet.nodeinfra.com",             // CORS error
@@ -91,11 +90,11 @@ export const RPC_ENDPOINTS: Record<NetworkName, string[]> = {
     "testnet": [
         getFullnodeUrl("testnet"),
         "https://testnet.suiet.app",
-        "https://rpc-testnet.suiscan.xyz",
         "https://sui-testnet-endpoint.blockvision.org",
-        // "https://sui-testnet.public.blastapi.io",       // Slow to sync: "ObjectNotFound" / "Object is not available for consumption"
         "https://sui-testnet.nodeinfra.com",
         "https://testnet.sui.rpcpool.com",
+        // "https://rpc-testnet.suiscan.xyz",              // Slow to sync (ObjectNotFound error)
+        // "https://sui-testnet.public.blastapi.io",       // Slow to sync: "ObjectNotFound" / "Object is not available for consumption"
     ],
     "devnet": [
         getFullnodeUrl("devnet"),

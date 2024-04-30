@@ -8,7 +8,7 @@ export const PageHome: React.FC = () =>
         <h2>Spam to Earn on Sui</h2>
 
         <p>
-            The more transactions you send, the more SPAM you receive.
+            The more transactions you send, the more SPAM you earn.
         </p>
 
         <br/>
@@ -16,8 +16,8 @@ export const PageHome: React.FC = () =>
         <div className="tight">
             <p>- One billion SPAM coins are minted every day.</p>
             <p>- You can earn SPAM simply by sending transactions.</p>
-            <p>- The more txs you send, the more SPAM you earn.</p>
-            <p>- There is no proof of work.</p>
+            <p>- The more txs you send, the more SPAM you receive.</p>
+            <p>- There is no proof of work, only proof of spam.</p>
         </div>
 
         <br/>
