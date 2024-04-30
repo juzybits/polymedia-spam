@@ -5,8 +5,6 @@ import { Link, useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
 import { StatusSpan } from "./components/StatusSpan";
 
-// TODO: button to register/claim without spamming
-
 export const PageSpam: React.FC = () =>
 {
     /* State */

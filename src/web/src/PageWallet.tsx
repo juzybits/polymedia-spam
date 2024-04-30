@@ -5,10 +5,10 @@ import { AppContext } from "./App";
 import { pairFromSecretKey } from "./lib/storage";
 
 export const PageWallet: React.FC = () =>
-{
-    const { replaceKeypair, spammer } = useOutletContext<AppContext>();
-    const [ showImport, setShowImport ] = useState<boolean>(false);
-    const [ showSuccess, setShowSuccess ] = useState<boolean>(false);
+    {
+        const { replaceKeypair, spammer } = useOutletContext<AppContext>();
+        const [ showImport, setShowImport ] = useState<boolean>(false);
+        const [ showSuccess, setShowSuccess ] = useState<boolean>(false);
 
     const confirmAndReplaceWallet = (pair: Ed25519Keypair) => {
         const resp = window.confirm(
@@ -117,7 +117,6 @@ export const PageWallet: React.FC = () =>
             <button className="btn" onClick={() => {setShowImport(oldImport => !oldImport); setShowSuccess(false);}}>
                 IMPORT
             </button>
-            {/* <button className="btn">WITHDRAW</button> TODO */}
         </div>
 
         {showSuccess && <h3 style={{color: "lightgreen"}}>Success!</h3>}
