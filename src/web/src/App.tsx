@@ -51,11 +51,11 @@ export const AppRouter: React.FC = () => {
 
 /* Network config */
 
-const supportedNetworks = isLocalhost() // TODO add mainnet before launch
-    ? ["testnet", "devnet", "localnet"] as const
-    : ["testnet", "devnet"] as const;
+const supportedNetworks = isLocalhost()
+    ? ["mainnet", "testnet", "devnet", "localnet"] as const
+    : ["mainnet", "testnet"] as const;
 type NetworkName = typeof supportedNetworks[number];
-const defaultNetwork = isLocalhost() ? "testnet" : "testnet"; // TODO change to mainnet before launch
+const defaultNetwork = "mainnet";
 const loadedNetwork = loadNetwork(supportedNetworks, defaultNetwork);
 
 /* App */
