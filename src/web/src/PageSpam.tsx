@@ -4,6 +4,7 @@ import { LinkToExplorerObj } from "@polymedia/webutils";
 import { Link, useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
 import { StatusSpan } from "./components/StatusSpan";
+import { useEffect, useState } from "react";
 
 export const PageSpam: React.FC = () =>
 {
@@ -11,9 +12,19 @@ export const PageSpam: React.FC = () =>
 
     const { network, balances, spammer, spamView } = useOutletContext<AppContext>();
 
+    const [ isSystemPaused, setIsSystemPaused ] = useState<boolean>(true);
+
     const isLoading = spamView.counters.epoch === -1 || balances.sui === -1;
 
     /* Functions */
+
+    useEffect(() => {
+        const initialize = async () => {
+            const stats = await spammer.current.getSpamClient().fetchStatsForRecentEpochs(1);
+            setIsSystemPaused(stats.paused);
+        };
+        initialize();
+    }, [spammer.current]);
 
     const start = () => {
         if (spammer.current.status === "stopped") {
@@ -46,7 +57,7 @@ export const PageSpam: React.FC = () =>
     };
 
     const TopUp: React.FC = () => {
-        if (isLoading || !isLowSuiBalance) {
+        if (isLoading || !isLowSuiBalance || isSystemPaused) {
             return null;
         }
         return <>
@@ -58,7 +69,7 @@ export const PageSpam: React.FC = () =>
     };
 
     const SpamOrStopButton: React.FC = () => {
-        if (isLoading || isLowSuiBalance) {
+        if (isLoading || isLowSuiBalance || isSystemPaused) {
             return null;
         }
         if (spammer.current.status === "stopped") {
