@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Call spam::spam::admin_resume() to enable UserCounter registrations
+# Call spam::spam::admin_pause() to disable UserCounter registrations
 
 # mainnet LOL
 PACKAGE=0xb677216bb9992c1576c1bd009fbce2e6dc58f004b92d2650156ebb88e43a08e3
@@ -11,5 +11,5 @@ sui client call \
  --gas-budget 100100100 \
  --package $PACKAGE \
  --module spam \
- --function admin_resume \
+ --function admin_pause \
  --args $DIRECTOR $ADMIN_CAP
