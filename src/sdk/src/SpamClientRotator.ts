@@ -74,17 +74,19 @@ export const RPC_ENDPOINTS: Record<NetworkName, string[]> = { // TODO test mainn
     "mainnet": [
         getFullnodeUrl("mainnet"),
         "https://mainnet.suiet.app",
-        "https://rpc-mainnet.suiscan.xyz",
+        "https://sui-mainnet-us-2.cosmostation.io",
         "https://sui-mainnet-endpoint.blockvision.org",
         "https://sui-mainnet.public.blastapi.io",
-        "https://sui.publicnode.com",
-        "https://sui-mainnet-rpc.bartestnet.com",
-        "https://sui-mainnet-ca-2.cosmostation.io",
-        "https://sui-mainnet-eu-4.cosmostation.io",
-        "https://sui-mainnet-us-2.cosmostation.io",
         "https://sui-mainnet-rpc.allthatnode.com",
-        "https://sui-mainnet.nodeinfra.com",
+        "https://sui-mainnet-eu-4.cosmostation.io",
         "https://sui1mainnet-rpc.chainode.tech",
+        "https://mainnet.sui.rpcpool.com",
+        "https://sui-mainnet-ca-2.cosmostation.io",
+
+        // "https://rpc-mainnet.suiscan.xyz",               // Slow to sync (ObjectNotFound error)
+        // "https://sui.publicnode.com",                    // CORS error
+        // "https://sui-mainnet.nodeinfra.com",             // CORS error
+        // "https://sui-mainnet-rpc.bartestnet.com",        // CORS error
     ],
     "testnet": [
         getFullnodeUrl("testnet"),

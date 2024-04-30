@@ -8,7 +8,7 @@ DIRECTOR=0x6ae73b50ffe305118883a1259134ebb574a2793958cb2c1bec33b7db03a5017e
 ADMIN_CAP=0xd7ecdf61c7e31020882d632a0ffd9fe54f1f3ca2269ec432798f4f8dc5a8defe
 
 sui client call \
- --gas-budget 100100100 \
+ --gas-budget 50000000 \
  --package $PACKAGE \
  --module spam \
  --function admin_resume \
