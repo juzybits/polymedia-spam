@@ -1,9 +1,10 @@
-module spam::spam {
-
+module spam::spam
+{
     // === Imports ===
 
-    use sui::table::{Self, Table};
     use sui::coin::{create_currency, Coin, TreasuryCap};
+    use sui::table::{Self, Table};
+    use spam::icon::{get_icon_url};
 
     // === Errors ===
 
@@ -254,8 +255,8 @@ module spam::spam {
             4, // decimals
             b"SPAM", // symbol
             b"SPAM", // name
-            b"Spam to Earn on Sui", // description
-            option::none(),// icon_url TODO
+            b"The original Proof of Spam coin", // description
+            option::some(get_icon_url()), // icon_url
             ctx,
         );
 

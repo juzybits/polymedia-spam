@@ -14,4 +14,4 @@ if [ "$(sui client active-env)" != "localnet" ]; then
 fi
 
 cd "$sui_path"
-sui client publish --gas-budget 300300300
+sui client publish --gas-budget 600600600
