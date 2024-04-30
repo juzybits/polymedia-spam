@@ -12,7 +12,7 @@ export const PageSpam: React.FC = () =>
 
     const { network, balances, spammer, spamView } = useOutletContext<AppContext>();
 
-    const [ isSystemPaused, setIsSystemPaused ] = useState<boolean>(true);
+    const [ isSystemPaused, setIsSystemPaused ] = useState<boolean>(false); // TODO remove after mainnet unpause
 
     const isLoading = spamView.counters.epoch === -1 || balances.sui === -1;
 

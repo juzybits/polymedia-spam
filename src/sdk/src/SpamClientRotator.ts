@@ -70,7 +70,7 @@ export class SpamClientRotator
       }
 }
 
-export const RPC_ENDPOINTS: Record<NetworkName, string[]> = { // TODO test mainnet RPCs
+export const RPC_ENDPOINTS: Record<NetworkName, string[]> = {
     "mainnet": [
         getFullnodeUrl("mainnet"),
         "https://mainnet.suiet.app",
