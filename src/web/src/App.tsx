@@ -174,10 +174,15 @@ const App: React.FC = () =>
         console[e.type](`${e.type}: ${e.msg}`);
         setSpamView(oldView => {
             if (e.type !== "debug") {
+                // Only show non-debug events to the user
                 oldView.events.push({
                     time: (new Date).toLocaleTimeString(),
                     msg: e.msg,
                 });
+                // Update balances when the spammer stops
+                if (e.msg === "Stopped as requested") {
+                    updateBalances();
+                }
             }
             return {
                 events: oldView.events,

@@ -44,7 +44,7 @@ export const PageSpam: React.FC = () =>
     const hasCounters = Boolean(
         counters.current || counters.register || counters.claim.length || counters.delete.length
     );
-    const isLowSuiBalance = balances.sui < 0.001025;
+    const isLowSuiBalance = balances.sui < 0.003;
 
     const Balances: React.FC = () => {
         if (!balances) {
