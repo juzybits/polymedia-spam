@@ -47,7 +47,7 @@ module.exports = {
                 "plugin:react/recommended",
             ],
             rules: {
-                // "react-hooks/exhaustive-deps": "off",
+                "react-hooks/exhaustive-deps": "off",
                 "react/no-unescaped-entities": "off",
                 "react/prop-types": "off",
                 "react/react-in-jsx-scope": "off",
