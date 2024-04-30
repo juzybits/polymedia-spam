@@ -161,7 +161,7 @@ export const PageSpam: React.FC = () =>
 
             <div className="tight">
                 <p>Current RPC:</p>
-                <p>{spammer.current.getSpamClient().rpcUrl}</p>
+                <p className="break-word">{spammer.current.getSpamClient().rpcUrl}</p>
             </div>
 
             <TopUp />

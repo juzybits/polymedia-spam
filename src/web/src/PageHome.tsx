@@ -3,12 +3,12 @@ import { Link } from "react-router-dom";
 export const PageHome: React.FC = () =>
 {
     return <>
-        <h1><span className="rainbow" style={{fontSize: "2.5rem"}}>SPAM</span></h1>
+        <h1><span className="rainbow" style={{fontSize: "3rem"}}>SPAM</span></h1>
 
         <h2>Spam to Earn on Sui</h2>
 
         <p>
-            The more transactions you send, the more SPAM coins you receive.
+            The more transactions you send, the more SPAM you receive.
         </p>
 
         <br/>
