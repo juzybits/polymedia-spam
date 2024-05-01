@@ -129,11 +129,11 @@ export class Spammer
                 await this.simulateLatencyOnLocalnet();
                 this.requestRefresh = true;
                 const resp = await this.getSpamClient().registerUserCounter(counters.register.id);
+                this.event({ type: "debug", msg: `registerUserCounter resp: ${resp.effects?.status.status}` });
+                if (resp.effects?.status.status !== "success") {
+                    throw new Error(resp.effects?.status.error);
+                }
                 counters.register.registered = true;
-                this.event({
-                    type: "debug",
-                    msg: `registerUserCounter resp: ${resp.effects?.status.status}`,
-                });
             }
 
             // Claim counters
@@ -144,11 +144,11 @@ export class Spammer
                 this.requestRefresh = true;
                 const counterIds = counters.claim.map(counter => counter.id);
                 const resp = await this.getSpamClient().claimUserCounters(counterIds);
+                this.event({ type: "debug", msg: `destroyUserCounters resp: ${resp.effects?.status.status}` });
+                if (resp.effects?.status.status !== "success") {
+                    throw new Error(resp.effects?.status.error);
+                }
                 counters.claim = [];
-                this.event({
-                    type: "debug",
-                    msg: `destroyUserCounters resp: ${resp.effects?.status.status}`,
-                });
             }
 
             // Delete unusable counters
@@ -159,8 +159,11 @@ export class Spammer
                 this.requestRefresh = true;
                 const counterIds = counters.delete.map(counter => counter.id);
                 const resp = await this.getSpamClient().destroyUserCounters(counterIds);
-                counters.delete = [];
                 this.event({ type: "debug", msg: `destroyUserCounters resp: ${resp.effects?.status.status}` });
+                if (resp.effects?.status.status !== "success") {
+                    throw new Error(resp.effects?.status.error);
+                }
+                counters.delete = [];
             }
 
             // Create counter for current epoch
@@ -171,6 +174,9 @@ export class Spammer
                 this.requestRefresh = true;
                 const resp = await this.getSpamClient().newUserCounter();
                 this.event({ type: "debug", msg: `newUserCounter resp: ${resp.effects?.status.status}` });
+                if (resp.effects?.status.status !== "success") {
+                    throw new Error(resp.effects?.status.error);
+                }
             }
             // Increment current counter
             else {
@@ -178,11 +184,14 @@ export class Spammer
                 this.txsSinceRotate += 1;
                 const curr = counters.current;
                 const resp = await this.getSpamClient().incrementUserCounter(curr.ref);
+                this.event({ type: "debug", msg: `incrementUserCounter resp: ${resp.effects?.status.status}` });
+                if (resp.effects?.status.status !== "success") {
+                    throw new Error(resp.effects?.status.error);
+                }
                 curr.tx_count++;
                 curr.ref = resp.effects!.mutated!.find(mutatedObj =>
                     mutatedObj.reference.objectId == curr.id
                 )!.reference;
-                this.event({ type: "debug", msg: `incrementUserCounter resp: ${resp.effects?.status.status}` });
             }
         }
         catch (err) {
