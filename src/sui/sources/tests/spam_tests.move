@@ -21,7 +21,7 @@ module spam::spam_tests {
 
         runner.increment_epoch(epoch);
 
-        spam::new_user_counter_for_testing(runner.ctx());
+        runner.new_user_counter();
 
         runner.next_tx();
 
@@ -42,7 +42,7 @@ module spam::spam_tests {
 
         let mut runner = test_runner::start();
 
-        spam::new_user_counter_for_testing(runner.ctx());
+        runner.new_user_counter();
         runner.next_tx();
 
         let user_counter = runner.take_from_sender<UserCounter>();
@@ -70,7 +70,7 @@ module spam::spam_tests {
     fun test_increment_user_counter_error_wrong_epoch() {
         let mut runner = test_runner::start();
 
-        spam::new_user_counter_for_testing(runner.ctx());
+        runner.new_user_counter();
 
         // We incremented the epoch, which  makes the user_counter invalid.
         runner.increment_epoch(1);
@@ -91,14 +91,14 @@ module spam::spam_tests {
 
         // Create Admin User Counter
         runner.next_tx_with_sender(ADMIN);
-        spam::new_user_counter_for_testing(runner.ctx());
+        runner.new_user_counter();
         // Increment Txs for Admin
         runner.next_tx_with_sender(ADMIN);
         runner.increment_user_counter(admin_tx_count);
 
         // Create Alice User Counter
         runner.next_tx_with_sender(ALICE);
-        spam::new_user_counter_for_testing(runner.ctx());
+        runner.new_user_counter();
          // Increment Txs for Alice
         runner.next_tx_with_sender(ALICE);
         runner.increment_user_counter(alice_tx_count);
@@ -154,7 +154,7 @@ module spam::spam_tests {
     fun test_register_user_counter_error_director_is_paused() {
         let mut runner = test_runner::start();
 
-        spam::new_user_counter_for_testing(runner.ctx());
+        runner.new_user_counter();
         runner.next_tx();
 
         runner.increment_user_counter(1);
@@ -172,7 +172,7 @@ module spam::spam_tests {
     fun test_register_user_counter_error_counter_is_registered() {
         let mut runner = test_runner::start();
 
-        spam::new_user_counter_for_testing(runner.ctx());
+        runner.new_user_counter();
         runner.next_tx();
 
         runner.increment_user_counter(1);
@@ -193,7 +193,7 @@ module spam::spam_tests {
     fun test_register_user_counter_error_wrong_epoch() {
         let mut runner = test_runner::start();
 
-        spam::new_user_counter_for_testing(runner.ctx());
+        runner.new_user_counter();
         runner.next_tx();
 
         runner.increment_user_counter(1);
@@ -213,8 +213,8 @@ module spam::spam_tests {
         let mut runner = test_runner::start();
 
         // Makes two counters
-        spam::new_user_counter_for_testing(runner.ctx());
-        spam::new_user_counter_for_testing(runner.ctx());
+        runner.new_user_counter();
+        runner.new_user_counter();
 
         runner.next_tx();
 
@@ -241,7 +241,7 @@ module spam::spam_tests {
         let total_tx_count = admin_tx_count + alice_tx_count + 2;
 
         // Create Admin User Counter
-        spam::new_user_counter_for_testing(runner.ctx());
+        runner.new_user_counter();
 
         // Increment Txs for Admin
         runner.next_tx_with_sender(ADMIN);
@@ -249,7 +249,7 @@ module spam::spam_tests {
 
         // Create Alice User Counter
         runner.next_tx_with_sender(ALICE);
-        spam::new_user_counter_for_testing(runner.ctx());
+        runner.new_user_counter();
 
          // Increment Txs for Alice
         runner.next_tx_with_sender(ALICE);
@@ -289,7 +289,7 @@ module spam::spam_tests {
         runner.increment_epoch(2);
 
         // Create and increment Admin User Counter
-        spam::new_user_counter_for_testing(runner.ctx());
+        runner.new_user_counter();
         runner.next_tx_with_sender(ADMIN);
         let mut admin_counter = runner.take_from_sender<UserCounter>();
 
@@ -310,7 +310,7 @@ module spam::spam_tests {
         let mut runner = test_runner::start();
 
         // Create and increment Admin User Counter
-        spam::new_user_counter_for_testing(runner.ctx());
+        runner.new_user_counter();
         runner.next_tx_with_sender(ADMIN);
         let admin_counter = runner.take_from_sender<UserCounter>();
 

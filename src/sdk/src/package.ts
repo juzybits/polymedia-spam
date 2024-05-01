@@ -8,10 +8,13 @@ import { SPAM_MODULE } from "./config";
 export function new_user_counter(
     txb: TransactionBlock,
     packageId: string,
+    directorId: string,
 ): TransactionResult {
     return txb.moveCall({
         target: `${packageId}::${SPAM_MODULE}::new_user_counter`,
-        arguments: [],
+        arguments: [
+            txb.object(directorId),
+        ],
     });
 }
 

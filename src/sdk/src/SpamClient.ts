@@ -182,7 +182,7 @@ export class SpamClient
     ): Promise<SuiTransactionBlockResponse>
     {
         const txb = new TransactionBlock();
-        pkg.new_user_counter(txb, this.packageId);
+        pkg.new_user_counter(txb, this.packageId, this.directorId);
         return this.signAndExecute(txb);
     }
 

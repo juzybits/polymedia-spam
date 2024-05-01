@@ -70,8 +70,10 @@ module spam::spam
     /// Users can create multiple counters per epoch, but it is pointless
     /// because they can only register() one of them.
     entry fun new_user_counter(
+        director: &Director,
         ctx: &mut TxContext,
     ) {
+        assert!(director.paused == false, EDirectorIsPaused);
         let user_counter =  UserCounter {
             id: object::new(ctx),
             epoch: ctx.epoch(),
@@ -288,8 +290,8 @@ module spam::spam
     }
 
     #[test_only]
-    public fun new_user_counter_for_testing(ctx: &mut TxContext) {
-        new_user_counter(ctx)
+    public fun new_user_counter_for_testing(director: &Director, ctx: &mut TxContext) {
+        new_user_counter(director, ctx)
     }
 
     #[test_only]

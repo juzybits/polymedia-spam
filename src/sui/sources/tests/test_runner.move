@@ -39,6 +39,12 @@ module spam::test_runner {
         }
     }
 
+    public fun new_user_counter(
+        self: &mut TestRunner,
+    ) {
+        spam::new_user_counter_for_testing(&self.director, self.scenario.ctx());
+    }
+
     public fun increment_user_counter(
         self: &mut TestRunner,
         count: u64,
