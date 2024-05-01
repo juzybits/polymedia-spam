@@ -107,7 +107,7 @@ export class Spammer
             // Refetch data if requested
             if (this.requestRefresh) {
                 this.requestRefresh = false;
-                this.event({ type: "debug", msg: `Fetching onchain data` });
+                this.event({ type: "debug", msg: "Fetching onchain data" });
                 this.userCounters = await this.getSpamClient().fetchUserCountersAndClassify();
                 await this.getSpamClient().fetchAndSetGasCoin();
             }
@@ -179,7 +179,6 @@ export class Spammer
                 const curr = counters.current;
                 const resp = await this.getSpamClient().incrementUserCounter(curr.ref);
                 curr.tx_count++;
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 curr.ref = resp.effects!.mutated!.find(mutatedObj =>
                     mutatedObj.reference.objectId == curr.id
                 )!.reference;

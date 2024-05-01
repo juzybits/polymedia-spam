@@ -319,7 +319,6 @@ export class SpamClient
         resp: SuiTransactionBlockResponse,
         objectId: string,
     ): SuiObjectRef {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         return resp.effects!.mutated!.find(mutatedObj =>
             mutatedObj.reference.objectId === objectId
         )!.reference;
