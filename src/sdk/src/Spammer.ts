@@ -18,7 +18,7 @@ export type SpamEventHandler = (event: SpamEvent) => void;
 // Rotate to the next RPC endpoint after these many `increment_user_counter` transactions
 const TXS_UNTIL_ROTATE = 50;
 const SLEEP_MS_AFTER_RPC_CHANGE = 1000;
-const SLEEP_MS_AFTER_NEW_USER_COUNTER = 3000;
+const SLEEP_MS_BEFORE_DATA_REFRESH = 5000;
 const SLEEP_MS_AFTER_OBJECT_NOT_READY = 1000;
 const SLEEP_MS_AFTER_NETWORK_ERROR = 10000;
 const SLEEP_MS_AFTER_FINALITY_ERROR = 30000;
@@ -27,7 +27,7 @@ export class Spammer
 {
     public status: SpamStatus;
     public userCounters: UserCounters;
-    private requestRefresh: boolean;
+    private requestRefresh: { refresh: boolean; sleep: boolean; };
     private eventHandler: SpamEventHandler|undefined;
     private txsSinceRotate: number;
     private readonly rotator: SpamClientRotator;
@@ -41,7 +41,7 @@ export class Spammer
     ) {
         this.status = "stopped";
         this.userCounters = emptyUserCounters();
-        this.requestRefresh = true; // so when it starts it pulls the data
+        this.requestRefresh = { refresh: true, sleep: false }; // so when it starts it pulls the data
         this.eventHandler = eventHandler;
         this.txsSinceRotate = 0;
         this.rotator = new SpamClientRotator(keypair, network, rpcUrls);
@@ -99,7 +99,7 @@ export class Spammer
     {
         if (this.status === "stopping") {
             this.status = "stopped";
-            this.requestRefresh = true; // so when it starts again it pulls fresh data
+            this.requestRefresh = { refresh: true, sleep: false }; // so when it starts again it pulls fresh data
             this.event({ type: "info", msg: "Stopped as requested" });
             return;
         }
@@ -114,9 +114,12 @@ export class Spammer
             }
 
             // Refetch data if requested
-            if (this.requestRefresh) {
-                this.requestRefresh = false;
+            if (this.requestRefresh.refresh) {
                 this.event({ type: "debug", msg: "Fetching onchain data" });
+                if (this.requestRefresh.sleep) {
+                    await sleep(SLEEP_MS_BEFORE_DATA_REFRESH);
+                }
+                this.requestRefresh = { refresh: false, sleep: false };
                 this.userCounters = await this.getSpamClient().fetchUserCountersAndClassify();
                 this.getSpamClient().setGasCoin(undefined);
             }
@@ -128,13 +131,12 @@ export class Spammer
             {
                 this.event({ type: "info", msg: "Registering counter: " + shortenSuiAddress(counters.register.id) });
                 await this.simulateLatencyOnLocalnet();
-                this.requestRefresh = true;
+                this.requestRefresh = { refresh: true, sleep: true };
                 const resp = await this.getSpamClient().registerUserCounter(counters.register.id);
                 this.event({ type: "debug", msg: `registerUserCounter resp: ${resp.effects?.status.status}` });
                 if (resp.effects?.status.status !== "success") {
                     throw new Error(resp.effects?.status.error);
                 }
-                counters.register.registered = true;
             }
 
             // Claim counters
@@ -142,14 +144,13 @@ export class Spammer
             {
                 this.event({ type: "info", msg: "Claiming counters: " + counters.claim.map(c => shortenSuiAddress(c.id)).join(", ") });
                 await this.simulateLatencyOnLocalnet();
-                this.requestRefresh = true;
                 const counterIds = counters.claim.map(counter => counter.id);
+                this.requestRefresh = { refresh: true, sleep: true };
                 const resp = await this.getSpamClient().claimUserCounters(counterIds);
                 this.event({ type: "debug", msg: `destroyUserCounters resp: ${resp.effects?.status.status}` });
                 if (resp.effects?.status.status !== "success") {
                     throw new Error(resp.effects?.status.error);
                 }
-                counters.claim = [];
             }
 
             // Delete unusable counters
@@ -157,8 +158,8 @@ export class Spammer
             {
                 this.event({ type: "info", msg: "Deleting counters: " + counters.delete.map(c => shortenSuiAddress(c.id)).join(", ") });
                 await this.simulateLatencyOnLocalnet();
-                this.requestRefresh = true;
                 const counterIds = counters.delete.map(counter => counter.id);
+                this.requestRefresh = { refresh: true, sleep: true };
                 const resp = await this.getSpamClient().destroyUserCounters(counterIds);
                 this.event({ type: "debug", msg: `destroyUserCounters resp: ${resp.effects?.status.status}` });
                 if (resp.effects?.status.status !== "success") {
@@ -172,13 +173,12 @@ export class Spammer
             {
                 this.event({ type: "info", msg: "Creating counter" });
                 await this.simulateLatencyOnLocalnet();
-                this.requestRefresh = true;
+                this.requestRefresh = { refresh: true, sleep: true };
                 const resp = await this.getSpamClient().newUserCounter();
                 this.event({ type: "debug", msg: `newUserCounter resp: ${resp.effects?.status.status}` });
                 if (resp.effects?.status.status !== "success") {
                     throw new Error(resp.effects?.status.error);
                 }
-                await sleep(SLEEP_MS_AFTER_NEW_USER_COUNTER);
             }
             // Increment current counter
             else {
@@ -203,7 +203,7 @@ export class Spammer
 
             // When the epoch changes, the counter is no longer incrementable
             if (errCode === SpamError.EWrongEpoch) {
-                this.requestRefresh = true;
+                this.requestRefresh = { refresh: true, sleep: false };
                 this.event({ type: "info", msg: "Epoch change"});
             }
             // User ran out of gas
@@ -225,7 +225,7 @@ export class Spammer
                 const retryMsg = `Retrying in ${SLEEP_MS_AFTER_FINALITY_ERROR / 1000} seconds`;
                 this.event({ type: "info", msg: `Finality/timeout error. ${retryMsg}. Details: ${errStr}` });
                 this.txsSinceRotate += 17; // spend less time on failing RPCs
-                this.requestRefresh = true;
+                this.requestRefresh = { refresh: true, sleep: false };
                 await sleep(SLEEP_MS_AFTER_FINALITY_ERROR);
             }
             // Network error
@@ -233,7 +233,7 @@ export class Spammer
                 const retryMsg = `Retrying in ${SLEEP_MS_AFTER_NETWORK_ERROR / 1000} seconds`;
                 this.event({ type: "info", msg: `Network error. ${retryMsg}. Details: ${errStr}` });
                 this.txsSinceRotate += 17; // spend less time on failing RPCs
-                this.requestRefresh = true;
+                this.requestRefresh = { refresh: true, sleep: false };
                 await sleep(SLEEP_MS_AFTER_NETWORK_ERROR);
             }
             // Unexpected error
@@ -241,7 +241,7 @@ export class Spammer
                 const retryMsg = `Retrying in ${SLEEP_MS_AFTER_NETWORK_ERROR / 1000} seconds`;
                 this.event({ type: "info", msg: `Unexpected error. ${retryMsg}. Details: ${errStr}` });
                 this.txsSinceRotate += 17; // spend less time on failing RPCs
-                this.requestRefresh = true;
+                this.requestRefresh = { refresh: true, sleep: false };
                 await sleep(SLEEP_MS_AFTER_NETWORK_ERROR);
             }
         }
