@@ -7,7 +7,7 @@ export type EpochData = {
 /**
  * Calculates the start and end timestamps for a given epoch number.
  */
-export function calculateEpochTimes(
+export function getEpochTimes(
     targetEpochNumber: number,
     currentEpochData: EpochData
 ): { startTime: Date; endTime: Date }

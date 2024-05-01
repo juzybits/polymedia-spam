@@ -1,10 +1,11 @@
 import { UserCounter } from "@polymedia/spam-sdk";
 import { formatNumber } from "@polymedia/suits";
 import { LinkToExplorerObj } from "@polymedia/webutils";
+import { useEffect, useState } from "react";
 import { Link, useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
 import { StatusSpan } from "./components/StatusSpan";
-import { useEffect, useState } from "react";
+import { EpochData, formatEpochTime, getEpochTimes } from "./lib/epochs";
 
 export const PageSpam: React.FC = () =>
 {
@@ -13,18 +14,31 @@ export const PageSpam: React.FC = () =>
     const { network, balances, spammer, spamView } = useOutletContext<AppContext>();
 
     const [ isSystemPaused, setIsSystemPaused ] = useState<boolean>(false); // TODO remove after mainnet unpause
+    const [ currEpoch, setCurrEpoch ] = useState<EpochData>();
 
-    const isLoading = spamView.counters.epoch === -1 || balances.sui === -1;
+    const isLoading = spamView.counters.epoch === -1 || balances.sui === -1 || !currEpoch;
 
     /* Functions */
 
-    useEffect(() => {
+    useEffect(() => { // TODO remove after mainnet unpause
         const initialize = async () => {
             const stats = await spammer.current.getSpamClient().fetchStatsForRecentEpochs(1);
             setIsSystemPaused(stats.paused);
         };
         initialize();
     }, [spammer.current]);
+
+    useEffect(() => {
+        setCurrEpoch(undefined);
+        updateCurrEpoch();
+
+        const updateFrequency = ["localnet", "devnet"].includes(network) ? 5_000 : 30_000;
+        const updatePeriodically = setInterval(updateCurrEpoch, updateFrequency);
+
+        return () => {
+            clearInterval(updatePeriodically);
+        };
+    }, [spammer.current, network]);
 
     const start = () => {
         if (spammer.current.status === "stopped") {
@@ -37,6 +51,19 @@ export const PageSpam: React.FC = () =>
             spammer.current.stop();
         }
     };
+
+    const updateCurrEpoch = async () => {
+        try {
+            const suiState = await spammer.current.getSuiClient().getLatestSuiSystemState();
+            setCurrEpoch({
+                epochNumber: Number(suiState.epoch),
+                durationMs: Number(suiState.epochDurationMs),
+                startTimeMs: Number(suiState.epochStartTimestampMs),
+            });
+        } catch (err) {
+            console.warn("epoch update failed");
+        }
+    }
 
     /* HTML */
 
@@ -107,6 +134,9 @@ export const PageSpam: React.FC = () =>
         else {
             status = "unusable, will be deleted";
         }
+
+        const epochTimes = currEpoch && getEpochTimes(counter.epoch, currEpoch);
+
         return <div className={`counter-card ${type}`}>
             <div>
                 <div className="counter-epoch">
@@ -131,6 +161,14 @@ export const PageSpam: React.FC = () =>
                     Status: {status}
                 </div>
             </div>
+
+            {epochTimes &&
+            <div>
+                <div>
+                    From {formatEpochTime(epochTimes.startTime)} until {formatEpochTime(epochTimes.endTime)}
+                </div>
+            </div>
+            }
         </div>;
     };
 
