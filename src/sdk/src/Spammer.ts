@@ -27,7 +27,7 @@ export class Spammer
 {
     public status: SpamStatus;
     public userCounters: UserCounters;
-    private requestRefresh: { refresh: boolean; sleep: boolean; };
+    private requestRefresh: { refresh: boolean; sleep: boolean };
     private eventHandler: SpamEventHandler|undefined;
     private txsSinceRotate: number;
     private readonly rotator: SpamClientRotator;
