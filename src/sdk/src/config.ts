@@ -7,17 +7,16 @@ export type NetworkConfig = {
 
 export const SPAM_IDS: Record<NetworkName, NetworkConfig> = {
     mainnet: {
-        // LOL. Change SPAM_MODULE and SPAM_SYMBOL below for this to work.
-        packageId: "0xb677216bb9992c1576c1bd009fbce2e6dc58f004b92d2650156ebb88e43a08e3",
-        directorId: "0x6ae73b50ffe305118883a1259134ebb574a2793958cb2c1bec33b7db03a5017e",
+        packageId: "",
+        directorId: "",
     },
     testnet: {
-        packageId: "0xee8c6eef6ccfec35841924540e84fa6fb066596862503dbeef190eef5eab198b",
-        directorId: "0x8fc17669386e9f033069d138e83c0d66b34f77624924538563edeb73dfedf948",
+        packageId: "0xb0783634bd4aeb2c97d3e707fce338c94d135d72e1cb701ca220b34f7b18b877",
+        directorId: "0x6f0919d420bcfd5156534e864f0ec99ef8f1137ba59f44d4a39edca73e7ae464",
     },
     devnet: {
-        packageId: "0x6643583a9b194516985434f5479f3c3d7435cb09ca0a7c26ee472134140cf313",
-        directorId: "0x549f43498c2337e8dec316b46748d089a37be11bf8e2ac63718e64069d41cea1",
+        packageId: "0x2b0f599e46eb65fd5c62c3e732229262b4d3af1bc101d31a1ce95735fe11c438",
+        directorId: "0xfb5351343b9ff40cf1d9431cf4270ff676dee60dcbf05734cf1fc906aee44510",
     },
     localnet: {
         packageId: "",
