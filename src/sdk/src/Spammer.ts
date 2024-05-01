@@ -20,6 +20,7 @@ const TXS_UNTIL_ROTATE = 50;
 const SLEEP_MS_AFTER_RPC_CHANGE = 1000;
 const SLEEP_MS_AFTER_OBJECT_NOT_READY = 1000;
 const SLEEP_MS_AFTER_NETWORK_ERROR = 10000;
+const SLEEP_MS_AFTER_FINALITY_ERROR = 30000;
 
 export class Spammer
 {
@@ -185,6 +186,7 @@ export class Spammer
         }
         catch (err) {
             const errStr = String(err);
+            const errStrLower = errStr.toLowerCase();
             const errCode = parseSpamError(errStr);
 
             // When the epoch changes, the counter is no longer incrementable
@@ -203,6 +205,14 @@ export class Spammer
                 this.event({ type: "debug", msg: `Validator didn't sync yet. ${retryMsg}. RPC: ${this.getSpamClient().rpcUrl}.` });
                 this.txsSinceRotate += 5; // spend less time on slow RPCs
                 await sleep(SLEEP_MS_AFTER_OBJECT_NOT_READY);
+            }
+            // An attempt to prevent equivocation issues
+            else if ( errStrLower.includes("finality") || errStrLower.includes("timeout") || errStrLower.includes("timed out") ) {
+                const retryMsg = `Retrying in ${SLEEP_MS_AFTER_FINALITY_ERROR / 1000} seconds`;
+                this.event({ type: "info", msg: `Finality/timeout error. ${retryMsg}. Original error: ${errStr}` });
+                this.txsSinceRotate += 17; // spend less time on failing RPCs
+                this.requestRefresh = true;
+                await sleep(SLEEP_MS_AFTER_FINALITY_ERROR);
             }
             // Network error
             else if ( errStr.includes("Failed to fetch") ) {
