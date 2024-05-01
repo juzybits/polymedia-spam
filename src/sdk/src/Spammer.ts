@@ -189,7 +189,7 @@ export class Spammer
                     throw new Error(resp.effects?.status.error);
                 }
                 curr.tx_count++;
-                curr.ref = resp.effects!.mutated!.find(mutatedObj =>
+                curr.ref = resp.effects.mutated!.find(mutatedObj =>
                     mutatedObj.reference.objectId == curr.id
                 )!.reference;
             }

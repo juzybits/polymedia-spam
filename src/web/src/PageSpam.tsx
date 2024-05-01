@@ -122,7 +122,7 @@ export const PageSpam: React.FC = () =>
                     {counter.tx_count} txs
                 </div>
                 <div>
-                    {counter.registered ? "Registered" : "Not registered"}
+                    {type === "current" ? "" : (counter.registered ? "Registered" : "Not registered")}
                 </div>
             </div>
 
