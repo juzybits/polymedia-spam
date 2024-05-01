@@ -23,11 +23,13 @@ export class SpamClient
     public readonly suiClient: SuiClient;
     public readonly packageId: string;
     public readonly directorId: string;
+    private gasCoin: SuiObjectRef|undefined;
 
     constructor(
         keypair: Signer,
         network: NetworkName,
         rpcUrl: string,
+        gasCoin?: SuiObjectRef,
     ) {
         this.signer = keypair;
         this.network = network;
@@ -35,6 +37,7 @@ export class SpamClient
         this.suiClient = new SuiClient({ url: rpcUrl }),
         this.packageId = SPAM_IDS[network].packageId;
         this.directorId = SPAM_IDS[network].directorId;
+        this.gasCoin = gasCoin;
     }
 
     /* Data fetching */
@@ -52,7 +55,8 @@ export class SpamClient
         return pageObjResp.data.map(objResp => this.parseUserCounter(objResp));
     }
 
-    public async fetchUserCountersAndClassify()
+    public async fetchUserCountersAndClassify(
+    ): Promise<UserCounters>
     {
         // fetch user counters
         const userCountersArray = await this.fetchUserCounters();
@@ -239,6 +243,26 @@ export class SpamClient
         return this.deserializeStats(txb);
     }
 
+    /* Gas management */
+
+    public getGasCoin(): SuiObjectRef|undefined {
+        if (!this.gasCoin) {
+            return undefined;
+        }
+        return {...this.gasCoin};
+    }
+
+    public setGasCoin(gasCoin: SuiObjectRef|undefined): void {
+        this.gasCoin = gasCoin;
+    }
+
+    public async fetchAndSetGasCoin(): Promise<SuiTransactionBlockResponse> {
+        const txb = new TransactionBlock();
+        const resp = await this.signAndExecute(txb);
+        this.gasCoin = resp.effects!.gasObject.reference;
+        return resp;
+    }
+
     /* Helpers */
 
     private async deserializeStats(
@@ -265,17 +289,37 @@ export class SpamClient
     {
         txb.setSender(this.signer.toSuiAddress());
 
+        if (this.gasCoin) {
+            txb.setGasPayment([this.gasCoin]);
+        }
+
         const { bytes, signature } = await txb.sign({
             signer: this.signer,
             client: this.suiClient,
         });
 
-        return await this.suiClient.executeTransactionBlock({
+        const resp = await this.suiClient.executeTransactionBlock({
             signature,
             transactionBlock: bytes,
             options: { showEffects: true },
             requestType: "WaitForEffectsCert", // redundant because of showEffects, but just in case
         });
+
+        if (this.gasCoin) {
+            this.gasCoin = this.getGasRef(resp, this.gasCoin.objectId);
+        }
+
+        return resp;
+    }
+
+    private getGasRef(
+        resp: SuiTransactionBlockResponse,
+        objectId: string,
+    ): SuiObjectRef {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        return resp.effects!.mutated!.find(mutatedObj =>
+            mutatedObj.reference.objectId === objectId
+        )!.reference;
     }
 
     /* eslint-disable */

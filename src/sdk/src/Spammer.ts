@@ -107,7 +107,9 @@ export class Spammer
             // Refetch data if requested
             if (this.requestRefresh) {
                 this.requestRefresh = false;
+                this.event({ type: "debug", msg: `Fetching onchain data` });
                 this.userCounters = await this.getSpamClient().fetchUserCountersAndClassify();
+                await this.getSpamClient().fetchAndSetGasCoin();
             }
 
             // Rotate RPCs after a few transactions
@@ -195,7 +197,9 @@ export class Spammer
                 this.event({ type: "info", msg: "Epoch change"});
             }
             // User ran out of gas
-            else if ( /Balance of gas object \d+ is lower than the needed amount/.test(errStr) ) {
+            else if ( errStr.includes("No valid gas coins found for the transaction")
+                    || /Balance of gas object \d+ is lower than the needed amount/.test(errStr)
+            ) {
                 this.status = "stopping";
                 this.event({ type: "info", msg: "Out of gas. Stopping." });
             }

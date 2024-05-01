@@ -46,8 +46,11 @@ export class SpamClientRotator
         do {
             nextIndex = (nextIndex + 1) % this.spamClients.length;
             if (this.spamClients[nextIndex].active) {
+                const oldClient = this.getSpamClient();
                 this.activeIndex = nextIndex;
-                return this.getSpamClient();
+                const newClient = this.getSpamClient();
+                newClient.setGasCoin(oldClient.getGasCoin())
+                return newClient;
             }
         } while (nextIndex !== activeIndex);
 
