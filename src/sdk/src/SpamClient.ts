@@ -15,6 +15,8 @@ import { SPAM_IDS, SPAM_MODULE } from "./config";
 import * as pkg from "./package";
 import { BcsStats, Stats, UserCounter, UserCounters } from "./types";
 
+const INCREMENT_TX_GAS_BUDGET = 3000000; // 0.003 SUI
+
 export class SpamClient
 {
     public readonly signer: Signer;
@@ -189,6 +191,7 @@ export class SpamClient
     ): Promise<SuiTransactionBlockResponse>
     {
         const txb = new TransactionBlock();
+        txb.setGasBudget(INCREMENT_TX_GAS_BUDGET);
         pkg.increment_user_counter(txb, this.packageId, userCounterRef);
         return this.signAndExecute(txb);
     }
