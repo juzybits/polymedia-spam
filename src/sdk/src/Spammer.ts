@@ -104,20 +104,20 @@ export class Spammer
         }
         try
         {
-            // Refetch data if requested
-            if (this.requestRefresh) {
-                this.requestRefresh = false;
-                this.event({ type: "debug", msg: "Fetching onchain data" });
-                this.userCounters = await this.getSpamClient().fetchUserCountersAndClassify();
-                await this.getSpamClient().fetchAndSetGasCoin();
-            }
-
             // Rotate RPCs after a few transactions
             if (this.txsSinceRotate >= TXS_UNTIL_ROTATE) {
                 this.txsSinceRotate = 0;
                 const nextClient = this.rotator.nextSpamClient();
                 this.event({ type: "debug", msg: `Rotating to next RPC: ${nextClient.rpcUrl}` });
                 await sleep(SLEEP_MS_AFTER_RPC_CHANGE);
+            }
+
+            // Refetch data if requested
+            if (this.requestRefresh) {
+                this.requestRefresh = false;
+                this.event({ type: "debug", msg: "Fetching onchain data" });
+                this.userCounters = await this.getSpamClient().fetchUserCountersAndClassify();
+                await this.getSpamClient().fetchAndSetGasCoin();
             }
 
             const counters = this.userCounters;
