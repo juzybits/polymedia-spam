@@ -126,13 +126,13 @@ export const PageSpam: React.FC = () =>
             }
         }
         else if (type === "register") {
-            status = !counter.registered ? "ready to register" : "claim on next epoch";
+            status = !counter.registered ? "can be registered until the end of the current epoch" : "registered, can be claimed from the next epoch";
         }
         else if (type === "claim") {
-            status = "ready to claim";
+            status = "can be claimed at any time to mint $SPAM";
         }
         else {
-            status = "unusable, will be deleted";
+            status = "unusable, will be deleted automatically";
         }
 
         const epochTimes = currEpoch && getEpochTimes(counter.epoch, currEpoch);
@@ -149,10 +149,7 @@ export const PageSpam: React.FC = () =>
 
             <div>
                 <div className={txClass}>
-                    {counter.tx_count} txs
-                </div>
-                <div>
-                    {type === "current" ? "" : (counter.registered ? "Registered" : "Not registered")}
+                    Transactions: {counter.tx_count}
                 </div>
             </div>
 
@@ -165,7 +162,8 @@ export const PageSpam: React.FC = () =>
             {epochTimes &&
             <div>
                 <div>
-                    From {formatEpochTime(epochTimes.startTime)} until {formatEpochTime(epochTimes.endTime)}
+                    Epoch end: {formatEpochTime(epochTimes.endTime)}<br/>
+                    Epoch start: {formatEpochTime(epochTimes.startTime)}
                 </div>
             </div>
             }
