@@ -19,7 +19,7 @@ export type SpamEventHandler = (event: SpamEvent) => void;
 const TXS_UNTIL_ROTATE = 50;
 const SLEEP_MS_AFTER_RPC_CHANGE = 1000;
 const SLEEP_MS_AFTER_OBJECT_NOT_READY = 1000;
-const SLEEP_MS_AFTER_NETWORK_ERROR = 3000;
+const SLEEP_MS_AFTER_NETWORK_ERROR = 10000;
 
 export class Spammer
 {
@@ -199,20 +199,25 @@ export class Spammer
             }
             // The validator didn't pick up the object changes yet. Often happens when changing RPCs.
             else if ( errStr.includes("ObjectNotFound") || errStr.includes("not available for consumption") ) {
-                this.event({ type: "debug", msg: `Validator didn't sync yet. Retrying shortly. RPC: ${this.getSpamClient().rpcUrl}.` });
+                const retryMsg = `Retrying in ${SLEEP_MS_AFTER_OBJECT_NOT_READY / 1000} seconds`;
+                this.event({ type: "debug", msg: `Validator didn't sync yet. ${retryMsg}. RPC: ${this.getSpamClient().rpcUrl}.` });
                 this.txsSinceRotate += 5; // spend less time on slow RPCs
                 await sleep(SLEEP_MS_AFTER_OBJECT_NOT_READY);
             }
             // Network error
             else if ( errStr.includes("Failed to fetch") ) {
-                this.event({ type: "info", msg: `Network error. Retrying shortly. Original error: ${errStr}` });
+                const retryMsg = `Retrying in ${SLEEP_MS_AFTER_NETWORK_ERROR / 1000} seconds`;
+                this.event({ type: "info", msg: `Network error. ${retryMsg}. Original error: ${errStr}` });
                 this.txsSinceRotate += 17; // spend less time on failing RPCs
+                this.requestRefresh = true;
                 await sleep(SLEEP_MS_AFTER_NETWORK_ERROR);
             }
             // Unexpected error
             else {
-                this.event({ type: "info", msg: `Unexpected error. Retrying shortly. Original error: ${errStr}` });
+                const retryMsg = `Retrying in ${SLEEP_MS_AFTER_NETWORK_ERROR / 1000} seconds`;
+                this.event({ type: "info", msg: `Unexpected error. ${retryMsg}. Original error: ${errStr}` });
                 this.txsSinceRotate += 17; // spend less time on failing RPCs
+                this.requestRefresh = true;
                 await sleep(SLEEP_MS_AFTER_NETWORK_ERROR);
             }
         }
