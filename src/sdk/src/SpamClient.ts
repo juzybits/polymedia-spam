@@ -259,13 +259,6 @@ export class SpamClient
         this.gasCoin = gasCoin;
     }
 
-    public async fetchAndSetGasCoin(): Promise<SuiTransactionBlockResponse> {
-        const txb = new TransactionBlock();
-        const resp = await this.signAndExecute(txb);
-        this.gasCoin = resp.effects!.gasObject.reference;
-        return resp;
-    }
-
     /* Helpers */
 
     private async deserializeStats(
@@ -308,20 +301,9 @@ export class SpamClient
             requestType: "WaitForEffectsCert", // redundant because of showEffects, but just in case
         });
 
-        if (this.gasCoin) {
-            this.gasCoin = this.getGasRef(resp, this.gasCoin.objectId);
-        }
+        this.gasCoin = resp.effects?.gasObject.reference;
 
         return resp;
-    }
-
-    private getGasRef(
-        resp: SuiTransactionBlockResponse,
-        objectId: string,
-    ): SuiObjectRef {
-        return resp.effects!.mutated!.find(mutatedObj =>
-            mutatedObj.reference.objectId === objectId
-        )!.reference;
     }
 
     /* eslint-disable */

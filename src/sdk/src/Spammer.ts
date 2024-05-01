@@ -118,7 +118,7 @@ export class Spammer
                 this.requestRefresh = false;
                 this.event({ type: "debug", msg: "Fetching onchain data" });
                 this.userCounters = await this.getSpamClient().fetchUserCountersAndClassify();
-                await this.getSpamClient().fetchAndSetGasCoin();
+                this.getSpamClient().setGasCoin(undefined);
             }
 
             const counters = this.userCounters;
@@ -223,7 +223,7 @@ export class Spammer
             // An attempt to prevent equivocation issues
             else if ( errStrLower.includes("finality") || errStrLower.includes("timeout") || errStrLower.includes("timed out") ) {
                 const retryMsg = `Retrying in ${SLEEP_MS_AFTER_FINALITY_ERROR / 1000} seconds`;
-                this.event({ type: "info", msg: `Finality/timeout error. ${retryMsg}. Original error: ${errStr}` });
+                this.event({ type: "info", msg: `Finality/timeout error. ${retryMsg}. Details: ${errStr}` });
                 this.txsSinceRotate += 17; // spend less time on failing RPCs
                 this.requestRefresh = true;
                 await sleep(SLEEP_MS_AFTER_FINALITY_ERROR);
@@ -231,7 +231,7 @@ export class Spammer
             // Network error
             else if ( errStr.includes("Failed to fetch") ) {
                 const retryMsg = `Retrying in ${SLEEP_MS_AFTER_NETWORK_ERROR / 1000} seconds`;
-                this.event({ type: "info", msg: `Network error. ${retryMsg}. Original error: ${errStr}` });
+                this.event({ type: "info", msg: `Network error. ${retryMsg}. Details: ${errStr}` });
                 this.txsSinceRotate += 17; // spend less time on failing RPCs
                 this.requestRefresh = true;
                 await sleep(SLEEP_MS_AFTER_NETWORK_ERROR);
@@ -239,7 +239,7 @@ export class Spammer
             // Unexpected error
             else {
                 const retryMsg = `Retrying in ${SLEEP_MS_AFTER_NETWORK_ERROR / 1000} seconds`;
-                this.event({ type: "info", msg: `Unexpected error. ${retryMsg}. Original error: ${errStr}` });
+                this.event({ type: "info", msg: `Unexpected error. ${retryMsg}. Details: ${errStr}` });
                 this.txsSinceRotate += 17; // spend less time on failing RPCs
                 this.requestRefresh = true;
                 await sleep(SLEEP_MS_AFTER_NETWORK_ERROR);
