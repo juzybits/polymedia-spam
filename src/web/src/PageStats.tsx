@@ -23,6 +23,11 @@ export const PageStats: React.FC = () =>
         try {
             setStats(undefined);
             const newStats = await spammer.current.getSpamClient().fetchStatsForRecentEpochs(7);
+            // Prepend a synthetic epoch counter for the current epoch
+            newStats.epochs.unshift({
+                epoch: newStats.epoch,
+                tx_count: "0",
+            })
             setStats(newStats);
         } catch (err) {
             console.warn("stats update failed");
@@ -31,6 +36,7 @@ export const PageStats: React.FC = () =>
 
     const updateCurrEpoch = async () => {
         try {
+            setCurrEpoch(undefined);
             const suiState = await spammer.current.getSuiClient().getLatestSuiSystemState();
             setCurrEpoch({
                 epochNumber: Number(suiState.epoch),
@@ -57,10 +63,10 @@ export const PageStats: React.FC = () =>
             transactions = "";
         } else if (epochNumber === currEpoch.epochNumber) {
             cardClass = "current";
-            transactions = "users are spamming this counter now";
+            transactions = "users are spamming txs for this epoch right now";
         } else if (epochNumber === currEpoch.epochNumber - 1) {
             cardClass = "register";
-            transactions = `${epoch.tx_count} have been registered so far`;
+            transactions = `${epoch.tx_count} txs have been registered so far`;
         } else {
             cardClass = "claim";
             transactions = epoch.tx_count;
@@ -94,14 +100,15 @@ export const PageStats: React.FC = () =>
         ? <p>Loading...</p>
         : <>
             <div className="tight">
-                <p>Current epoch: {stats.epoch}</p>
-                <p>System status: {stats.paused ? "paused" : "running"}</p>
-                <p>Circulating supply: {formatBigInt(BigInt(stats.supply), SPAM_DECIMALS, "compact")}</p>
                 <p>Total transactions: {formatNumber(Number(stats.tx_count), "compact")}</p>
+                <p>Circulating supply: {formatBigInt(BigInt(stats.supply), SPAM_DECIMALS, "compact")}</p>
+                {/* <p>Current epoch: {stats.epoch}</p> */}
+                {/* <p>System status: {stats.paused ? "paused" : "running"}</p> */}
             </div>
 
             {stats.epochs.length > 0 &&
             <>
+                <br/>
                 <h2>Epochs:</h2>
 
                 <div className="counter-cards">
