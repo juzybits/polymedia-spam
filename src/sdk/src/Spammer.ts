@@ -18,6 +18,7 @@ export type SpamEventHandler = (event: SpamEvent) => void;
 // Rotate to the next RPC endpoint after these many `increment_user_counter` transactions
 const TXS_UNTIL_ROTATE = 50;
 const SLEEP_MS_AFTER_RPC_CHANGE = 1000;
+const SLEEP_MS_AFTER_NEW_USER_COUNTER = 3000;
 const SLEEP_MS_AFTER_OBJECT_NOT_READY = 1000;
 const SLEEP_MS_AFTER_NETWORK_ERROR = 10000;
 const SLEEP_MS_AFTER_FINALITY_ERROR = 30000;
@@ -177,6 +178,7 @@ export class Spammer
                 if (resp.effects?.status.status !== "success") {
                     throw new Error(resp.effects?.status.error);
                 }
+                await sleep(SLEEP_MS_AFTER_NEW_USER_COUNTER);
             }
             // Increment current counter
             else {
