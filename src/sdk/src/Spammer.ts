@@ -20,6 +20,7 @@ const SLEEP_MS_AFTER_RPC_CHANGE = 1000;
 const SLEEP_MS_AFTER_OBJECT_NOT_READY = 1000;
 const SLEEP_MS_AFTER_NETWORK_ERROR = 10000;
 const SLEEP_MS_AFTER_FINALITY_ERROR = 30000;
+const SLEEP_MS_AFTER_UNEXPECTED_ERROR = 30000;
 
 export class Spammer
 {
@@ -240,11 +241,11 @@ export class Spammer
             }
             // Unexpected error
             else {
-                const retryMsg = `Retrying in ${SLEEP_MS_AFTER_NETWORK_ERROR / 1000} seconds`;
+                const retryMsg = `Retrying in ${SLEEP_MS_AFTER_UNEXPECTED_ERROR / 1000} seconds`;
                 this.event({ type: "info", msg: `Unexpected error. ${retryMsg}. Details: ${errStr}` });
                 this.txsSinceRotate += 17; // spend less time on failing RPCs
                 this.requestRefresh = { refresh: true };
-                await sleep(SLEEP_MS_AFTER_NETWORK_ERROR);
+                await sleep(SLEEP_MS_AFTER_UNEXPECTED_ERROR);
             }
         }
         finally {
