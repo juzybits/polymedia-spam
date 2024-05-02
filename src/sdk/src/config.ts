@@ -7,8 +7,8 @@ export type NetworkConfig = {
 
 export const SPAM_IDS: Record<NetworkName, NetworkConfig> = {
     mainnet: {
-        packageId: "",
-        directorId: "",
+        packageId: "0x30a644c3485ee9b604f52165668895092191fcaf5489a846afa7fc11cdb9b24a",
+        directorId: "0x71d2211afbb63a83efc9050ded5c5bb7e58882b17d872e32e632a978ab7b5700",
     },
     testnet: {
         packageId: "0xb0783634bd4aeb2c97d3e707fce338c94d135d72e1cb701ca220b34f7b18b877",
