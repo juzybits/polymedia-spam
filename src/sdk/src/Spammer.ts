@@ -15,7 +15,6 @@ export type SpamEvent = {
 
 export type SpamEventHandler = (event: SpamEvent) => void;
 
-// Rotate to the next RPC endpoint after these many `increment_user_counter` transactions
 const TXS_UNTIL_ROTATE = 50;
 const SLEEP_MS_AFTER_RPC_CHANGE = 1000;
 const SLEEP_MS_BEFORE_DATA_REFRESH = 5000;
