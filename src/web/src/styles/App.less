@@ -85,9 +85,20 @@ header {
                 padding-bottom: 0.6rem;
             }
             .wallet-key-or-address {
+                padding: 1rem;
+                background-color: @color-bg-begin;
+                display: inline-block;
+                border-radius: @radius;
                 word-break: break-all;
                 font-family: monospace;
                 font-size: 1rem;
+            }
+        }
+        .dont-share-secret-key {
+            padding-top: 1rem;
+            &, * {
+                font-weight: 500;
+                color: rgb(222, 125, 125);
             }
         }
     }
