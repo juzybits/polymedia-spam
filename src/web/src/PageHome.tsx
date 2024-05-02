@@ -1,6 +1,7 @@
 import { SPAM_IDS } from "@polymedia/spam-sdk";
 import { Link, useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
+import { LinkExternal } from "@polymedia/webutils";
 
 export const PageHome: React.FC = () =>
 {
@@ -36,9 +37,11 @@ export const PageHome: React.FC = () =>
             <p>▸ There is no proof of work, only proof of spam.</p>
         </div>
 
-        <p><a target="_blank" rel="noopener noreferrer" href="https://github.com/juzybits/polymedia-spam/blob/main/README.md">
-            Read the docs
-        </a></p>
+        <p>
+            <LinkExternal follow={true} href="https://github.com/juzybits/polymedia-spam/blob/main/README.md" >
+                Read the docs
+            </LinkExternal>
+        </p>
 
     </div>
     </div>;
