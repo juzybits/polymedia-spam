@@ -60,10 +60,10 @@ export const PageStats: React.FC = () =>
             transactions = "";
         } else if (epochNumber === currEpoch.epochNumber) {
             cardClass = "current";
-            transactions = "Users are spamming txs for this epoch right now";
+            transactions = "Users are spamming transactions right now";
         } else if (epochNumber === currEpoch.epochNumber - 1) {
             cardClass = "register";
-            transactions = `${epoch.tx_count} txs have been registered so far`;
+            transactions = `${epoch.tx_count} transactions registered so far`;
         } else {
             cardClass = "claim";
             transactions = `${epoch.tx_count} transactions`;

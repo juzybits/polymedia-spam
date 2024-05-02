@@ -276,8 +276,8 @@ export class SpamClient
 }
 
 // Dev-only
-// @ts-expect-error 'addDevData' is defined but never used
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+/* eslint-disable */
+// @ts-ignore
 function addDevData(counters: UserCounters, currEpoch: number) {
     if (!counters.current) {
         counters.current = {
@@ -313,7 +313,7 @@ function addDevData(counters: UserCounters, currEpoch: number) {
                 version: "333",
                 digest: "ccccccccc",
             },
-            epoch: currEpoch -1,
+            epoch: currEpoch - 2,
             tx_count: 333,
             registered: true,
         }];
@@ -326,7 +326,7 @@ function addDevData(counters: UserCounters, currEpoch: number) {
                 version: "444",
                 digest: "ddddddddd",
             },
-            epoch: currEpoch -1,
+            epoch: currEpoch - 3,
             tx_count: 444,
             registered: false,
         }];

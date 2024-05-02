@@ -119,7 +119,7 @@ export const PageSpam: React.FC = () =>
         let status: string;
         if (type === "current") {
             if (spammer.current.status === "running") {
-                status = "spamming";
+                status = "Spamming";
                 txClass = "blink";
             } else {
                 status = isLowSuiBalance
