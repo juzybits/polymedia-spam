@@ -1,7 +1,12 @@
-import { Link } from "react-router-dom";
+import { SPAM_IDS } from "@polymedia/spam-sdk";
+import { Link, useOutletContext } from "react-router-dom";
+import { AppContext } from "./App";
 
 export const PageHome: React.FC = () =>
 {
+    const { network } = useOutletContext<AppContext>();
+    const spamPackageId = SPAM_IDS[network].packageId;
+
     return <div id="page-home">
     <div id="home-content">
         <h1><span className="rainbow" style={{fontSize: "3rem"}}>SPAM</span></h1>
@@ -18,8 +23,8 @@ export const PageHome: React.FC = () =>
 
         <h3>Coin type</h3>
         <p>
-            <span className="sui-address"> {/* TODO update on launch */}
-                0x0000000000000000000000000000000000000000000000000000000000000000::spam::SPAM
+            <span className="sui-address">
+                {spamPackageId}::spam::SPAM
             </span>
         </p>
 
