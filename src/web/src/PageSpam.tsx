@@ -63,7 +63,7 @@ export const PageSpam: React.FC = () =>
         } catch (err) {
             console.warn("epoch update failed");
         }
-    }
+    };
 
     /* HTML */
 

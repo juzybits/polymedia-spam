@@ -12,11 +12,8 @@ export const PageStats: React.FC = () =>
     const [ currEpoch, setCurrEpoch ] = useState<EpochData>();
 
     useEffect(() => {
-        const initialize = async () => {
-            updateStats();
-            updateCurrEpoch();
-        };
-        initialize();
+        updateStats();
+        updateCurrEpoch();
     }, [spammer.current, network]);
 
     const updateStats = async () => {
@@ -27,12 +24,12 @@ export const PageStats: React.FC = () =>
             newStats.epochs.unshift({
                 epoch: newStats.epoch,
                 tx_count: "0",
-            })
+            });
             setStats(newStats);
         } catch (err) {
             console.warn("stats update failed");
         }
-    }
+    };
 
     const updateCurrEpoch = async () => {
         try {
@@ -46,7 +43,7 @@ export const PageStats: React.FC = () =>
         } catch (err) {
             console.warn("epoch update failed");
         }
-    }
+    };
 
     const CounterCard: React.FC<{
         epoch: { epoch: string; tx_count: string };

@@ -43,7 +43,7 @@ export function formatEpochTime(date: Date, network: NetworkName): string {
     if (network === "localnet" || network === "devnet") {
         const hours = date.getHours().toString().padStart(2, "0");
         const minutes = date.getMinutes().toString().padStart(2, "0");
-        time = ` at ${hours}:${minutes}`
+        time = ` at ${hours}:${minutes}`;
     }
 
     if (date.toDateString() === tomorrow.toDateString()) {
