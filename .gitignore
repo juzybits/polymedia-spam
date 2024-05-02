@@ -11,4 +11,3 @@ node_modules
 .coverage_map.mvcov
 .trace
 build
-Move.lock
