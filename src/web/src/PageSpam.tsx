@@ -74,6 +74,17 @@ export const PageSpam: React.FC = () =>
         </>;
     };
 
+    const CurrentRPC: React.FC = () => {
+        if (isLoading || isLowSuiBalance || isDisabled) {
+            return null;
+        }
+        return <div className="tight">
+            <h2>Current RPC</h2>
+            <span className="sui-address">{spammer.current.getSpamClient().rpcUrl}</span>
+            <br/><br/>
+        </div>;
+    };
+
     const TopUp: React.FC = () => {
         if (isLoading || !isLowSuiBalance || isDisabled) {
             return null;
@@ -198,11 +209,6 @@ export const PageSpam: React.FC = () =>
                 <Balances />
             </div>
 
-            <div className="tight">
-                <p>Current RPC:</p>
-                <p className="break-word">{spammer.current.getSpamClient().rpcUrl}</p>
-            </div>
-
             <TopUp />
 
             <SpamOrStopButton />
@@ -225,6 +231,8 @@ export const PageSpam: React.FC = () =>
                     )}
                 </div>
             </>}
+
+            <CurrentRPC />
 
             <EventLog />
         </div>
