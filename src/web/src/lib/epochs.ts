@@ -29,7 +29,7 @@ export function formatEpochPeriod(startDate: Date, endDate: Date, network: Netwo
     return `Started ${formatEpochTime(startDate, network)} and ${verb} ${formatEpochTime(endDate, network)}`;
 }
 
-export function formatEpochTime(date: Date, network: NetworkName): string {
+export function formatEpochTime(date: Date, _network: NetworkName): string {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const yesterday = new Date(today);
@@ -40,11 +40,11 @@ export function formatEpochTime(date: Date, network: NetworkName): string {
     oneWeekLater.setDate(today.getDate() + 7);
 
     let time = "";
-    if (network === "localnet" || network === "devnet") {
+    // if (network === "localnet" || network === "devnet") {
         const hours = date.getHours().toString().padStart(2, "0");
         const minutes = date.getMinutes().toString().padStart(2, "0");
         time = ` at ${hours}:${minutes}`;
-    }
+    // }
 
     if (date.toDateString() === tomorrow.toDateString()) {
         return `tomorrow${time}`;

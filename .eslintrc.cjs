@@ -28,6 +28,7 @@ module.exports = {
         "@typescript-eslint/no-misused-promises": "off",
         "@typescript-eslint/no-non-null-assertion": "off",
         "@typescript-eslint/no-unnecessary-condition": "off",
+        "@typescript-eslint/no-unused-vars": [ "error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_", "caughtErrorsIgnorePattern": "^_" } ],
         "@typescript-eslint/prefer-nullish-coalescing": [ "off" ],
         "@typescript-eslint/restrict-template-expressions": "off",
         "@typescript-eslint/use-unknown-in-catch-callback-variable": "off",
