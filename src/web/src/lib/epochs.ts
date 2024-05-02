@@ -1,3 +1,5 @@
+import { NetworkName } from "@polymedia/suits";
+
 export type EpochData = {
     epochNumber: number;
     durationMs: number;
@@ -21,7 +23,13 @@ export function getEpochTimes(
     return { startTime, endTime };
 }
 
-export function formatEpochTime(date: Date): string {
+export function formatEpochPeriod(startDate: Date, endDate: Date, network: NetworkName): string {
+    const now = new Date();
+    const verb = endDate > now ? "ends" : "ended";
+    return `Started ${formatEpochTime(startDate, network)} and ${verb} ${formatEpochTime(endDate, network)}`;
+}
+
+export function formatEpochTime(date: Date, network: NetworkName): string {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const yesterday = new Date(today);
@@ -31,23 +39,27 @@ export function formatEpochTime(date: Date): string {
     const oneWeekLater = new Date(today);
     oneWeekLater.setDate(today.getDate() + 7);
 
-    const hours = date.getHours().toString().padStart(2, "0");
-    const minutes = date.getMinutes().toString().padStart(2, "0");
+    let time = "";
+    if (network === "localnet" || network === "devnet") {
+        const hours = date.getHours().toString().padStart(2, "0");
+        const minutes = date.getMinutes().toString().padStart(2, "0");
+        time = ` at ${hours}:${minutes}`
+    }
 
     if (date.toDateString() === tomorrow.toDateString()) {
-        return `tomorrow at ${hours}:${minutes}`;
+        return `tomorrow${time}`;
     } else if (date.toDateString() === today.toDateString()) {
-        return `today at ${hours}:${minutes}`;
+        return `today${time}`;
     } else if (date.toDateString() === yesterday.toDateString()) {
-        return `yesterday at ${hours}:${minutes}`;
+        return `yesterday${time}`;
     } else if (date > tomorrow && date < oneWeekLater) {
         // Date is after tomorrow but within a week
         const weekday = date.toLocaleString("en-US", { weekday: "short" }); // e.g., "Thu"
-        return `${weekday} at ${hours}:${minutes}`;
+        return `${weekday}${time}`;
     } else {
         // Date is more than a week ago or in the future
         const month = date.toLocaleString("en-US", { month: "short" }); // e.g., "Apr"
         const day = date.getDate();
-        return `${month} ${day} at ${hours}:${minutes}`;
+        return `${month} ${day}${time}`;
     }
 }
