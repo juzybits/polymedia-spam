@@ -12,27 +12,18 @@ export const PageSpam: React.FC = () =>
     /* State */
 
     const { network, balances, spammer, spamView } = useOutletContext<AppContext>();
-
-    const [ isSystemPaused, setIsSystemPaused ] = useState<boolean>(false); // TODO remove after mainnet unpause
     const [ currEpoch, setCurrEpoch ] = useState<EpochData>();
+    const isDisabled = false;
 
     const isLoading = spamView.counters.epoch === -1 || balances.sui === -1 || !currEpoch;
 
     /* Functions */
 
-    useEffect(() => { // TODO remove after mainnet unpause
-        const initialize = async () => {
-            const stats = await spammer.current.getSpamClient().fetchStatsForRecentEpochs(1);
-            setIsSystemPaused(stats.paused);
-        };
-        initialize();
-    }, [spammer.current]);
-
     useEffect(() => {
         setCurrEpoch(undefined);
         updateCurrEpoch();
 
-        const updateFrequency = ["localnet", "devnet"].includes(network) ? 5_000 : 30_000;
+        const updateFrequency = ["localnet", "devnet"].includes(network) ? 5_000 : 45_000;
         const updatePeriodically = setInterval(updateCurrEpoch, updateFrequency);
 
         return () => {
@@ -84,7 +75,7 @@ export const PageSpam: React.FC = () =>
     };
 
     const TopUp: React.FC = () => {
-        if (isLoading || !isLowSuiBalance || isSystemPaused) {
+        if (isLoading || !isLowSuiBalance || isDisabled) {
             return null;
         }
         return <>
@@ -96,7 +87,7 @@ export const PageSpam: React.FC = () =>
     };
 
     const SpamOrStopButton: React.FC = () => {
-        if (isLoading || isLowSuiBalance || isSystemPaused) {
+        if (isLoading || isLowSuiBalance || isDisabled) {
             return null;
         }
         if (spammer.current.status === "stopped") {
