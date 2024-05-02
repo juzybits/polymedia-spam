@@ -110,24 +110,24 @@ export const PageSpam: React.FC = () =>
         let status: string;
         if (type === "current") {
             if (spammer.current.status === "running") {
-                status = "Spamming";
+                status = "Spamming...";
                 txClass = "blink";
             } else {
                 status = isLowSuiBalance
                     ? "Top up your wallet to spam this counter"
-                    : "Ready to spam";
-            }
+                    : `Ready to spam. Can be registered on epoch ${counter.epoch+1}.`;
+                }
         }
         else if (type === "register") {
             status = !counter.registered
                 ? `Can be registered until the end of epoch ${counter.epoch+1}`
-                : `Registered, can mint SPAM from epoch ${counter.epoch+2}`;
+                : `Registered. Can mint SPAM from epoch ${counter.epoch+2}.`;
         }
         else if (type === "claim") {
             status = "Can mint SPAM at any time";
         }
         else {
-            status = "Unusable, will be deleted";
+            status = "Unusable. Will be deleted.";
         }
 
         const epochTimes = currEpoch && getEpochTimes(counter.epoch, currEpoch);
