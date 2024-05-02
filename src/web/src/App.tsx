@@ -171,7 +171,7 @@ const App: React.FC = () =>
     };
 
     function handleSpamEvent(e: SpamEvent) {
-        console[e.type](`${e.type}: ${e.msg}`);
+        console[e.type](`${e.msg}`);
         setSpamView(oldView => {
             if (e.type !== "debug") {
                 // Only show non-debug events to the user
