@@ -98,14 +98,14 @@ export const PageWallet: React.FC = () =>
                 <div className="wallet-section">
                     <h4>Your Sui address:</h4>
                     <p>This is the Sui address of your spam wallet. Send $SUI to this address to fund your spam wallet and start mining.</p>
-                    <span className="wallet-key-or-address">
+                    <span className="sui-address">
                         {spammer.current.getSpamClient().signer.toSuiAddress()}
                     </span>
                 </div>
                 <div className="wallet-section">
                     <h4>Your secret key:</h4>
                     <p>This is the private key of your spam wallet. Import it into a Sui mobile or browser wallet to withdraw the $SPAM you mine.</p>
-                    <span className="wallet-key-or-address">
+                    <span className="sui-address">
                         {(spammer.current.getSpamClient().signer as Ed25519Keypair).getSecretKey()}
                     </span>
                     <div className="dont-share-secret-key">Don't share your secret key with anyone</div>

@@ -38,6 +38,17 @@ header {
 }
 
 #page {
+    #page-home {
+        display: flex;
+        justify-content: center;
+        #home-content {
+            max-width: 600px;
+        }
+        h3 {
+            padding-top: 3rem;
+            padding-bottom: 0.5rem;
+        }
+    }
     #page-rpc {
         font-size: 1.1rem;
         font-weight: @text-weight;
@@ -83,15 +94,6 @@ header {
             h4 {
                 font-size: 1.2rem;
             }
-            .wallet-key-or-address {
-                padding: 1rem;
-                background-color: @color-bg-end;
-                display: inline-block;
-                border-radius: @radius;
-                word-break: break-all;
-                font-family: monospace;
-                font-size: 1rem;
-            }
         }
         .dont-share-secret-key {
             padding-top: 1rem;
@@ -103,8 +105,15 @@ header {
     }
 }
 
-.rainbow {
-    font-size: 2.3rem;
+
+.sui-address {
+    padding: 1rem;
+    background-color: @color-bg-end;
+    display: inline-block;
+    border-radius: @radius;
+    word-break: break-all;
+    font-family: monospace;
+    font-size: 1rem;
 }
 
 .counter-cards {
@@ -167,6 +176,10 @@ header {
             }
         }
     }
+}
+
+.rainbow {
+    font-size: 2.3rem;
 }
 
 @keyframes blink {
