@@ -119,17 +119,13 @@ const App: React.FC = () =>
         setSpamView(emptySpamView());
         setBalances(emptyBalances());
 
+        updateSpamView();
         updateBalances();
-        resetSpamView();
 
         /* repaint periodically */
 
         const updateFrequency = network === "localnet" ? 5_000 : 20_000;
-        const updatePeriodically = setInterval(async () => {
-            if (spammer.current.status == "running") {
-                await updateBalances();
-            }
-        }, updateFrequency);
+        const updatePeriodically = setInterval(updateBalances, updateFrequency);
 
         /* clean up on component unmount */
 
@@ -157,7 +153,7 @@ const App: React.FC = () =>
         }
     };
 
-    const resetSpamView = async () => {
+    const updateSpamView = async () => {
         try {
             const counters = await spammer.current.getSpamClient().fetchUserCountersAndClassify();
             setSpamView({
@@ -171,7 +167,7 @@ const App: React.FC = () =>
     };
 
     function handleSpamEvent(e: SpamEvent) {
-        console[e.type](`${e.msg}`);
+        console[e.type](e.msg);
         setSpamView(oldView => {
             if (e.type !== "debug") {
                 // Only show non-debug events to the user
