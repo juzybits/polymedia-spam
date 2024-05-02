@@ -122,19 +122,21 @@ export const PageSpam: React.FC = () =>
                 status = "spamming";
                 txClass = "blink";
             } else {
-                status = isLowSuiBalance ? "top up to spam" : "ready to spam";
+                status = isLowSuiBalance
+                    ? "Top up your wallet to spam this counter"
+                    : "Ready to spam";
             }
         }
         else if (type === "register") {
             status = !counter.registered
-                ? "can be registered until the end of the current epoch"
-                : "registered, can be claimed from the next epoch";
+                ? `Can be registered until the end of epoch ${counter.epoch+1}`
+                : `Registered, can mint SPAM from epoch ${counter.epoch+2}`;
         }
         else if (type === "claim") {
-            status = "can be claimed at any time to mint $SPAM";
+            status = "Can mint SPAM at any time";
         }
         else {
-            status = "unusable, will be deleted automatically";
+            status = "Unusable, will be deleted";
         }
 
         const epochTimes = currEpoch && getEpochTimes(counter.epoch, currEpoch);
@@ -151,13 +153,13 @@ export const PageSpam: React.FC = () =>
 
             <div>
                 <div className={txClass}>
-                    Transactions: {counter.tx_count}
+                    You sent {counter.tx_count} transactions
                 </div>
             </div>
 
             <div>
                 <div>
-                    Status: {status}
+                    {status}
                 </div>
             </div>
 
