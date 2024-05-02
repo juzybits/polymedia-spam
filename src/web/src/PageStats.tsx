@@ -22,7 +22,7 @@ export const PageStats: React.FC = () =>
     const updateStats = async () => {
         try {
             setStats(undefined);
-            const newStats = await spammer.current.getSpamClient().fetchStatsForRecentEpochs(7);
+            const newStats = await spammer.current.getSpamClient().fetchStatsForRecentEpochs(6);
             // Prepend a synthetic epoch counter for the current epoch
             newStats.epochs.unshift({
                 epoch: newStats.epoch,

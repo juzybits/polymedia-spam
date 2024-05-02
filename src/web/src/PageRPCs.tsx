@@ -10,27 +10,33 @@ export const PageRPCs: React.FC = () =>
 
     const [ rpcs, setRpcs ] = useState<RpcUrl[]>([...rpcUrls]);
     const [ newRpcUrl, setNewRpcUrl ] = useState("");
-    const [ hasChanges, setHasChange ] = useState<boolean>(false);
+    const [ hasChanges, setHasChanges ] = useState<boolean>(false);
     const [ showSavedMessage, setShowSavedMessage ] = useState<boolean>(false);
 
     useEffect(() => {
         setRpcs([...rpcUrls]);
         setNewRpcUrl("");
-        setHasChange(false);
+        setHasChanges(false);
     }, [rpcUrls]);
 
+    useEffect(() => {
+        if (!rpcs.some(rpc => rpc.enabled)) {
+            setHasChanges(false);
+        }
+    }, [rpcs]);
+
     const onCheckboxChange = (url: string) => {
+        setHasChanges(true);
         setRpcs(prevRpcs =>
             prevRpcs.map(rpc =>
                 rpc.url !== url ? rpc : { ...rpc, enabled: !rpc.enabled }
             )
         );
-        setHasChange(true);
     };
 
     const onSubmit = async () => {
         await updateRpcUrls(rpcs);
-        setHasChange(false);
+        setHasChanges(false);
         setShowSavedMessage(true);
         setTimeout(() => { setShowSavedMessage(false); }, 2000);
     };
@@ -40,7 +46,7 @@ export const PageRPCs: React.FC = () =>
         if (trimmedUrl && !rpcs.find(rpc => rpc.url === trimmedUrl)) {
             setRpcs(rpcs.concat({ url: trimmedUrl, enabled: true }));
             setNewRpcUrl("");
-            setHasChange(true);
+            setHasChanges(true);
         }
     };
 
@@ -48,7 +54,7 @@ export const PageRPCs: React.FC = () =>
         setRpcs(RPC_ENDPOINTS[network].map(rpcUrl => {
             return { url: rpcUrl, enabled: true };
         }));
-        setHasChange(true);
+        setHasChanges(true);
     };
 
     return <>

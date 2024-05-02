@@ -126,7 +126,9 @@ export const PageSpam: React.FC = () =>
             }
         }
         else if (type === "register") {
-            status = !counter.registered ? "can be registered until the end of the current epoch" : "registered, can be claimed from the next epoch";
+            status = !counter.registered
+                ? "can be registered until the end of the current epoch"
+                : "registered, can be claimed from the next epoch";
         }
         else if (type === "claim") {
             status = "can be claimed at any time to mint $SPAM";
