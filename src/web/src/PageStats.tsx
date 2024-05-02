@@ -60,13 +60,13 @@ export const PageStats: React.FC = () =>
             transactions = "";
         } else if (epochNumber === currEpoch.epochNumber) {
             cardClass = "current";
-            transactions = "users are spamming txs for this epoch right now";
+            transactions = "Users are spamming txs for this epoch right now";
         } else if (epochNumber === currEpoch.epochNumber - 1) {
             cardClass = "register";
             transactions = `${epoch.tx_count} txs have been registered so far`;
         } else {
             cardClass = "claim";
-            transactions = epoch.tx_count;
+            transactions = `${epoch.tx_count} transactions`;
         }
 
         return <div className={`counter-card ${cardClass}`}>
@@ -76,7 +76,7 @@ export const PageStats: React.FC = () =>
 
             <div>
                 <div>
-                    Transactions: {transactions}
+                    {transactions}
                 </div>
             </div>
 
@@ -98,7 +98,7 @@ export const PageStats: React.FC = () =>
             <div className="tight">
                 <p>Total transactions: {formatNumber(Number(stats.tx_count), "compact")}</p>
                 <p>Circulating supply: {formatBigInt(BigInt(stats.supply), SPAM_DECIMALS, "compact")}</p>
-                {/* <p>Current epoch: {stats.epoch}</p> */}
+                <p>Current epoch: {stats.epoch}</p>
                 {/* <p>System status: {stats.paused ? "paused" : "running"}</p> */}
             </div>
 
