@@ -165,15 +165,27 @@ export const PageSpam: React.FC = () =>
                 }
         }
         else if (type === "register") {
-            status = !counter.registered
-                ? <span className="blink-loop">🚨 MUST BE REGISTERED before epoch {counter.epoch+1} ends</span>
-                : `✅ Registered, can mint SPAM from epoch ${counter.epoch+2}`;
+            if (counter.registered) {
+                status = `✅ Registered, can mint SPAM from epoch ${counter.epoch+2}`
+            } else if (spammer.current.status === "running") {
+                status = "⏳ Registering counter..."
+            } else {
+                status = <span className="blink-loop">🚨 MUST BE REGISTERED before epoch {counter.epoch+1} ends</span>;
+            }
         }
         else if (type === "claim") {
-            status = "✅ Can mint SPAM at any time";
+            if (spammer.current.status === "running") {
+                status = "💰 Minting SPAM..."
+            } else {
+                status = "✅ Can mint SPAM at any time";
+            }
         }
         else {
-            status = "Unusable. Will be deleted.";
+            if (spammer.current.status === "running") {
+                status = "🧹 Deleting counter..."
+            } else {
+                status = "Unusable. Will be deleted.";
+            }
         }
 
         const epochTimes = currEpoch && getEpochTimes(counter.epoch, currEpoch);
