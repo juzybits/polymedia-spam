@@ -31,9 +31,15 @@ export const PageSpam: React.FC = () =>
         };
     }, [spammer.current, network]);
 
-    const start = () => {
+    const startLoop = () => {
         if (spammer.current.status === "stopped") {
             spammer.current.start(true);
+        }
+    };
+
+    const startOnce = () => {
+        if (spammer.current.status === "stopped") {
+            spammer.current.start(false);
         }
     };
 
@@ -59,9 +65,8 @@ export const PageSpam: React.FC = () =>
     /* HTML */
 
     const counters = spamView.counters;
-    const hasCounters = Boolean(
-        counters.current || counters.register || counters.claim.length || counters.delete.length
-    );
+    const hasOldCounters = Boolean(counters.register || counters.claim.length || counters.delete.length);
+    const hasCounters = Boolean(counters.current || hasOldCounters);
     const isLowSuiBalance = balances.sui < 0.003;
 
     const Balances: React.FC = () => {
@@ -102,7 +107,13 @@ export const PageSpam: React.FC = () =>
             return null;
         }
         if (spammer.current.status === "stopped") {
-            return <button className="btn" onClick={start}>SPAM</button>;
+            return <>
+                <button className="btn" onClick={startLoop}>SPAM</button>
+                {hasOldCounters && <>
+                    <br/>
+                    <button className="btn" onClick={startOnce}>REGISTER/CLAIM COUNTERS</button>
+                </>}
+            </>;
         }
         if (spammer.current.status === "running") {
             return <button className="btn" onClick={stop}>STOP</button>;
