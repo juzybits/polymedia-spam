@@ -83,9 +83,9 @@ export const RPC_ENDPOINTS: Record<NetworkName, string[]> = {
         "https://sui-mainnet-rpc.allthatnode.com",
         "https://sui-mainnet-eu-4.cosmostation.io",
         "https://sui1mainnet-rpc.chainode.tech",
-        "https://mainnet.sui.rpcpool.com",
+        "https://rpc-mainnet.suiscan.xyz",
         "https://sui-mainnet-ca-2.cosmostation.io",
-        // "https://rpc-mainnet.suiscan.xyz",               // Slow to sync (ObjectNotFound error)
+        // "https://mainnet.sui.rpcpool.com",               // 429 (Too Many Requests)
         // "https://sui.publicnode.com",                    // CORS error
         // "https://sui-mainnet.nodeinfra.com",             // CORS error
         // "https://sui-mainnet-rpc.bartestnet.com",        // CORS error
