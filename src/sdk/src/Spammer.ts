@@ -18,8 +18,7 @@ export type SpamEventHandler = (event: SpamEvent) => void;
 const TXS_UNTIL_ROTATE = 50;
 const SLEEP_MS_AFTER_RPC_CHANGE = 1000;
 const SLEEP_MS_AFTER_OBJECT_NOT_READY = 1000;
-const SLEEP_MS_AFTER_NETWORK_ERROR = 10000;
-const SLEEP_MS_AFTER_FINALITY_ERROR = 30000;
+const SLEEP_MS_AFTER_NETWORK_ERROR = 15000;
 const SLEEP_MS_AFTER_UNEXPECTED_ERROR = 30000;
 
 export class Spammer
@@ -201,7 +200,6 @@ export class Spammer
         }
         catch (err) {
             const errStr = String(err);
-            const errStrLower = errStr.toLowerCase();
             const errCode = parseSpamError(errStr);
 
             // When the epoch changes, the counter is no longer incrementable
@@ -216,20 +214,12 @@ export class Spammer
                 this.status = "stopping";
                 this.event({ type: "info", msg: "Out of gas. Stopping." });
             }
-            // The validator didn't pick up the object changes yet. Often happens when changing RPCs.
+            // The validator didn't pick up the object changes yet. Happens sometimes when changing RPCs.
             else if ( errStr.includes("ObjectNotFound") || errStr.includes("not available for consumption") ) {
                 const retryMsg = `Retrying in ${SLEEP_MS_AFTER_OBJECT_NOT_READY / 1000} seconds`;
                 this.event({ type: "debug", msg: `Validator didn't sync yet. ${retryMsg}. RPC: ${this.getSpamClient().rpcUrl}.` });
                 this.txsSinceRotate += 5; // spend less time on slow RPCs
                 await sleep(SLEEP_MS_AFTER_OBJECT_NOT_READY);
-            }
-            // An attempt to prevent equivocation issues
-            else if ( errStrLower.includes("finality") || errStrLower.includes("timeout") || errStrLower.includes("timed out") ) {
-                const retryMsg = `Retrying in ${SLEEP_MS_AFTER_FINALITY_ERROR / 1000} seconds`;
-                this.event({ type: "info", msg: `Finality/timeout error. ${retryMsg}. Details: ${errStr}` });
-                this.txsSinceRotate += 17; // spend less time on failing RPCs
-                this.requestRefetch = { refetch: true };
-                await sleep(SLEEP_MS_AFTER_FINALITY_ERROR);
             }
             // Network error
             else if ( errStr.includes("Failed to fetch") ) {
@@ -239,7 +229,9 @@ export class Spammer
                 this.requestRefetch = { refetch: true };
                 await sleep(SLEEP_MS_AFTER_NETWORK_ERROR);
             }
-            // Unexpected error
+            // Unexpected error. Sleep the longest here out of caution, in case there was an
+            // error like "Transaction timed out before reaching finality" (study equivocation).
+            // https://github.com/MystenLabs/sui/blob/main/crates/sui-types/src/quorum_driver_types.rs#L49
             else {
                 const retryMsg = `Retrying in ${SLEEP_MS_AFTER_UNEXPECTED_ERROR / 1000} seconds`;
                 this.event({ type: "info", msg: `Unexpected error. ${retryMsg}. Details: ${errStr}` });
