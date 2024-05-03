@@ -111,8 +111,14 @@ export const PageSpam: React.FC = () =>
         if (isLoading || !isLowSuiBalance || isDisabled) {
             return null;
         }
+        let message: React.ReactNode;
+        if (isLowSuiBalance && counters.register?.registered === false) {
+            message = <p className="text-orange">Send SUI to your wallet to register the counter!</p>;
+        } else {
+            message = <p>Top up your wallet to start.</p>;
+        }
         return <>
-            <p>Top up your wallet to start.</p>
+            {message}
             <Link className="btn" to="/wallet">
                 TOP UP
             </Link>
