@@ -125,7 +125,7 @@ export class Spammer
                 await this.simulateLatencyOnLocalnet();
                 const resp = await this.getSpamClient().registerUserCounter(counters.register.id);
                 this.requestRefetch = { refetch: true, txDigest: resp.digest };
-                this.event({ type: "debug", msg: `Registering counter resp: ${resp.effects?.status.status}` });
+                this.event({ type: "debug", msg: `Registering counter: ${resp.effects?.status.status}: ${resp.digest}` });
                 if (resp.effects?.status.status !== "success") {
                     throw new Error(resp.effects?.status.error);
                 }
@@ -139,7 +139,7 @@ export class Spammer
                 const counterIds = counters.claim.map(counter => counter.id);
                 const resp = await this.getSpamClient().claimUserCounters(counterIds);
                 this.requestRefetch = { refetch: true, txDigest: resp.digest };
-                this.event({ type: "debug", msg: `Claiming counters resp: ${resp.effects?.status.status}` });
+                this.event({ type: "debug", msg: `Claiming counters: ${resp.effects?.status.status}: ${resp.digest}` });
                 if (resp.effects?.status.status !== "success") {
                     throw new Error(resp.effects?.status.error);
                 }
@@ -153,7 +153,7 @@ export class Spammer
                 const counterIds = counters.delete.map(counter => counter.id);
                 const resp = await this.getSpamClient().destroyUserCounters(counterIds);
                 this.requestRefetch = { refetch: true, txDigest: resp.digest };
-                this.event({ type: "debug", msg: `Deleting counters resp: ${resp.effects?.status.status}` });
+                this.event({ type: "debug", msg: `Deleting counters: ${resp.effects?.status.status}: ${resp.digest}` });
                 if (resp.effects?.status.status !== "success") {
                     throw new Error(resp.effects?.status.error);
                 }
@@ -167,7 +167,7 @@ export class Spammer
                 await this.simulateLatencyOnLocalnet();
                 const resp = await this.getSpamClient().newUserCounter();
                 this.requestRefetch = { refetch: true, txDigest: resp.digest };
-                this.event({ type: "debug", msg: `Creating counter resp: ${resp.effects?.status.status}` });
+                this.event({ type: "debug", msg: `Creating counter: ${resp.effects?.status.status}: ${resp.digest}` });
                 if (resp.effects?.status.status !== "success") {
                     throw new Error(resp.effects?.status.error);
                 }
@@ -178,7 +178,7 @@ export class Spammer
                 this.txsSinceRotate += 1;
                 const curr = counters.current;
                 const resp = await this.getSpamClient().incrementUserCounter(curr.ref);
-                this.event({ type: "debug", msg: `Increment counter resp: ${resp.effects?.status.status}` });
+                this.event({ type: "debug", msg: `Increment counter: ${resp.effects?.status.status}` });
                 if (resp.effects?.status.status !== "success") {
                     throw new Error(resp.effects?.status.error);
                 }
