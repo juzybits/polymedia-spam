@@ -113,17 +113,7 @@ export class Spammer
 
             // Refetch data if requested
             if (this.requestRefetch.refetch) {
-                if (this.requestRefetch.txDigest) {
-                    this.event({ type: "debug", msg: `Waiting for tx: ${this.requestRefetch.txDigest}` });
-                    await this.getSuiClient().waitForTransactionBlock({
-                        digest: this.requestRefetch.txDigest,
-                        pollInterval: 500,
-                    });
-                }
-                this.event({ type: "debug", msg: "Fetching onchain data" });
-                this.requestRefetch = { refetch: false };
-                this.userCounters = await this.getSpamClient().fetchUserCountersAndClassify();
-                this.getSpamClient().setGasCoin(undefined);
+                await this.refetchData();
             }
 
             const counters = this.userCounters;
@@ -243,5 +233,22 @@ export class Spammer
         finally {
             this.spam();
         }
+    }
+
+    private async refetchData()
+    {
+        this.getSpamClient().setGasCoin(undefined);
+
+        if (this.requestRefetch.txDigest) {
+            this.event({ type: "debug", msg: `Waiting for tx: ${this.requestRefetch.txDigest}` });
+            await this.getSuiClient().waitForTransactionBlock({
+                digest: this.requestRefetch.txDigest,
+                pollInterval: 500,
+            });
+        }
+
+        this.event({ type: "debug", msg: "Fetching onchain data" });
+        this.userCounters = await this.getSpamClient().fetchUserCountersAndClassify();
+        this.requestRefetch = { refetch: false };
     }
 }
