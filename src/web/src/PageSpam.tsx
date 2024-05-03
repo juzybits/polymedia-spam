@@ -64,10 +64,27 @@ export const PageSpam: React.FC = () =>
 
     /* HTML */
 
-    const counters = spamView.counters;
-    const hasOldCounters = Boolean(counters.register || counters.claim.length || counters.delete.length);
-    const hasCounters = Boolean(counters.current || hasOldCounters);
     const isLowSuiBalance = balances.sui < 0.003;
+
+    const counters = spamView.counters;
+    const hasCounters = Boolean(
+        counters.current || counters.register || counters.claim.length > 0 || counters.delete.length > 0
+    );
+
+    let showProcessCountersButton = false;
+    let actionableCounters: string[] = [];
+    if (hasCounters && spammer.current.status === "stopped") {
+        if (counters.register?.registered === false) {
+            actionableCounters.push("REGISTER");
+        }
+        if (counters.claim.length > 0) {
+            actionableCounters.push("CLAIM");
+        }
+        if (counters.delete.length > 0) {
+            actionableCounters.push("DELETE");
+        }
+        showProcessCountersButton = actionableCounters.length > 0;
+    }
 
     const Balances: React.FC = () => {
         if (!balances) {
@@ -109,9 +126,10 @@ export const PageSpam: React.FC = () =>
         if (spammer.current.status === "stopped") {
             return <>
                 <button className="btn" onClick={startLoop}>SPAM</button>
-                {hasOldCounters && <>
+                {showProcessCountersButton && <>
                     <br/>
-                    <button className="btn" onClick={startOnce}>REGISTER/CLAIM COUNTERS</button>
+                    <button className="btn break-all" onClick={startOnce}>
+                        {actionableCounters.join(" + ")} COUNTERS</button>
                 </>}
             </>;
         }

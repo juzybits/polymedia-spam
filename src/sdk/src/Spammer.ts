@@ -197,7 +197,7 @@ export class Spammer
                     await this.refetchData();
                 }
                 this.requestRefetch = { refetch: true }; // so when it starts again it pulls fresh data
-                this.event({ type: "info", msg: "Done" });
+                this.event({ type: "info", msg: "Done processing counters" });
             }
         }
     }
@@ -269,7 +269,7 @@ export class Spammer
 
     private async incrementUserCounter(counterRef: SuiObjectRef): Promise<void>
     {
-        this.event({ type: "info", msg: "Incrementing counter" });
+        this.event({ type: "debug", msg: "Incrementing counter" });
         if (!this.userCounters.current) {
             throw new Error("Spammer.userCounters.current does not exist");
         }
