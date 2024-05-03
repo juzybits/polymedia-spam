@@ -147,7 +147,7 @@ export const PageSpam: React.FC = () =>
         counter,
     }) => {
         let txClass = "";
-        let status: string;
+        let status: React.ReactNode;
         if (type === "current") {
             if (spammer.current.status === "running") {
                 status = "Spamming...";
@@ -160,11 +160,11 @@ export const PageSpam: React.FC = () =>
         }
         else if (type === "register") {
             status = !counter.registered
-                ? `Can be registered until the end of epoch ${counter.epoch+1}`
-                : `Registered. Can mint SPAM from epoch ${counter.epoch+2}.`;
+                ? <span className="blink-loop">🚨 MUST BE REGISTERED before epoch {counter.epoch+1} ends</span>
+                : `✅ Registered, can mint SPAM from epoch ${counter.epoch+2}`;
         }
         else if (type === "claim") {
-            status = "Can mint SPAM at any time";
+            status = "✅ Can mint SPAM at any time";
         }
         else {
             status = "Unusable. Will be deleted.";
