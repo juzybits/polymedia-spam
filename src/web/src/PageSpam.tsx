@@ -33,7 +33,7 @@ export const PageSpam: React.FC = () =>
 
     const start = () => {
         if (spammer.current.status === "stopped") {
-            spammer.current.start();
+            spammer.current.start(true);
         }
     };
 

@@ -217,7 +217,7 @@ const App: React.FC = () =>
         saveRpcUrlsToStorage(network, newRpcs);
         if (wasRunning) {
             await sleep(3000); // hack, should start after the previous Spammer shuts down
-            spammer.current.start();
+            spammer.current.start(true);
         }
     }
 

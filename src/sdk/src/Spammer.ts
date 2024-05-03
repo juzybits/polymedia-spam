@@ -76,11 +76,12 @@ export class Spammer
 
     /* Start and stop */
 
-    public start() {
+    public start(loop: boolean) {
         if (this.status === "stopped") {
             this.status = "running";
-            this.spam();
-            this.event({ type: "info", msg: "Starting"});
+            const msg = loop ? "Starting" : "Processing counters";
+            this.event({ type: "info", msg});
+            this.spam(loop);
         }
     }
 
@@ -93,7 +94,7 @@ export class Spammer
 
     /* Main loop */
 
-    private async spam()
+    private async spam(loop: boolean)
     {
         if (this.status === "stopping") {
             this.status = "stopped";
@@ -135,12 +136,14 @@ export class Spammer
                 await this.destroyUserCounters(counterIds);
             }
 
-            if (counters.current === null) {
-                // Create a counter for the current epoch
-                await this.newUserCounter();
-            } else {
-                // Increment the current counter
-                await this.incrementUserCounter(counters.current.ref);
+            if (loop) {
+                if (counters.current === null) {
+                    // Create a counter for the current epoch
+                    await this.newUserCounter();
+                } else {
+                    // Increment the current counter
+                    await this.incrementUserCounter(counters.current.ref);
+                }
             }
         }
         catch (err) {
@@ -186,7 +189,16 @@ export class Spammer
             }
         }
         finally {
-            this.spam();
+            if (loop) {
+                this.spam(true);
+            } else {
+                this.status = "stopped";
+                if (this.requestRefetch.refetch) {
+                    await this.refetchData();
+                }
+                this.requestRefetch = { refetch: true }; // so when it starts again it pulls fresh data
+                this.event({ type: "info", msg: "Done" });
+            }
         }
     }
 
