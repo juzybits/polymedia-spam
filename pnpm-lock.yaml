@@ -54,9 +54,6 @@ importers:
 
   src/web:
     dependencies:
-      '@mysten/sui.js':
-        specifier: ^0.51.2
-        version: 0.51.2(typescript@5.4.5)
       '@polymedia/spam-sdk':
         specifier: workspace:*
         version: link:../sdk
