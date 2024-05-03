@@ -1,9 +1,9 @@
-import { SuiClient } from "@mysten/sui.js/client";
+import { SuiClient, SuiObjectRef } from "@mysten/sui.js/client";
 import { Signer } from "@mysten/sui.js/cryptography";
 import { NetworkName, shortenSuiAddress, sleep } from "@polymedia/suits";
 import { SpamClient } from "./SpamClient";
-import { SpamError, parseSpamError } from "./errors";
 import { SpamClientRotator } from "./SpamClientRotator";
+import { SpamError, parseSpamError } from "./errors";
 import { UserCounters, emptyUserCounters } from "./types";
 
 export type SpamStatus = "stopped" | "running" | "stopping";
@@ -119,73 +119,28 @@ export class Spammer
             const counters = this.userCounters;
 
             // Register counter
-            if (counters.register !== null && !counters.register.registered)
-            {
-                this.event({ type: "info", msg: "Registering counter: " + shortenSuiAddress(counters.register.id) });
-                await this.simulateLatencyOnLocalnet();
-                const resp = await this.getSpamClient().registerUserCounter(counters.register.id);
-                this.requestRefetch = { refetch: true, txDigest: resp.digest };
-                this.event({ type: "debug", msg: `Registering counter: ${resp.effects?.status.status}: ${resp.digest}` });
-                if (resp.effects?.status.status !== "success") {
-                    throw new Error(resp.effects?.status.error);
-                }
+            if (counters.register !== null && !counters.register.registered) {
+                await this.registerUserCounter(counters.register.id);
             }
 
             // Claim counters
-            if (counters.claim.length > 0)
-            {
-                this.event({ type: "info", msg: "Claiming counters: " + counters.claim.map(c => shortenSuiAddress(c.id)).join(", ") });
-                await this.simulateLatencyOnLocalnet();
+            if (counters.claim.length > 0) {
                 const counterIds = counters.claim.map(counter => counter.id);
-                const resp = await this.getSpamClient().claimUserCounters(counterIds);
-                this.requestRefetch = { refetch: true, txDigest: resp.digest };
-                this.event({ type: "debug", msg: `Claiming counters: ${resp.effects?.status.status}: ${resp.digest}` });
-                if (resp.effects?.status.status !== "success") {
-                    throw new Error(resp.effects?.status.error);
-                }
+                await this.claimUserCounters(counterIds);
             }
 
             // Delete unusable counters
-            if (counters.delete.length > 0)
-            {
-                this.event({ type: "info", msg: "Deleting counters: " + counters.delete.map(c => shortenSuiAddress(c.id)).join(", ") });
-                await this.simulateLatencyOnLocalnet();
+            if (counters.delete.length > 0) {
                 const counterIds = counters.delete.map(counter => counter.id);
-                const resp = await this.getSpamClient().destroyUserCounters(counterIds);
-                this.requestRefetch = { refetch: true, txDigest: resp.digest };
-                this.event({ type: "debug", msg: `Deleting counters: ${resp.effects?.status.status}: ${resp.digest}` });
-                if (resp.effects?.status.status !== "success") {
-                    throw new Error(resp.effects?.status.error);
-                }
-                counters.delete = [];
+                await this.destroyUserCounters(counterIds);
             }
 
-            // Create counter for current epoch
-            if (counters.current === null)
-            {
-                this.event({ type: "info", msg: "Creating counter" });
-                await this.simulateLatencyOnLocalnet();
-                const resp = await this.getSpamClient().newUserCounter();
-                this.requestRefetch = { refetch: true, txDigest: resp.digest };
-                this.event({ type: "debug", msg: `Creating counter: ${resp.effects?.status.status}: ${resp.digest}` });
-                if (resp.effects?.status.status !== "success") {
-                    throw new Error(resp.effects?.status.error);
-                }
-            }
-            // Increment current counter
-            else {
-                await this.simulateLatencyOnLocalnet();
-                this.txsSinceRotate += 1;
-                const curr = counters.current;
-                const resp = await this.getSpamClient().incrementUserCounter(curr.ref);
-                this.event({ type: "debug", msg: `Increment counter: ${resp.effects?.status.status}` });
-                if (resp.effects?.status.status !== "success") {
-                    throw new Error(resp.effects?.status.error);
-                }
-                curr.tx_count++;
-                curr.ref = resp.effects.mutated!.find(mutatedObj =>
-                    mutatedObj.reference.objectId == curr.id
-                )!.reference;
+            if (counters.current === null) {
+                // Create a counter for the current epoch
+                await this.newUserCounter();
+            } else {
+                // Increment the current counter
+                await this.incrementUserCounter(counters.current.ref);
             }
         }
         catch (err) {
@@ -235,7 +190,7 @@ export class Spammer
         }
     }
 
-    private async refetchData()
+    private async refetchData(): Promise<void>
     {
         this.getSpamClient().setGasCoin(undefined);
 
@@ -250,5 +205,74 @@ export class Spammer
         this.event({ type: "debug", msg: "Fetching onchain data" });
         this.userCounters = await this.getSpamClient().fetchUserCountersAndClassify();
         this.requestRefetch = { refetch: false };
+    }
+
+    private async registerUserCounter(counterId: string): Promise<void>
+    {
+        this.event({ type: "info", msg: "Registering counter: " + shortenSuiAddress(counterId) });
+        await this.simulateLatencyOnLocalnet();
+        const resp = await this.getSpamClient().registerUserCounter(counterId);
+        this.requestRefetch = { refetch: true, txDigest: resp.digest };
+        this.event({ type: "debug", msg: `Registering counter: ${resp.effects?.status.status}: ${resp.digest}` });
+        if (resp.effects?.status.status !== "success") {
+            throw new Error(resp.effects?.status.error);
+        }
+    }
+
+    private async claimUserCounters(counterIds: string[]): Promise<void>
+    {
+        this.event({ type: "info", msg: "Claiming counters: " + counterIds.map(objId => shortenSuiAddress(objId)).join(", ") });
+        await this.simulateLatencyOnLocalnet();
+        const resp = await this.getSpamClient().claimUserCounters(counterIds);
+        this.requestRefetch = { refetch: true, txDigest: resp.digest };
+        this.event({ type: "debug", msg: `Claiming counters: ${resp.effects?.status.status}: ${resp.digest}` });
+        if (resp.effects?.status.status !== "success") {
+            throw new Error(resp.effects?.status.error);
+        }
+    }
+
+    private async destroyUserCounters(counterIds: string[]): Promise<void>
+    {
+        this.event({ type: "info", msg: "Deleting counters: " + counterIds.map(objId => shortenSuiAddress(objId)).join(", ") });
+        await this.simulateLatencyOnLocalnet();
+        const resp = await this.getSpamClient().destroyUserCounters(counterIds);
+        this.requestRefetch = { refetch: true, txDigest: resp.digest };
+        this.event({ type: "debug", msg: `Deleting counters: ${resp.effects?.status.status}: ${resp.digest}` });
+        if (resp.effects?.status.status !== "success") {
+            throw new Error(resp.effects?.status.error);
+        }
+    }
+
+    private async newUserCounter(): Promise<void>
+    {
+        this.event({ type: "info", msg: "Creating counter" });
+        await this.simulateLatencyOnLocalnet();
+        const resp = await this.getSpamClient().newUserCounter();
+        this.requestRefetch = { refetch: true, txDigest: resp.digest };
+        this.event({ type: "debug", msg: `Creating counter: ${resp.effects?.status.status}: ${resp.digest}` });
+        if (resp.effects?.status.status !== "success") {
+            throw new Error(resp.effects?.status.error);
+        }
+    }
+
+    private async incrementUserCounter(counterRef: SuiObjectRef): Promise<void>
+    {
+        this.event({ type: "info", msg: "Incrementing counter" });
+        if (!this.userCounters.current) {
+            throw new Error("Spammer.userCounters.current does not exist");
+        }
+        await this.simulateLatencyOnLocalnet();
+        this.txsSinceRotate += 1;
+        const resp = await this.getSpamClient().incrementUserCounter(counterRef);
+        if (resp.effects?.status.status !== "success") {
+            throw new Error(resp.effects?.status.error);
+        }
+        // We don't `requestRefetch` here, unlike create/register/claim/delete txs.
+        // Instead, we increment current.tx_count manually,
+        // and set current.ref to the SuiObjectRef found in the tx effects.
+        this.userCounters.current.tx_count++;
+        this.userCounters.current.ref = resp.effects.mutated!.find(mutatedObj =>
+            mutatedObj.reference.objectId == counterRef.objectId
+        )!.reference;
     }
 }
