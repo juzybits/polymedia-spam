@@ -3,7 +3,7 @@ import {
     TransactionBlock,
     TransactionResult,
 } from "@mysten/sui.js/transactions";
-import { SPAM_MODULE } from "./config";
+import { SPAM_MODULE } from "./config.js";
 
 export function new_user_counter(
     txb: TransactionBlock,

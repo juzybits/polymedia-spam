@@ -1,7 +1,7 @@
 import { SuiClient, getFullnodeUrl } from "@mysten/sui.js/client";
 import { Signer } from "@mysten/sui.js/cryptography";
 import { NetworkName } from "@polymedia/suits";
-import { SpamClient } from "./SpamClient";
+import { SpamClient } from "./SpamClient.js";
 
 export type SpamClientWithStats = {
     spamClient: SpamClient;

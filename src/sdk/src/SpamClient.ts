@@ -11,9 +11,9 @@ import {
     devInspectAndGetResults,
     getSuiObjectResponseFields,
 } from "@polymedia/suits";
-import { SPAM_IDS, SPAM_MODULE } from "./config";
-import * as pkg from "./package";
-import { BcsStats, Stats, UserCounter, UserCounters } from "./types";
+import { SPAM_IDS, SPAM_MODULE } from "./config.js";
+import * as pkg from "./package.js";
+import { BcsStats, Stats, UserCounter, UserCounters } from "./types.js";
 
 const INCREMENT_TX_GAS_BUDGET = 3000000; // 0.003 SUI
 
