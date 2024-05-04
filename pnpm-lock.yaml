@@ -95,6 +95,16 @@ importers:
         specifier: ^3.51.0
         version: 3.51.0
 
+  src/your-fork:
+    dependencies:
+      '@polymedia/spam-sdk':
+        specifier: workspace:*
+        version: link:../sdk
+    devDependencies:
+      '@types/node':
+        specifier: ^20.11.25
+        version: 20.12.7
+
 packages:
 
   /@0no-co/graphql.web@1.0.6(graphql@16.8.1):

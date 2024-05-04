@@ -1,0 +1,29 @@
+{
+    "private": true,
+    "version": "0.0.0",
+    "name": "your-fork",
+    "author": "You 🫵",
+    "homepage": "yourfork dot com",
+    "description": "An example for how to use the SDK to build Node.js CLI tools for SPAM",
+    "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "github dot com slash your repo"
+    },
+    "keywords": [
+    ],
+    "scripts": {
+        "start": "tsc && node dist/main.js",
+        "build": "tsc",
+        "clean": "rm -rf dist/ node_modules/ .turbo/",
+        "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+    },
+    "dependencies": {
+        "@polymedia/spam-sdk": "workspace:*"
+    },
+    "devDependencies": {
+        "@types/node": "^20.11.25"
+    },
+    "type": "module",
+    "sideEffects": false
+}
