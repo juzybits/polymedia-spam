@@ -18,8 +18,8 @@ export type SpamEventHandler = (event: SpamEvent) => void;
 const TXS_UNTIL_ROTATE = 50;
 const SLEEP_MS_AFTER_RPC_CHANGE = 1000;
 const SLEEP_MS_AFTER_OBJECT_NOT_READY = 1000;
-const SLEEP_MS_AFTER_EPOCH_CHANGE = 15000;
-const SLEEP_MS_AFTER_NETWORK_ERROR = 15000;
+const SLEEP_MS_AFTER_EPOCH_CHANGE = 30000;
+const SLEEP_MS_AFTER_NETWORK_ERROR = 30000;
 const SLEEP_MS_AFTER_UNEXPECTED_ERROR = 30000;
 
 export class Spammer
@@ -41,7 +41,7 @@ export class Spammer
     ) {
         this.status = "stopped";
         this.userCounters = emptyUserCounters();
-        this.requestRefetch = true; // so when it starts it pulls the data
+        this.requestRefetch = true; // so when it starts it pulls fresh data
         this.lastTxDigest = null;
         this.eventHandler = eventHandler;
         this.txsSinceRotate = 0;
@@ -158,7 +158,7 @@ export class Spammer
                 const msg = `Epoch change. Sleeping for ${SLEEP_MS_AFTER_EPOCH_CHANGE / 1000} seconds`;
                 this.event({ type: "info", msg});
                 if (this.txsSinceRotate >= TXS_UNTIL_ROTATE) {
-                    this.txsSinceRotate = Math.floor(TXS_UNTIL_ROTATE / 2); // stay on this RPC
+                    this.txsSinceRotate = Math.floor(TXS_UNTIL_ROTATE / 2); // stay on current RPC
                 }
                 await sleep(SLEEP_MS_AFTER_EPOCH_CHANGE);
             }
@@ -183,9 +183,13 @@ export class Spammer
                 this.txsSinceRotate += 17; // spend less time on failing RPCs
                 await sleep(SLEEP_MS_AFTER_NETWORK_ERROR);
             }
-            // Unexpected error. Sleep the longest here out of caution, in case there was an
-            // error like "Transaction timed out before reaching finality" (study equivocation).
-            // https://github.com/MystenLabs/sui/blob/main/crates/sui-types/src/quorum_driver_types.rs#L49
+            // Consensus error
+            else if ( errStr.includes("finality") || errStr.includes("quorum") ) {
+                this.event({ type: "warn", msg: `Consensus error. Details: ${errStr}` });
+                this.status = "stopping";
+
+            }
+            // Unexpected error
             else {
                 const retryMsg = `Retrying in ${SLEEP_MS_AFTER_UNEXPECTED_ERROR / 1000} seconds`;
                 this.event({ type: "info", msg: `Unexpected error. ${retryMsg}. Details: ${errStr}` });
