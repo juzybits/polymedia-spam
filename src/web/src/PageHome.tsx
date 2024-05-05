@@ -37,6 +37,16 @@ export const PageHome: React.FC = () =>
             <p>▸ There is no proof of work, only proof of spam.</p>
         </div>
 
+        <h3>Life Of A Counter</h3>
+        <div className="tight">
+            <p>For each transaction counter:</p>
+            <p>▸ You spam it during day 1</p>
+            <p>▸ You <span className="text-red"><b>MUST</b></span> register it during day 2</p>
+            <p>▸ You can mint SPAM anytime from day 3</p>
+        </div>
+        <p className="text-red">If you don't register a counter, it cannot mint SPAM!</p>
+
+        <br/>
         <p>
             <LinkExternal follow={true} href="https://github.com/juzybits/polymedia-spam/blob/main/README.md" >
                 Read the docs
