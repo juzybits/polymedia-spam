@@ -72,7 +72,7 @@ export const PageSpam: React.FC = () =>
     );
 
     let showProcessCountersButton = false;
-    let actionableCounters: string[] = [];
+    const actionableCounters: string[] = [];
     if (hasCounters && spammer.current.status === "stopped") {
         if (counters.register?.registered === false) {
             actionableCounters.push("REGISTER");
@@ -168,23 +168,23 @@ export const PageSpam: React.FC = () =>
         }
         else if (type === "register") {
             if (counter.registered) {
-                status = `✅ Registered, can mint SPAM from epoch ${counter.epoch+2}`
+                status = `✅ Registered, can mint SPAM from epoch ${counter.epoch+2}`;
             } else if (spammer.current.status === "running") {
-                status = "⏳ Registering counter..."
+                status = "⏳ Registering counter...";
             } else {
                 status = <span className="blink-loop">🚨 MUST BE REGISTERED before epoch {counter.epoch+1} ends</span>;
             }
         }
         else if (type === "claim") {
             if (spammer.current.status === "running") {
-                status = "💰 Minting SPAM..."
+                status = "💰 Minting SPAM...";
             } else {
                 status = "✅ Can mint SPAM at any time";
             }
         }
         else {
             if (spammer.current.status === "running") {
-                status = "🧹 Deleting counter..."
+                status = "🧹 Deleting counter...";
             } else {
                 status = "Unusable. Will be deleted.";
             }
