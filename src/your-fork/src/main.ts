@@ -1,14 +1,22 @@
-/*
-An example for how to use the SDK to build Node.js CLI tools for SPAM
-*/
+// Demonstrates using the SDK to build Node.js CLI tools for SPAM.
 
-import { SPAM_IDS } from "@polymedia/spam-sdk";
+import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
+import { SPAM_IDS, SpamClient } from "@polymedia/spam-sdk";
 import { shortenSuiAddress } from "@polymedia/suits";
 
 async function main()
 {
-    const mainnetPackageId = SPAM_IDS["mainnet"].packageId;
-    console.log("mainnetPackageId:", shortenSuiAddress(mainnetPackageId));
+    console.log("Mainnet package ID:", shortenSuiAddress(SPAM_IDS.mainnet.packageId));
+
+    const spamClient = new SpamClient(
+        new Ed25519Keypair(),
+        "mainnet",
+        "https://fullnode.mainnet.sui.io:443"
+    );
+    const stats = await spamClient.fetchStatsForRecentEpochs(3);
+
+    console.log("Stats:");
+    console.log(stats);
 }
 
 void main();
