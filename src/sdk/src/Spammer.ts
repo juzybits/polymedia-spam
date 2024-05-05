@@ -18,6 +18,7 @@ export type SpamEventHandler = (event: SpamEvent) => void;
 const TXS_UNTIL_ROTATE = 50;
 const SLEEP_MS_AFTER_RPC_CHANGE = 1000;
 const SLEEP_MS_AFTER_OBJECT_NOT_READY = 1000;
+const SLEEP_MS_AFTER_EPOCH_CHANGE = 15000;
 const SLEEP_MS_AFTER_NETWORK_ERROR = 15000;
 const SLEEP_MS_AFTER_UNEXPECTED_ERROR = 30000;
 
@@ -154,7 +155,9 @@ export class Spammer
 
             // When the epoch changes, the counter is no longer incrementable
             if (errCode === SpamError.EWrongEpoch) {
-                this.event({ type: "info", msg: "Epoch change"});
+                const msg = `Epoch change. Sleeping for ${SLEEP_MS_AFTER_EPOCH_CHANGE / 1000} seconds`;
+                this.event({ type: "info", msg});
+                await sleep(SLEEP_MS_AFTER_EPOCH_CHANGE);
             }
             // User ran out of gas
             else if ( errStr.includes("No valid gas coins found for the transaction")
