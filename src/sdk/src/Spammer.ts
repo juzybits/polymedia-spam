@@ -123,20 +123,18 @@ export class Spammer
             if (counters.register !== null && !counters.register.registered) {
                 await this.registerUserCounter(counters.register.id);
             }
-
             // Claim counters
-            if (counters.claim.length > 0) {
+            else if (counters.claim.length > 0) {
                 const counterIds = counters.claim.map(counter => counter.id);
                 await this.claimUserCounters(counterIds);
             }
-
             // Delete unusable counters
-            if (counters.delete.length > 0) {
+            else if (counters.delete.length > 0) {
                 const counterIds = counters.delete.map(counter => counter.id);
                 await this.destroyUserCounters(counterIds);
             }
-
-            if (loop) {
+            // Current counter
+            else if (loop) {
                 if (counters.current === null) {
                     // Create a counter for the current epoch
                     await this.newUserCounter();
