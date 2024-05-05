@@ -157,6 +157,9 @@ export class Spammer
             if (errCode === SpamError.EWrongEpoch) {
                 const msg = `Epoch change. Sleeping for ${SLEEP_MS_AFTER_EPOCH_CHANGE / 1000} seconds`;
                 this.event({ type: "info", msg});
+                if (this.txsSinceRotate >= TXS_UNTIL_ROTATE) {
+                    this.txsSinceRotate = Math.floor(TXS_UNTIL_ROTATE / 2); // stay on this RPC
+                }
                 await sleep(SLEEP_MS_AFTER_EPOCH_CHANGE);
             }
             // User ran out of gas
