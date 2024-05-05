@@ -25,7 +25,8 @@ export class Spammer
 {
     public status: SpamStatus;
     public userCounters: UserCounters;
-    private requestRefetch: { refetch: boolean; txDigest?: string };
+    private requestRefetch: boolean;
+    private lastTxDigest: string|null;
     private eventHandler: SpamEventHandler|undefined;
     private txsSinceRotate: number;
     private readonly rotator: SpamClientRotator;
@@ -39,7 +40,8 @@ export class Spammer
     ) {
         this.status = "stopped";
         this.userCounters = emptyUserCounters();
-        this.requestRefetch = { refetch: true }; // so when it starts it pulls the data
+        this.requestRefetch = true; // so when it starts it pulls the data
+        this.lastTxDigest = null;
         this.eventHandler = eventHandler;
         this.txsSinceRotate = 0;
         this.rotator = new SpamClientRotator(keypair, network, rpcUrls);
@@ -98,7 +100,7 @@ export class Spammer
     {
         if (this.status === "stopping") {
             this.status = "stopped";
-            this.requestRefetch = { refetch: true }; // so when it starts again it pulls fresh data
+            this.requestRefetch = true; // so when it starts again it pulls fresh data
             this.event({ type: "info", msg: "Stopped as requested" });
             return;
         }
@@ -113,7 +115,7 @@ export class Spammer
             }
 
             // Refetch data if requested
-            if (this.requestRefetch.refetch) {
+            if (this.requestRefetch) {
                 await this.refetchData();
             }
 
@@ -145,12 +147,13 @@ export class Spammer
             }
         }
         catch (err) {
+            this.requestRefetch = true;
+
             const errStr = String(err);
             const errCode = parseSpamError(errStr);
 
             // When the epoch changes, the counter is no longer incrementable
             if (errCode === SpamError.EWrongEpoch) {
-                this.requestRefetch = { refetch: true };
                 this.event({ type: "info", msg: "Epoch change"});
             }
             // User ran out of gas
@@ -172,7 +175,6 @@ export class Spammer
                 const retryMsg = `Retrying in ${SLEEP_MS_AFTER_NETWORK_ERROR / 1000} seconds`;
                 this.event({ type: "info", msg: `Network error. ${retryMsg}. Details: ${errStr}` });
                 this.txsSinceRotate += 17; // spend less time on failing RPCs
-                this.requestRefetch = { refetch: true };
                 await sleep(SLEEP_MS_AFTER_NETWORK_ERROR);
             }
             // Unexpected error. Sleep the longest here out of caution, in case there was an
@@ -182,7 +184,6 @@ export class Spammer
                 const retryMsg = `Retrying in ${SLEEP_MS_AFTER_UNEXPECTED_ERROR / 1000} seconds`;
                 this.event({ type: "info", msg: `Unexpected error. ${retryMsg}. Details: ${errStr}` });
                 this.txsSinceRotate += 17; // spend less time on failing RPCs
-                this.requestRefetch = { refetch: true };
                 await sleep(SLEEP_MS_AFTER_UNEXPECTED_ERROR);
             }
         }
@@ -191,10 +192,10 @@ export class Spammer
                 this.spam(true);
             } else {
                 this.status = "stopped";
-                if (this.requestRefetch.refetch) {
+                if (this.requestRefetch) {
                     await this.refetchData();
                 }
-                this.requestRefetch = { refetch: true }; // so when it starts again it pulls fresh data
+                this.requestRefetch = true; // so when it starts again it pulls fresh data
                 this.event({ type: "info", msg: "Done processing counters" });
             }
         }
@@ -204,17 +205,17 @@ export class Spammer
     {
         this.getSpamClient().setGasCoin(undefined);
 
-        if (this.requestRefetch.txDigest) {
-            this.event({ type: "debug", msg: `Waiting for tx: ${this.requestRefetch.txDigest}` });
+        if (this.lastTxDigest) {
+            this.event({ type: "debug", msg: `Waiting for tx: ${this.lastTxDigest}` });
             await this.getSuiClient().waitForTransactionBlock({
-                digest: this.requestRefetch.txDigest,
+                digest: this.lastTxDigest,
                 pollInterval: 500,
             });
         }
 
         this.event({ type: "debug", msg: "Fetching onchain data" });
         this.userCounters = await this.getSpamClient().fetchUserCountersAndClassify();
-        this.requestRefetch = { refetch: false };
+        this.requestRefetch = false;
     }
 
     private async registerUserCounter(counterId: string): Promise<void>
@@ -222,7 +223,8 @@ export class Spammer
         this.event({ type: "info", msg: "Registering counter: " + shortenSuiAddress(counterId) });
         await this.simulateLatencyOnLocalnet();
         const resp = await this.getSpamClient().registerUserCounter(counterId);
-        this.requestRefetch = { refetch: true, txDigest: resp.digest };
+        this.requestRefetch = true;
+        this.lastTxDigest = resp.digest;
         this.event({ type: "debug", msg: `Registering counter: ${resp.effects?.status.status}: ${resp.digest}` });
         if (resp.effects?.status.status !== "success") {
             throw new Error(resp.effects?.status.error);
@@ -234,7 +236,8 @@ export class Spammer
         this.event({ type: "info", msg: "Claiming counters: " + counterIds.map(objId => shortenSuiAddress(objId)).join(", ") });
         await this.simulateLatencyOnLocalnet();
         const resp = await this.getSpamClient().claimUserCounters(counterIds);
-        this.requestRefetch = { refetch: true, txDigest: resp.digest };
+        this.requestRefetch = true;
+        this.lastTxDigest = resp.digest;
         this.event({ type: "debug", msg: `Claiming counters: ${resp.effects?.status.status}: ${resp.digest}` });
         if (resp.effects?.status.status !== "success") {
             throw new Error(resp.effects?.status.error);
@@ -246,7 +249,8 @@ export class Spammer
         this.event({ type: "info", msg: "Deleting counters: " + counterIds.map(objId => shortenSuiAddress(objId)).join(", ") });
         await this.simulateLatencyOnLocalnet();
         const resp = await this.getSpamClient().destroyUserCounters(counterIds);
-        this.requestRefetch = { refetch: true, txDigest: resp.digest };
+        this.requestRefetch = true;
+        this.lastTxDigest = resp.digest;
         this.event({ type: "debug", msg: `Deleting counters: ${resp.effects?.status.status}: ${resp.digest}` });
         if (resp.effects?.status.status !== "success") {
             throw new Error(resp.effects?.status.error);
@@ -258,7 +262,8 @@ export class Spammer
         this.event({ type: "info", msg: "Creating counter" });
         await this.simulateLatencyOnLocalnet();
         const resp = await this.getSpamClient().newUserCounter();
-        this.requestRefetch = { refetch: true, txDigest: resp.digest };
+        this.requestRefetch = true;
+        this.lastTxDigest = resp.digest;
         this.event({ type: "debug", msg: `Creating counter: ${resp.effects?.status.status}: ${resp.digest}` });
         if (resp.effects?.status.status !== "success") {
             throw new Error(resp.effects?.status.error);
@@ -277,6 +282,7 @@ export class Spammer
         if (resp.effects?.status.status !== "success") {
             throw new Error(resp.effects?.status.error);
         }
+        this.lastTxDigest = resp.digest;
         // We don't `requestRefetch` here, unlike create/register/claim/delete txs.
         // Instead, we increment current.tx_count manually,
         // and set current.ref to the SuiObjectRef found in the tx effects.
