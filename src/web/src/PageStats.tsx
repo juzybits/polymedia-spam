@@ -19,8 +19,7 @@ export const PageStats: React.FC = () =>
     const updateStats = async () => {
         try {
             setStats(undefined);
-            const epochCount = network !== "mainnet" ? 6 : 2;
-            const newStats = await spammer.current.getSpamClient().fetchStatsForRecentEpochs(epochCount);
+            const newStats = await spammer.current.getSpamClient().fetchStatsForRecentEpochs(6);
             // Prepend a synthetic epoch counter for the current epoch
             newStats.epochs.unshift({
                 epoch: newStats.epoch,
@@ -64,10 +63,10 @@ export const PageStats: React.FC = () =>
             transactions = "Users are spamming transactions right now";
         } else if (epochNumber === currEpoch.epochNumber - 1) {
             cardClass = "register";
-            transactions = `${formatNumber(Number(epoch.tx_count))} transactions registered so far`;
+            transactions = `${formatNumber(Number(epoch.tx_count), "compact")} transactions registered so far`;
         } else {
             cardClass = "claim";
-            transactions = `${formatNumber(Number(epoch.tx_count))} transactions`;
+            transactions = `${formatNumber(Number(epoch.tx_count), "compact")} transactions`;
         }
 
         return <div className={`counter-card ${cardClass}`}>
