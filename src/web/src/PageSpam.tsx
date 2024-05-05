@@ -112,8 +112,10 @@ export const PageSpam: React.FC = () =>
             return null;
         }
         let message: React.ReactNode;
-        if (isLowSuiBalance && counters.register?.registered === false) {
-            message = <p className="text-orange">Send SUI to your wallet to register the counter!</p>;
+        if (counters.register?.registered === false) {
+            message = <p className="text-orange">🚨 Send SUI to your wallet to register the counter!</p>;
+        } else if (counters.claim.length) {
+            message = <p className="text-orange">Send SUI to your wallet to claim the counter{counters.claim.length > 1 ? "s" : ""}</p>;
         } else {
             message = <p>Top up your wallet to start.</p>;
         }
