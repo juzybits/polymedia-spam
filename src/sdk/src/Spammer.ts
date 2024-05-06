@@ -18,9 +18,9 @@ export type SpamEventHandler = (event: SpamEvent) => void;
 const TXS_UNTIL_ROTATE = 50;
 const SLEEP_MS_AFTER_RPC_CHANGE = 1000;
 const SLEEP_MS_AFTER_OBJECT_NOT_READY = 1000;
-const SLEEP_MS_AFTER_EPOCH_CHANGE = 30000;
-const SLEEP_MS_AFTER_NETWORK_ERROR = 30000;
-const SLEEP_MS_AFTER_UNEXPECTED_ERROR = 30000;
+const SLEEP_MS_AFTER_EPOCH_CHANGE = 45000;
+const SLEEP_MS_AFTER_NETWORK_ERROR = 45000;
+const SLEEP_MS_AFTER_UNEXPECTED_ERROR = 45000;
 
 export class Spammer
 {
@@ -192,7 +192,7 @@ export class Spammer
             // Unexpected error
             else {
                 const retryMsg = `Retrying in ${SLEEP_MS_AFTER_UNEXPECTED_ERROR / 1000} seconds`;
-                this.event({ type: "info", msg: `Unexpected error. ${retryMsg}. Details: ${errStr}` });
+                this.event({ type: "warn", msg: `Unexpected error. ${retryMsg}. Details: ${errStr}` });
                 this.txsSinceRotate += 17; // spend less time on failing RPCs
                 await sleep(SLEEP_MS_AFTER_UNEXPECTED_ERROR);
             }

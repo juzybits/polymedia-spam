@@ -10,12 +10,14 @@ import {
     NetworkName,
     devInspectAndGetResults,
     getSuiObjectResponseFields,
+    sleep,
 } from "@polymedia/suits";
 import { SPAM_IDS, SPAM_MODULE } from "./config.js";
 import * as pkg from "./package.js";
 import { BcsStats, Stats, UserCounter, UserCounters } from "./types.js";
 
 const INCREMENT_TX_GAS_BUDGET = 3000000; // 0.003 SUI
+const SLEEP_MS_AFTER_FINALITY_ERROR = 10000;
 
 export class SpamClient
 {
@@ -242,12 +244,31 @@ export class SpamClient
             client: this.suiClient,
         });
 
-        const resp = await this.suiClient.executeTransactionBlock({
-            signature,
-            transactionBlock: bytes,
-            options: { showEffects: true },
-            requestType: "WaitForEffectsCert",
-        });
+        let resp: SuiTransactionBlockResponse | null = null;
+        while (!resp) {
+            try {
+                resp = await this.suiClient.executeTransactionBlock({
+                    signature,
+                    transactionBlock: bytes,
+                    options: { showEffects: true },
+                    requestType: "WaitForEffectsCert",
+                });
+            } catch (err) {
+                // Try to avoid equivocation issues
+                const errStr = String(err);
+                const errStrLower = errStr.toLowerCase();
+                if (errStrLower.includes("finality")
+                    || errStrLower.includes("timeout")
+                    || errStrLower.includes("timed out")
+                ) {
+                    const retryMsg = `Retrying in ${SLEEP_MS_AFTER_FINALITY_ERROR / 1000} seconds`;
+                    console.warn(`Finality/timeout error. ${retryMsg}. Original error: ${errStr}`);
+                    await sleep(SLEEP_MS_AFTER_FINALITY_ERROR);
+                } else {
+                    throw err;
+                }
+            }
+        }
 
         this.gasCoin = resp.effects?.gasObject.reference;
 
