@@ -168,12 +168,14 @@ export class SpamClient
 
     public async claimUserCounters(
         userCounterIds: string[],
+        recipientAddress?: string,
     ): Promise<SuiTransactionBlockResponse>
     {
+        const recipient = recipientAddress ?? this.signer.toSuiAddress();
         const txb = new TransactionBlock();
         for (const counterId of userCounterIds) {
             const [coin] = pkg.claim_user_counter(txb, this.packageId, this.directorId, counterId);
-            txb.transferObjects([coin], this.signer.toSuiAddress());
+            txb.transferObjects([coin], recipient);
         }
         return this.signAndExecute(txb);
     }

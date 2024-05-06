@@ -29,6 +29,7 @@ export class Spammer
     private requestRefetch: boolean;
     private lastTxDigest: string|null;
     private eventHandler: SpamEventHandler|undefined;
+    private claimAddress: string;
     private txsSinceRotate: number;
     private readonly rotator: SpamClientRotator;
     private simulateLatencyOnLocalnet: () => Promise<void>;
@@ -38,12 +39,14 @@ export class Spammer
         network: NetworkName,
         rpcUrls: string[],
         eventHandler?: SpamEventHandler,
+        claimAddress?: string|null,
     ) {
         this.status = "stopped";
         this.userCounters = emptyUserCounters();
         this.requestRefetch = true; // so when it starts it pulls fresh data
         this.lastTxDigest = null;
         this.eventHandler = eventHandler;
+        this.claimAddress = claimAddress ?? keypair.toSuiAddress();
         this.txsSinceRotate = 0;
         this.rotator = new SpamClientRotator(keypair, network, rpcUrls);
         this.simulateLatencyOnLocalnet = async () => {
@@ -262,7 +265,7 @@ export class Spammer
     {
         this.event({ type: "info", msg: "Claiming counters: " + counterIds.map(objId => shortenSuiAddress(objId)).join(", ") });
         await this.simulateLatencyOnLocalnet();
-        const resp = await this.getSpamClient().claimUserCounters(counterIds);
+        const resp = await this.getSpamClient().claimUserCounters(counterIds, this.claimAddress);
         this.requestRefetch = true;
         this.lastTxDigest = resp.digest;
         this.event({ type: "debug", msg: `Claiming counters: ${resp.effects?.status.status}: ${resp.digest}` });
