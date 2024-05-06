@@ -105,6 +105,10 @@ export class Spammer
             this.event({ type: "info", msg: "Stopped as requested" });
             return;
         }
+
+        let hasToRegister = false;
+        let hasToClaim = false;
+        let hasToDelete = false;
         try
         {
             // Rotate RPCs after a few transactions
@@ -121,20 +125,26 @@ export class Spammer
             }
 
             const counters = this.userCounters;
+            hasToRegister = counters.register !== null && !counters.register.registered;
+            hasToClaim = counters.claim.length > 0
+            hasToDelete = counters.delete.length > 0;
 
             // Register counter
-            if (counters.register !== null && !counters.register.registered) {
-                await this.registerUserCounter(counters.register.id);
+            if (hasToRegister) {
+                await this.registerUserCounter(counters.register!.id);
+                hasToRegister = false;
             }
             // Claim counters
-            else if (counters.claim.length > 0) {
+            else if (hasToClaim) {
                 const counterIds = counters.claim.map(counter => counter.id);
                 await this.claimUserCounters(counterIds);
+                hasToClaim = false;
             }
             // Delete unusable counters
-            else if (counters.delete.length > 0) {
+            else if (hasToDelete) {
                 const counterIds = counters.delete.map(counter => counter.id);
                 await this.destroyUserCounters(counterIds);
+                hasToDelete = false;
             }
             // Current counter
             else if (loop) {
@@ -198,9 +208,16 @@ export class Spammer
             }
         }
         finally {
+            // regular spam loop
             if (loop) {
-                this.spam(true);
-            } else {
+                this.spam(loop);
+            }
+            // one-off, but still has old counters to process
+            else if (hasToRegister || hasToClaim || hasToDelete) {
+                this.spam(loop);
+            }
+            // one-off, done processing old counters
+            else {
                 this.status = "stopped";
                 if (this.requestRefetch) {
                     await this.refetchData();
