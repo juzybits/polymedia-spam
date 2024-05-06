@@ -32,7 +32,7 @@ export const PageDisclaimer: React.FC = () =>
         </p>
 
         <br />
-        <button className="btn" onClick={acceptDisclaimer}>IN UNDERSTAND THE RISKS</button>
+        <button className="btn" onClick={acceptDisclaimer}>I UNDERSTAND THE RISKS</button>
     </div>
     </div>;
 };
