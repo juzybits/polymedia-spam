@@ -69,6 +69,7 @@ export type AppContext = {
     spammer: React.MutableRefObject<Spammer>;
     spamView: SpamView;
     replaceKeypair: (keypair: Ed25519Keypair) => void;
+    disclaimerAccepted: boolean; acceptDisclaimer: () => void;
 };
 
 const emptySpamView = (): SpamView => {
@@ -102,6 +103,7 @@ const App: React.FC = () =>
         loadedRpcs.filter(rpc => rpc.enabled).map(rpc => rpc.url),
         handleSpamEvent,
     ));
+    const [ disclaimerAccepted, setDisclaimerAccepted ] = useState<boolean>(false);
 
     const appContext: AppContext = {
         network,
@@ -110,6 +112,7 @@ const App: React.FC = () =>
         spammer,
         spamView,
         replaceKeypair: updateKeypair,
+        disclaimerAccepted, acceptDisclaimer: () => { setDisclaimerAccepted(true) },
     };
 
     /* Functions */

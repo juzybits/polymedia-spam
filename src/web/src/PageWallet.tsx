@@ -2,13 +2,18 @@ import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
 import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
+import { PageDisclaimer } from "./PageDisclaimer";
 import { pairFromSecretKey } from "./lib/storage";
 
 export const PageWallet: React.FC = () =>
-    {
-        const { replaceKeypair, spammer } = useOutletContext<AppContext>();
-        const [ showImport, setShowImport ] = useState<boolean>(false);
-        const [ showSuccess, setShowSuccess ] = useState<boolean>(false);
+{
+    /* State */
+
+    const { replaceKeypair, spammer, disclaimerAccepted } = useOutletContext<AppContext>();
+    const [ showImport, setShowImport ] = useState<boolean>(false);
+    const [ showSuccess, setShowSuccess ] = useState<boolean>(false);
+
+    /* Functions */
 
     const confirmAndReplaceWallet = (pair: Ed25519Keypair) => {
         const resp = window.confirm(
@@ -20,6 +25,12 @@ export const PageWallet: React.FC = () =>
             setShowSuccess(true);
         }
     };
+
+    /* HTML */
+
+    if (!disclaimerAccepted) {
+        return <PageDisclaimer />;
+    }
 
     const BackUpWarning: React.FC = () => {
         return <>

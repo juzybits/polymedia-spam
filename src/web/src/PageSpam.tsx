@@ -4,6 +4,7 @@ import { LinkToExplorerObj } from "@polymedia/webutils";
 import { useEffect, useState } from "react";
 import { Link, useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
+import { PageDisclaimer } from "./PageDisclaimer";
 import { StatusSpan } from "./components/StatusSpan";
 import { EpochData, formatEpochPeriod, getEpochTimes } from "./lib/epochs";
 
@@ -11,7 +12,7 @@ export const PageSpam: React.FC = () =>
 {
     /* State */
 
-    const { network, balances, spammer, spamView } = useOutletContext<AppContext>();
+    const { network, balances, spammer, spamView, disclaimerAccepted } = useOutletContext<AppContext>();
     const [ currEpoch, setCurrEpoch ] = useState<EpochData>();
     const isDisabled = false;
 
@@ -63,6 +64,10 @@ export const PageSpam: React.FC = () =>
     };
 
     /* HTML */
+
+    if (!disclaimerAccepted) {
+        return <PageDisclaimer />;
+    }
 
     const isLowSuiBalance = balances.sui < 0.003;
 
