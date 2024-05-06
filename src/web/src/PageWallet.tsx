@@ -115,7 +115,7 @@ export const PageWallet: React.FC = () =>
                 </div>
                 <div className="wallet-section">
                     <h4>Your secret key:</h4>
-                    <p>This is the private key of your spam wallet. Import it into a Sui mobile or browser wallet to withdraw the $SPAM you mine.</p>
+                    <p>This is the private key of your spam wallet. Copy it somewhere safe! This allows you to restore your wallet later.</p>
                     <span className="sui-address">
                         {(spammer.current.getSpamClient().signer as Ed25519Keypair).getSecretKey()}
                     </span>

@@ -59,6 +59,19 @@ function getDefaultRpcUrls(network: NetworkName): RpcUrl[] {
     });
 }
 
+/* Claim address */
+
+const claimAddressKey = "spam.claimAddress";
+
+export function loadClaimAddressFromStorage(): string|null {
+    const claimAddress = localStorage.getItem(claimAddressKey);
+    return claimAddress;
+}
+
+export function saveClaimAddressToStorage(claimAddress: string): void {
+    localStorage.setItem(claimAddressKey, claimAddress);
+}
+
 /* Disclaimer */
 
 const disclaimerAcceptedKey = "spam.disclaimerAccepted";

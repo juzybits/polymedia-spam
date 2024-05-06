@@ -21,9 +21,11 @@ import { PageWallet } from "./PageWallet";
 import { StatusSpan } from "./components/StatusSpan";
 import {
     RpcUrl,
+    loadClaimAddressFromStorage,
     loadDisclaimerAcceptedFromStorage,
     loadKeypairFromStorage,
     loadRpcUrlsFromStorage,
+    saveClaimAddressToStorage,
     saveDisclaimerAcceptedToStorage,
     saveKeypairToStorage,
     saveRpcUrlsToStorage,
@@ -71,6 +73,7 @@ export type AppContext = {
     spammer: React.MutableRefObject<Spammer>;
     spamView: SpamView;
     replaceKeypair: (keypair: Ed25519Keypair) => void;
+    updateClaimAddress: (claimAddress: string) => Promise<void>;
     disclaimerAccepted: boolean; acceptDisclaimer: () => void;
 };
 
@@ -104,6 +107,7 @@ const App: React.FC = () =>
         loadedNetwork,
         loadedRpcs.filter(rpc => rpc.enabled).map(rpc => rpc.url),
         handleSpamEvent,
+        loadClaimAddressFromStorage(),
     ));
     const [ disclaimerAccepted, setDisclaimerAccepted ] = useState<boolean>(loadDisclaimerAcceptedFromStorage());
 
@@ -114,6 +118,7 @@ const App: React.FC = () =>
         spammer,
         spamView,
         replaceKeypair: updateKeypair,
+        updateClaimAddress,
         disclaimerAccepted, acceptDisclaimer,
     };
 
@@ -202,6 +207,7 @@ const App: React.FC = () =>
             network,
             rpcUrls.filter(rpc => rpc.enabled).map(rpc => rpc.url),
             handleSpamEvent,
+            loadClaimAddressFromStorage(),
         );
         setPair(newPair);
         saveKeypairToStorage(newPair);
@@ -217,6 +223,7 @@ const App: React.FC = () =>
             network,
             newRpcs.filter(rpc => rpc.enabled).map(rpc => rpc.url),
             handleSpamEvent,
+            loadClaimAddressFromStorage(),
         );
         setRpcUrls(newRpcs);
         saveRpcUrlsToStorage(network, newRpcs);
@@ -236,10 +243,30 @@ const App: React.FC = () =>
             newNet,
             loadedRpcs.filter(rpc => rpc.enabled).map(rpc => rpc.url),
             handleSpamEvent,
+            loadClaimAddressFromStorage(),
         );
         setNetwork(newNet);
         setRpcUrls(loadedRpcs);
         setShowMobileNav(false);
+    }
+
+    async function updateClaimAddress(newClaimAddress: string): Promise<void> {
+        const wasRunning = spammer.current.status === "running";
+        if (wasRunning) {
+            spammer.current.stop();
+        }
+        spammer.current = new Spammer(
+            pair,
+            network,
+            rpcUrls.filter(rpc => rpc.enabled).map(rpc => rpc.url),
+            handleSpamEvent,
+            newClaimAddress,
+        );
+        saveClaimAddressToStorage(newClaimAddress);
+        if (wasRunning) {
+            await sleep(3000); // hack, should start after the previous Spammer shuts down
+            spammer.current.start(true);
+        }
     }
 
     function acceptDisclaimer(): void {
