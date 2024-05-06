@@ -106,9 +106,9 @@ export class Spammer
             return;
         }
 
-        let hasToRegister = false;
-        let hasToClaim = false;
         let hasToDelete = false;
+        let hasToClaim = false;
+        let hasToRegister = false;
         try
         {
             // Rotate RPCs after a few transactions
@@ -125,14 +125,15 @@ export class Spammer
             }
 
             const counters = this.userCounters;
-            hasToRegister = counters.register !== null && !counters.register.registered;
-            hasToClaim = counters.claim.length > 0
             hasToDelete = counters.delete.length > 0;
+            hasToClaim = counters.claim.length > 0
+            hasToRegister = counters.register !== null && !counters.register.registered;
 
-            // Register counter
-            if (hasToRegister) {
-                await this.registerUserCounter(counters.register!.id);
-                hasToRegister = false;
+            // Delete unusable counters
+            if (hasToDelete) {
+                const counterIds = counters.delete.map(counter => counter.id);
+                await this.destroyUserCounters(counterIds);
+                hasToDelete = false;
             }
             // Claim counters
             else if (hasToClaim) {
@@ -140,11 +141,10 @@ export class Spammer
                 await this.claimUserCounters(counterIds);
                 hasToClaim = false;
             }
-            // Delete unusable counters
-            else if (hasToDelete) {
-                const counterIds = counters.delete.map(counter => counter.id);
-                await this.destroyUserCounters(counterIds);
-                hasToDelete = false;
+            // Register counter
+            else if (hasToRegister) {
+                await this.registerUserCounter(counters.register!.id);
+                hasToRegister = false;
             }
             // Current counter
             else if (loop) {
@@ -189,7 +189,7 @@ export class Spammer
             // Network error
             else if ( errStr.includes("Failed to fetch") ) {
                 const retryMsg = `Retrying in ${SLEEP_MS_AFTER_NETWORK_ERROR / 1000} seconds`;
-                this.event({ type: "info", msg: `Network error. ${retryMsg}. Details: ${errStr}` });
+                this.event({ type: "warn", msg: `Network error. ${retryMsg}. Details: ${errStr}` });
                 this.txsSinceRotate += 17; // spend less time on failing RPCs
                 await sleep(SLEEP_MS_AFTER_NETWORK_ERROR);
             }
@@ -213,7 +213,7 @@ export class Spammer
                 this.spam(loop);
             }
             // one-off, but still has old counters to process
-            else if (hasToRegister || hasToClaim || hasToDelete) {
+            else if (hasToDelete || hasToClaim || hasToRegister) {
                 this.spam(loop);
             }
             // one-off, done processing old counters
