@@ -21,8 +21,10 @@ import { PageWallet } from "./PageWallet";
 import { StatusSpan } from "./components/StatusSpan";
 import {
     RpcUrl,
+    loadDisclaimerAcceptedFromStorage,
     loadKeypairFromStorage,
     loadRpcUrlsFromStorage,
+    saveDisclaimerAcceptedToStorage,
     saveKeypairToStorage,
     saveRpcUrlsToStorage,
 } from "./lib/storage";
@@ -103,7 +105,7 @@ const App: React.FC = () =>
         loadedRpcs.filter(rpc => rpc.enabled).map(rpc => rpc.url),
         handleSpamEvent,
     ));
-    const [ disclaimerAccepted, setDisclaimerAccepted ] = useState<boolean>(false);
+    const [ disclaimerAccepted, setDisclaimerAccepted ] = useState<boolean>(loadDisclaimerAcceptedFromStorage());
 
     const appContext: AppContext = {
         network,
@@ -112,7 +114,7 @@ const App: React.FC = () =>
         spammer,
         spamView,
         replaceKeypair: updateKeypair,
-        disclaimerAccepted, acceptDisclaimer: () => { setDisclaimerAccepted(true) },
+        disclaimerAccepted, acceptDisclaimer,
     };
 
     /* Functions */
@@ -156,7 +158,7 @@ const App: React.FC = () =>
         }
     };
 
-    const updateSpamView = async () => {
+    const updateSpamView = async (): Promise<void> => {
         try {
             const counters = await spammer.current.getSpamClient().fetchUserCountersAndClassify();
             setSpamView({
@@ -169,7 +171,7 @@ const App: React.FC = () =>
         }
     };
 
-    function handleSpamEvent(e: SpamEvent) {
+    function handleSpamEvent(e: SpamEvent): void {
         console[e.type](e.msg);
         setSpamView(oldView => {
             if (e.type !== "debug") {
@@ -224,7 +226,7 @@ const App: React.FC = () =>
         }
     }
 
-    function updateNetwork(newNet: NetworkName) {
+    function updateNetwork(newNet: NetworkName): void {
         if (spammer.current.status === "running") {
             spammer.current.stop();
         }
@@ -238,6 +240,11 @@ const App: React.FC = () =>
         setNetwork(newNet);
         setRpcUrls(loadedRpcs);
         setShowMobileNav(false);
+    }
+
+    function acceptDisclaimer(): void {
+        setDisclaimerAccepted(true);
+        saveDisclaimerAcceptedToStorage();
     }
 
     /* HTML */

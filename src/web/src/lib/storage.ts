@@ -30,7 +30,7 @@ export function pairFromSecretKey(secretKey: string): Ed25519Keypair {
 
 /* RPC URLs */
 
-const keyRpcUrlsBase = "spam.rpcUrls.";
+const keyRpcUrlsBaseKey = "spam.rpcUrls.";
 
 export type RpcUrl = {
     url: string;
@@ -38,7 +38,7 @@ export type RpcUrl = {
 };
 
 export function loadRpcUrlsFromStorage(network: NetworkName): RpcUrl[] {
-    const rawRpcUrls = localStorage.getItem(keyRpcUrlsBase + network);
+    const rawRpcUrls = localStorage.getItem(keyRpcUrlsBaseKey + network);
     let rpcUrls: RpcUrl[];
     if (!rawRpcUrls) {
         rpcUrls = getDefaultRpcUrls(network);
@@ -50,11 +50,24 @@ export function loadRpcUrlsFromStorage(network: NetworkName): RpcUrl[] {
 }
 
 export function saveRpcUrlsToStorage(network: string, rpcUrls: RpcUrl[]): void {
-    localStorage.setItem(keyRpcUrlsBase + network, JSON.stringify(rpcUrls));
+    localStorage.setItem(keyRpcUrlsBaseKey + network, JSON.stringify(rpcUrls));
 }
 
 function getDefaultRpcUrls(network: NetworkName): RpcUrl[] {
     return RPC_ENDPOINTS[network].map(url => {
         return { url, enabled: true };
     });
+}
+
+/* Disclaimer */
+
+const disclaimerAcceptedKey = "spam.disclaimerAccepted";
+
+export function loadDisclaimerAcceptedFromStorage(): boolean {
+    const accepted = localStorage.getItem(disclaimerAcceptedKey);
+    return accepted === "yes";
+}
+
+export function saveDisclaimerAcceptedToStorage(): void {
+    localStorage.setItem(disclaimerAcceptedKey, "yes");
 }
