@@ -1,6 +1,6 @@
 import { SuiClient, SuiObjectRef } from "@mysten/sui.js/client";
 import { Signer } from "@mysten/sui.js/cryptography";
-import { NetworkName, shortenSuiAddress, sleep } from "@polymedia/suits";
+import { NetworkName, shortenSuiAddress, sleep, validateAndNormalizeSuiAddress } from "@polymedia/suits";
 import { SpamClient } from "./SpamClient.js";
 import { SpamClientRotator } from "./SpamClientRotator.js";
 import { SpamError, parseSpamError } from "./errors.js";
@@ -29,7 +29,7 @@ export class Spammer
     private requestRefetch: boolean;
     private lastTxDigest: string|null;
     private eventHandler: SpamEventHandler|undefined;
-    private claimAddress: string;
+    private claimAddress!: string;
     private txsSinceRotate: number;
     private readonly rotator: SpamClientRotator;
     private simulateLatencyOnLocalnet: () => Promise<void>;
@@ -46,7 +46,11 @@ export class Spammer
         this.requestRefetch = true; // so when it starts it pulls fresh data
         this.lastTxDigest = null;
         this.eventHandler = eventHandler;
-        this.claimAddress = claimAddress ?? keypair.toSuiAddress();
+        if (!claimAddress) {
+            this.claimAddress = keypair.toSuiAddress();
+        } else {
+            this.setClaimAddress(claimAddress); // throws error if invalid
+        }
         this.txsSinceRotate = 0;
         this.rotator = new SpamClientRotator(keypair, network, rpcUrls);
         this.simulateLatencyOnLocalnet = async () => {
@@ -70,7 +74,7 @@ export class Spammer
         this.eventHandler && this.eventHandler(event);
     }
 
-    /* Client accessors */
+    /* Getters and setters */
 
     public getSpamClient(): SpamClient {
         return this.rotator.getSpamClient();
@@ -78,6 +82,18 @@ export class Spammer
 
     public getSuiClient(): SuiClient  {
         return this.rotator.getSuiClient();
+    }
+
+    public getClaimAddress(): string {
+        return this.claimAddress;
+    }
+
+    public setClaimAddress(newClaimAddress: string): void {
+        const cleanAddress = validateAndNormalizeSuiAddress(newClaimAddress);
+        if (!cleanAddress) {
+            throw Error(`Invalid claim address: ${newClaimAddress}`);
+        }
+        this.claimAddress = cleanAddress;
     }
 
     /* Start and stop */
