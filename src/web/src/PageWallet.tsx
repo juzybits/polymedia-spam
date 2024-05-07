@@ -1,15 +1,16 @@
 import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
 import { PageDisclaimer } from "./PageDisclaimer";
 import { pairFromSecretKey } from "./lib/storage";
+import { validateAndNormalizeSuiAddress } from "@polymedia/suits";
 
 export const PageWallet: React.FC = () =>
 {
     /* State */
 
-    const { replaceKeypair, spammer, disclaimerAccepted } = useOutletContext<AppContext>();
+    const { replaceKeypair, spammer, disclaimerAccepted, updateClaimAddress } = useOutletContext<AppContext>();
     const [ showImport, setShowImport ] = useState<boolean>(false);
     const [ showSuccess, setShowSuccess ] = useState<boolean>(false);
 
@@ -72,9 +73,6 @@ export const PageWallet: React.FC = () =>
 
         const onSubmit = (): void => {
             const pair = pairFromSecretKey(secretKey);
-            if (spammer.current.status === "running") {
-                spammer.current.stop();
-            }
             confirmAndReplaceWallet(pair);
         };
 
@@ -92,7 +90,7 @@ export const PageWallet: React.FC = () =>
             />
             <br/>
             <button className="btn" onClick={onSubmit} disabled={disableSubmit}>
-                Import
+                IMPORT
             </button>
             {errMsg && <div className="error-box">
                 <div>Invalid secret key:</div>
@@ -100,6 +98,64 @@ export const PageWallet: React.FC = () =>
             </div>}
         </>;
     };
+
+    const ClaimAddressForm: React.FC = () => {
+        const [ claimAddress, setClaimAddress ] = useState<string>("");
+        const [ errMsg, setErrMsg ] = useState<string|null>(null);
+        const disableSubmit = errMsg !== null || claimAddress.length === 0;
+
+        useEffect(() => {
+            setClaimAddress(spammer.current.getClaimAddress());
+        }, [spammer.current]);
+
+        const onInputChange = (evt: React.ChangeEvent<HTMLTextAreaElement>): void  => {
+            const newClaimAddress = evt.currentTarget.value;
+            setClaimAddress(newClaimAddress);
+            if (newClaimAddress.length === 0) {
+                setErrMsg(null);
+                return;
+            }
+            const cleanClaimAddress = validateAndNormalizeSuiAddress(newClaimAddress);
+            if (!cleanClaimAddress) {
+                setErrMsg("Invalid address");
+                return;
+            }
+            setErrMsg(null);
+        };
+
+        const onKeyDown = (evt: React.KeyboardEvent<HTMLTextAreaElement>): void  => {
+            if (evt.key === "Enter" && !disableSubmit) {
+                evt.preventDefault();
+                onSubmit();
+            }
+        };
+
+        const onSubmit = (): void => {
+            updateClaimAddress(claimAddress);
+        };
+
+        return <>
+            <br/><br/>
+            <h3>Claim address</h3>
+            <p>
+                Send claimed SPAM to this address:
+            </p>
+            <textarea
+                value={claimAddress}
+                onChange={onInputChange}
+                onKeyDown={onKeyDown}
+                autoFocus={true}
+                style={{width: "100%", maxWidth: "600px", wordBreak: "break-all"}}
+            />
+            <br/>
+            <button className="btn" onClick={onSubmit} disabled={disableSubmit}>
+                SET CLAIM ADDRESS
+            </button>
+            {errMsg && <div className="error-box">
+                <div>{errMsg}</div>
+            </div>}
+        </>
+    }
 
     return <>
         <h1><span className="rainbow">Wallet</span></h1>
@@ -136,5 +192,7 @@ export const PageWallet: React.FC = () =>
         {showSuccess && <h3 style={{color: "lightgreen"}}>Success!</h3>}
 
         {showImport ? <ImportForm /> : <BackUpWarning />}
+
+        <ClaimAddressForm />
     </>;
 };

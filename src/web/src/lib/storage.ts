@@ -73,7 +73,7 @@ export function saveClaimAddressToStorage(claimAddress: string): void {
     if (!cleanAddress) {
         throw Error(`Invalid claim address: ${claimAddress}`);
     }
-    localStorage.setItem(claimAddressKey, claimAddress);
+    localStorage.setItem(claimAddressKey, cleanAddress);
 }
 
 /* Disclaimer */
