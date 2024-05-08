@@ -71,23 +71,18 @@ export const PageStats: React.FC = () =>
         const epochGas = epochTxs * gasPerTx;
         const spamPerTx = newSupplyPerEpoch / epochTxs;
 
-        let cardClass: "" | "current" | "register" | "claim";
-        let transactions: string;
+        let epochType: "" | "current" | "register" | "claim";
         if (!currEpoch) {
-            cardClass = "";
-            transactions = "";
+            epochType = "";
         } else if (epochNumber === currEpoch.epochNumber) {
-            cardClass = "current";
-            transactions = "ongoing";
+            epochType = "current";
         } else if (epochNumber === currEpoch.epochNumber - 1) {
-            cardClass = "register";
-            transactions = `${formatNumber(epochTxs)} registered so far`;
+            epochType = "register";
         } else {
-            cardClass = "claim";
-            transactions = `${formatNumber(epochTxs)}`;
+            epochType = "claim";
         }
 
-        return <div className={`counter-card ${cardClass}`}>
+        return <div className={`counter-card ${epochType}`}>
             <div>
                 <div className="counter-epoch">Epoch {epoch.epoch}</div>
             </div>
@@ -102,14 +97,22 @@ export const PageStats: React.FC = () =>
 
             <div>
                 <div>
-                    Transactions: {transactions}
+                    {(() => {
+                        if (epochType === "current") {
+                            return "Transactions: ongoing";
+                        }
+                        if (epochType === "register") {
+                            return `Transactions: ${formatNumber(epochTxs)} registered so far`;
+                        }
+                        return `Transactions: ${formatNumber(epochTxs)}`;
+                    })()}
                 </div>
             </div>
 
             {epochGas > 0 &&
             <div>
                 <div>
-                    Gas paid: {formatNumber(epochGas)} SUI
+                    Gas paid: {formatNumber(epochGas)} SUI {epochType === "register" && "(based on txs so far)" }
                 </div>
             </div>
             }
@@ -117,7 +120,7 @@ export const PageStats: React.FC = () =>
             {Number.isFinite(spamPerTx) &&
             <div>
                 <div>
-                    SPAM per tx: {formatNumber(spamPerTx)}
+                    SPAM per tx: {formatNumber(spamPerTx)} {epochType === "register" && "(based on txs so far)" }
                 </div>
             </div>
             }
