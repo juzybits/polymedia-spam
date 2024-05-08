@@ -68,6 +68,9 @@ export const PageStats: React.FC = () =>
         const epochNumber = Number(epoch.epoch);
         const epochTimes = currEpoch && getEpochTimes(epochNumber, currEpoch);
 
+        const epochTxs = Number(epoch.tx_count);
+        const spamPerTx = newSupplyPerEpoch / epochTxs;
+
         let cardClass: "" | "current" | "register" | "claim";
         let transactions: string;
         if (!currEpoch) {
@@ -75,13 +78,13 @@ export const PageStats: React.FC = () =>
             transactions = "";
         } else if (epochNumber === currEpoch.epochNumber) {
             cardClass = "current";
-            transactions = "Users are spamming transactions right now";
+            transactions = "ongoing";
         } else if (epochNumber === currEpoch.epochNumber - 1) {
             cardClass = "register";
-            transactions = `${formatNumber(Number(epoch.tx_count), "compact")} transactions registered so far`;
+            transactions = `${formatNumber(epochTxs, "compact")} registered so far`;
         } else {
             cardClass = "claim";
-            transactions = `${formatNumber(Number(epoch.tx_count), "compact")} transactions`;
+            transactions = `${formatNumber(epochTxs, "compact")}`;
         }
 
         return <div className={`counter-card ${cardClass}`}>
@@ -89,16 +92,24 @@ export const PageStats: React.FC = () =>
                 <div className="counter-epoch">Epoch {epoch.epoch}</div>
             </div>
 
-            <div>
-                <div>
-                    {transactions}
-                </div>
-            </div>
-
             {epochTimes &&
             <div>
                 <div>
                     {formatEpochPeriod(epochTimes.startTime, epochTimes.endTime, false)}
+                </div>
+            </div>
+            }
+
+            <div>
+                <div>
+                    Transactions: {transactions}
+                </div>
+            </div>
+
+            {Number.isFinite(spamPerTx) &&
+            <div>
+                <div>
+                    SPAM per tx: {formatNumber(spamPerTx)}
                 </div>
             </div>
             }
