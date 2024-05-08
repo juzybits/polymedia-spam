@@ -24,7 +24,7 @@ export function getEpochTimes(
 export function formatEpochPeriod(startDate: Date, endDate: Date, showTime: boolean): string {
     const now = new Date();
     const verb = endDate > now ? "ends" : "ended";
-    return `Started ${formatEpochTime(startDate, showTime)} and ${verb} ${formatEpochTime(endDate, showTime)}`;
+    return `Started ${formatEpochTime(startDate, showTime)}, ${verb} ${formatEpochTime(endDate, showTime)}`;
 }
 
 export function formatEpochTime(date: Date, showTime: boolean): string {

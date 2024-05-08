@@ -112,28 +112,28 @@ export const PageStats: React.FC = () =>
                 <div>
                     {(() => {
                         if (epochType === "current") {
-                            return "Transactions: ongoing";
+                            return "Txs in epoch: ongoing";
                         }
                         if (epochType === "register") {
-                            return `Transactions: ${formatNumber(epochTxs)} registered so far`;
+                            return `Txs in epoch: ${formatNumber(epochTxs)} (so far)`;
                         }
-                        return `Transactions: ${formatNumber(epochTxs)}`;
+                        return `Txs in epoch: ${formatNumber(epochTxs)}`;
                     })()}
                 </div>
             </div>
 
-            {epochGas > 0 &&
+            {Number.isFinite(spamPerTx) &&
             <div>
                 <div>
-                    Gas paid: {formatNumber(epochGas)} SUI
+                    SPAM mined per tx: {formatNumber(spamPerTx)}
                 </div>
             </div>
             }
 
-            {Number.isFinite(spamPerTx) &&
+            {epochGas > 0 &&
             <div>
                 <div>
-                    SPAM per tx: {formatNumber(spamPerTx)}
+                    Gas paid in epoch: {formatNumber(epochGas)} SUI
                 </div>
             </div>
             }
@@ -141,7 +141,7 @@ export const PageStats: React.FC = () =>
             {suiPerSpam > 0 &&
             <div>
                 <div>
-                    SUI per SPAM: {suiPerSpam.toFixed(8)}
+                    Gas cost per SPAM: {suiPerSpam.toFixed(8)} SUI
                 </div>
             </div>
             }
