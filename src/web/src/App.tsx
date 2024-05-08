@@ -223,7 +223,7 @@ const App: React.FC = () =>
             network,
             newRpcs.filter(rpc => rpc.enabled).map(rpc => rpc.url),
             handleSpamEvent,
-            loadClaimAddressFromStorage(),
+            spammer.current.getClaimAddress(),
         );
         setRpcUrls(newRpcs);
         saveRpcUrlsToStorage(network, newRpcs);
@@ -243,7 +243,7 @@ const App: React.FC = () =>
             newNet,
             loadedRpcs.filter(rpc => rpc.enabled).map(rpc => rpc.url),
             handleSpamEvent,
-            loadClaimAddressFromStorage(),
+            spammer.current.getClaimAddress(),
         );
         setNetwork(newNet);
         setRpcUrls(loadedRpcs);
@@ -251,22 +251,8 @@ const App: React.FC = () =>
     }
 
     async function updateClaimAddress(newClaimAddress: string): Promise<void> {
-        const wasRunning = spammer.current.status === "running";
-        if (wasRunning) {
-            spammer.current.stop();
-        }
-        spammer.current = new Spammer(
-            pair,
-            network,
-            rpcUrls.filter(rpc => rpc.enabled).map(rpc => rpc.url),
-            handleSpamEvent,
-            newClaimAddress,
-        );
+        spammer.current.setClaimAddress(newClaimAddress);
         saveClaimAddressToStorage(newClaimAddress);
-        if (wasRunning) {
-            await sleep(3000); // hack, should start after the previous Spammer shuts down
-            spammer.current.start(true);
-        }
     }
 
     function acceptDisclaimer(): void {

@@ -39,7 +39,7 @@ export class Spammer
         network: NetworkName,
         rpcUrls: string[],
         eventHandler?: SpamEventHandler,
-        claimAddress?: string|null,
+        claimAddress?: string,
     ) {
         this.status = "stopped";
         this.userCounters = emptyUserCounters();

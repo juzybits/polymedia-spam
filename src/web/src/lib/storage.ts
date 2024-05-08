@@ -63,9 +63,16 @@ function getDefaultRpcUrls(network: NetworkName): RpcUrl[] {
 
 const claimAddressKey = "spam.claimAddress";
 
-export function loadClaimAddressFromStorage(): string|null {
+export function loadClaimAddressFromStorage(): string|undefined {
     const claimAddress = localStorage.getItem(claimAddressKey);
-    return claimAddress ? validateAndNormalizeSuiAddress(claimAddress) : null;
+    if (!claimAddress) {
+        return undefined;
+    }
+    const cleanAddress = validateAndNormalizeSuiAddress(claimAddress);
+    if (!cleanAddress) {
+        return undefined;
+    }
+    return cleanAddress;
 }
 
 export function saveClaimAddressToStorage(claimAddress: string): void {
