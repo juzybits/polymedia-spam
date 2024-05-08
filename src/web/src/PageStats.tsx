@@ -83,7 +83,7 @@ export const PageStats: React.FC = () =>
             {epochTimes &&
             <div>
                 <div>
-                    {formatEpochPeriod(epochTimes.startTime, epochTimes.endTime, network)}
+                    {formatEpochPeriod(epochTimes.startTime, epochTimes.endTime, false)}
                 </div>
             </div>
             }

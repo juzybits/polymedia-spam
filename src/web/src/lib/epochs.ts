@@ -1,5 +1,3 @@
-import { NetworkName } from "@polymedia/suits";
-
 export type EpochData = {
     epochNumber: number;
     durationMs: number;
@@ -23,13 +21,13 @@ export function getEpochTimes(
     return { startTime, endTime };
 }
 
-export function formatEpochPeriod(startDate: Date, endDate: Date, network: NetworkName): string {
+export function formatEpochPeriod(startDate: Date, endDate: Date, showTime: boolean): string {
     const now = new Date();
     const verb = endDate > now ? "ends" : "ended";
-    return `Started ${formatEpochTime(startDate, network)} and ${verb} ${formatEpochTime(endDate, network)}`;
+    return `Started ${formatEpochTime(startDate, showTime)} and ${verb} ${formatEpochTime(endDate, showTime)}`;
 }
 
-export function formatEpochTime(date: Date, _network: NetworkName): string {
+export function formatEpochTime(date: Date, showTime: boolean): string {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const yesterday = new Date(today);
@@ -40,11 +38,11 @@ export function formatEpochTime(date: Date, _network: NetworkName): string {
     oneWeekLater.setDate(today.getDate() + 7);
 
     let time = "";
-    // if (network === "localnet" || network === "devnet") {
+    if (showTime) {
         const hours = date.getHours().toString().padStart(2, "0");
         const minutes = date.getMinutes().toString().padStart(2, "0");
         time = ` at ${hours}:${minutes}`;
-    // }
+    }
 
     if (date.toDateString() === tomorrow.toDateString()) {
         return `tomorrow${time}`;

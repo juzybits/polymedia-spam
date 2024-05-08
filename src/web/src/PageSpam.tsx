@@ -222,7 +222,7 @@ export const PageSpam: React.FC = () =>
             {epochTimes &&
             <div>
                 <div>
-                    {formatEpochPeriod(epochTimes.startTime, epochTimes.endTime, network)}
+                    {formatEpochPeriod(epochTimes.startTime, epochTimes.endTime, true)}
                 </div>
             </div>
             }

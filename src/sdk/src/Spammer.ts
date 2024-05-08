@@ -126,7 +126,7 @@ export class Spammer
 
             const counters = this.userCounters;
             hasToDelete = counters.delete.length > 0;
-            hasToClaim = counters.claim.length > 0
+            hasToClaim = counters.claim.length > 0;
             hasToRegister = counters.register !== null && !counters.register.registered;
 
             // Delete unusable counters
