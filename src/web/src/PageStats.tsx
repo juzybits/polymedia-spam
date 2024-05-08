@@ -1,9 +1,18 @@
 import { SPAM_DECIMALS, Stats } from "@polymedia/spam-sdk";
-import { convertBigIntToNumber, formatNumber } from "@polymedia/suits";
+import { NetworkName, convertBigIntToNumber, formatNumber } from "@polymedia/suits";
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
 import { EpochData, formatEpochPeriod, getEpochTimes } from "./lib/epochs";
+
+const newSupplyPerEpoch = 1_000_000_000;
+const gasPerTx = 0.000774244;
+const firstEpoch: Record<NetworkName, number> = {
+    mainnet: 386,
+    testnet: 357,
+    devnet: 0,
+    localnet: 0,
+};
 
 export const PageStats: React.FC = () =>
 {
@@ -23,7 +32,7 @@ export const PageStats: React.FC = () =>
     const updateStats = async () => {
         try {
             setStats(undefined);
-            const newStats = await spammer.current.getSpamClient().fetchStatsForRecentEpochs(6);
+            const newStats = await spammer.current.getSpamClient().fetchStatsForRecentEpochs(14);
             // Prepend a synthetic epoch counter for the current epoch
             newStats.epochs.unshift({
                 epoch: newStats.epoch,
@@ -105,14 +114,20 @@ export const PageStats: React.FC = () =>
         </>
     }
 
-    const txCount = Number(stats.tx_count);
-    const supply = convertBigIntToNumber(BigInt(stats.supply), SPAM_DECIMALS);
+    const totalTxs = Number(stats.tx_count);
+    const totalGas = totalTxs * gasPerTx;
+    const claimedSupply = convertBigIntToNumber(BigInt(stats.supply), SPAM_DECIMALS);
+    const epochsCompleted = Number(stats.epoch) - 1 - firstEpoch[network];
+    const availableSupply = epochsCompleted * newSupplyPerEpoch;
 
     return <>
         {heading}
         <div className="tight">
-            <p>Total transactions: {formatNumber(txCount, "compact")}</p>
-            <p>Circulating supply: {formatNumber(supply, "compact")}</p>
+            <p>Total transactions: {formatNumber(totalTxs, "standard")}</p>
+            <p>Total gas paid: {formatNumber(totalGas, "compact")} SUI</p>
+            <p>Circulating supply: {formatNumber(claimedSupply, "compact")}</p>
+            <p>Available supply: {formatNumber(availableSupply, "compact")}</p>
+            <p>Epochs completed: {epochsCompleted}</p>
             <p>Current epoch: {stats.epoch}</p>
             {/* <p>System status: {stats.paused ? "paused" : "running"}</p> */}
         </div>
