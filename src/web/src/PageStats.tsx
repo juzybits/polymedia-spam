@@ -86,6 +86,15 @@ export const PageStats: React.FC = () =>
         return <div className={`counter-card ${epochType}`}>
             <div>
                 <div className="counter-epoch">Epoch {epoch.epoch}</div>
+                <div>{(() => {
+                    if (epochType === "current") {
+                        return "spamming now"
+                    }
+                    if (epochType === "register") {
+                        return "registering now";
+                    }
+                    return null;
+                })()}</div>
             </div>
 
             {epochTimes &&
@@ -126,11 +135,13 @@ export const PageStats: React.FC = () =>
             </div>
             }
 
+            {suiPerSpam > 0 &&
             <div>
                 <div>
                     SUI per SPAM: {suiPerSpam.toFixed(8)}
                 </div>
             </div>
+            }
         </div>;
     };
 
