@@ -5,6 +5,12 @@ import { useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
 import { EpochData, formatEpochPeriod, getEpochTimes } from "./lib/epochs";
 
+type SpamPrice = {
+    sui: number,
+    usd: number,
+}
+
+const turbosPoolId = "0x1e74d37329126a52a60a340ffda7e047e175442f4df096e1b2b40c40fa5fc213";
 const newSupplyPerEpoch = 1_000_000_000;
 const gasPerTx = 0.000774244;
 const firstEpoch: Record<NetworkName, number> = {
@@ -21,15 +27,17 @@ export const PageStats: React.FC = () =>
     const { network, spammer } = useOutletContext<AppContext>();
     const [ stats, setStats ] = useState<Stats>();
     const [ currEpoch, setCurrEpoch ] = useState<EpochData>();
+    const [ price, setPrice ] = useState<SpamPrice>();
 
     /* Functions */
 
     useEffect(() => {
-        updateStats();
-        updateCurrEpoch();
+        fetchStats();
+        fetchCurrEpoch();
+        fetchPrice();
     }, [spammer.current, network]);
 
-    const updateStats = async () => {
+    const fetchStats = async () => {
         try {
             setStats(undefined);
             const newStats = await spammer.current.getSpamClient().fetchStatsForRecentEpochs(14);
@@ -40,11 +48,11 @@ export const PageStats: React.FC = () =>
             });
             setStats(newStats);
         } catch (err) {
-            console.warn("stats update failed");
+            console.warn(`[fetchStats] ${err}`);
         }
     };
 
-    const updateCurrEpoch = async () => {
+    const fetchCurrEpoch = async () => {
         try {
             setCurrEpoch(undefined);
             const suiState = await spammer.current.getSuiClient().getLatestSuiSystemState();
@@ -54,8 +62,28 @@ export const PageStats: React.FC = () =>
                 startTimeMs: Number(suiState.epochStartTimestampMs),
             });
         } catch (err) {
-            console.warn("epoch update failed");
+            console.warn(`[fetchCurrEpoch] ${err}`);
         }
+    };
+
+    const fetchPrice = async () => {
+        await fetch(`https://api.dexscreener.com/latest/dex/pairs/sui/${turbosPoolId}`)
+        .then(async resp => {
+            if (resp.ok) {
+                /* eslint-disable */
+                const data = await resp.json();
+                setPrice({
+                    sui: data.pair.priceNative,
+                    usd: data.pair.priceUsd,
+                });
+                /* eslint-enable */
+            } else {
+                throw Error(`API response not okay`);
+            }
+        })
+        .catch(err => {
+            console.warn(`[fetchPrice] ${err}`);
+        });
     };
 
     /* HTML */
@@ -157,23 +185,29 @@ export const PageStats: React.FC = () =>
         </>
     }
 
+    const epochsCompleted = Number(stats.epoch) - 1 - firstEpoch[network];
     const totalTxs = Number(stats.tx_count);
     const totalGas = totalTxs * gasPerTx;
     const claimedSupply = convertBigIntToNumber(BigInt(stats.supply), SPAM_DECIMALS);
-    const epochsCompleted = Number(stats.epoch) - 1 - firstEpoch[network];
-    const availableSupply = epochsCompleted * newSupplyPerEpoch;
-    const dailyInflation = newSupplyPerEpoch / availableSupply * 100;
+    const claimableSupply = epochsCompleted * newSupplyPerEpoch;
+    const dailyInflation = newSupplyPerEpoch / claimableSupply * 100;
 
     return <>
         {heading}
         <div className="tight">
-            <p>Total transactions: {formatNumber(totalTxs, "standard")}</p>
+            <p>Total transactions: {formatNumber(totalTxs)}</p>
             <p>Total gas paid: {formatNumber(totalGas, "compact")} SUI</p>
             <p>Circulating supply: {formatNumber(claimedSupply, "compact")}</p>
-            <p>Available supply: {formatNumber(availableSupply, "compact")}</p>
-            <p>Epochs completed: {epochsCompleted}</p>
-            <p>Daily inflation: {formatNumber(dailyInflation, "compact")}%</p>
-            <p>Current epoch: {stats.epoch}</p>
+            <p>Claimable supply: {formatNumber(claimableSupply, "compact")}</p>
+            <p>Daily inflation: {dailyInflation.toFixed(2)}%</p>
+            {price && <>
+                <p>Market cap : {formatNumber(price.usd * claimedSupply)} USD</p>
+                <p>SPAM/USD: {price.usd}</p>
+                <p>SPAM/SUI: {price.sui}</p>
+            </>
+            }
+            {/* <p>Current epoch: {stats.epoch}</p> */}
+            {/* <p>Epochs completed: {epochsCompleted}</p> */}
             {/* <p>System status: {stats.paused ? "paused" : "running"}</p> */}
         </div>
 
