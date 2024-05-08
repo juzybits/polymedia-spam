@@ -1,10 +1,10 @@
 import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
-import { useEffect, useState } from "react";
+import { validateAndNormalizeSuiAddress } from "@polymedia/suits";
+import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
 import { PageDisclaimer } from "./PageDisclaimer";
-import { pairFromSecretKey } from "./lib/storage";
-import { validateAndNormalizeSuiAddress } from "@polymedia/suits";
+import { loadClaimAddressFromStorage, pairFromSecretKey } from "./lib/storage";
 
 export const PageWallet: React.FC = () =>
 {
@@ -100,27 +100,23 @@ export const PageWallet: React.FC = () =>
     };
 
     const ClaimAddressForm: React.FC = () => {
-        const [ claimAddress, setClaimAddress ] = useState<string>("");
-        const [ errMsg, setErrMsg ] = useState<string|null>(null);
-        const disableSubmit = errMsg !== null || claimAddress.length === 0;
-
-        useEffect(() => {
-            setClaimAddress(spammer.current.getClaimAddress());
-        }, [spammer.current]);
+        const [ claimAddress, setClaimAddress ] = useState<string|undefined>(loadClaimAddressFromStorage());
+        const [ msg, setMsg ] = useState<{ type: "okay"|"error", text: string }>();
+        const disableSubmit = msg?.type === "error" || !claimAddress;
 
         const onInputChange = (evt: React.ChangeEvent<HTMLTextAreaElement>): void  => {
             const newClaimAddress = evt.currentTarget.value;
             setClaimAddress(newClaimAddress);
             if (newClaimAddress.length === 0) {
-                setErrMsg(null);
+                setMsg(undefined);
                 return;
             }
-            const cleanClaimAddress = validateAndNormalizeSuiAddress(newClaimAddress);
-            if (!cleanClaimAddress) {
-                setErrMsg("Invalid address");
+            const cleanAddress = validateAndNormalizeSuiAddress(newClaimAddress);
+            if (!cleanAddress) {
+                setMsg({ type: "error", text: "Invalid address" });
                 return;
             }
-            setErrMsg(null);
+            setMsg(undefined);
         };
 
         const onKeyDown = (evt: React.KeyboardEvent<HTMLTextAreaElement>): void  => {
@@ -131,7 +127,14 @@ export const PageWallet: React.FC = () =>
         };
 
         const onSubmit = (): void => {
-            updateClaimAddress(claimAddress);
+            if (claimAddress) {
+                try {
+                    updateClaimAddress(claimAddress);
+                    setMsg({ type: "okay", text: "Saved!" });
+                } catch (err) {
+                    setMsg({ type: "error", text: String(err) });
+                }
+            }
         };
 
         return <>
@@ -151,8 +154,8 @@ export const PageWallet: React.FC = () =>
             <button className="btn" onClick={onSubmit} disabled={disableSubmit}>
                 SET CLAIM ADDRESS
             </button>
-            {errMsg && <div className="error-box">
-                <div>{errMsg}</div>
+            {msg && <div className={`${msg.type}-box`}>
+                <div>{msg.text}</div>
             </div>}
         </>
     }

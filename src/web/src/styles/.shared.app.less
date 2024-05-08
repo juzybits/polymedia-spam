@@ -353,16 +353,6 @@ nav {
             }
         }
     }
-
-    .error-box {
-        margin-top: @space;
-        margin-bottom: @space;
-        &, * {
-            color: rgb(255, 115, 115);
-            overflow-wrap: anywhere;
-            font-size: @text-size;
-        }
-    }
 }
 
 /* Mobile */
@@ -449,7 +439,6 @@ nav {
     -webkit-text-fill-color: transparent;
 }
 
-
 .modal-background {
     padding: 0;
     .modal-content {
@@ -462,6 +451,26 @@ nav {
         background-color: @color-bg-begin;
         color: @color-text;
         font-size: 1.5em;
+    }
+}
+
+.error-box, .okay-box {
+    margin-top: @space;
+    margin-bottom: @space;
+    &, * {
+        overflow-wrap: anywhere;
+        font-size: @text-size;
+    }
+}
+
+.error-box {
+    &, * {
+        color: @color-text-red;
+    }
+}
+.okay-box {
+    &, * {
+        color: @color-text-green;
     }
 }
 
