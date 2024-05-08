@@ -87,6 +87,7 @@ export const PageWallet: React.FC = () =>
                 onChange={onInputChange}
                 onKeyDown={onKeyDown}
                 autoFocus={true}
+                style={{width: "100%", maxWidth: "536px"}}
             />
             <br/>
             <button className="btn" onClick={onSubmit} disabled={disableSubmit}>
@@ -102,7 +103,8 @@ export const PageWallet: React.FC = () =>
     const ClaimAddressForm: React.FC = () => {
         const [ claimAddress, setClaimAddress ] = useState<string|undefined>(loadClaimAddressFromStorage());
         const [ msg, setMsg ] = useState<{ type: "okay"|"error", text: string }>();
-        const disabled = msg?.type === "error" || !claimAddress || spammer.current.status !== "stopped";
+        const disableButton = msg?.type === "error" || !claimAddress || spammer.current.status !== "stopped";
+        const disableTextarea = spammer.current.status !== "stopped";
 
         const onInputChange = (evt: React.ChangeEvent<HTMLTextAreaElement>): void  => {
             const newClaimAddress = evt.currentTarget.value;
@@ -120,7 +122,7 @@ export const PageWallet: React.FC = () =>
         };
 
         const onKeyDown = (evt: React.KeyboardEvent<HTMLTextAreaElement>): void  => {
-            if (evt.key === "Enter" && !disabled) {
+            if (evt.key === "Enter" && !disableButton) {
                 evt.preventDefault();
                 onSubmit();
             }
@@ -144,7 +146,6 @@ export const PageWallet: React.FC = () =>
         };
 
         return <>
-            <br/><br/>
             <h3>Claim address</h3>
             <p>
                 Send claimed SPAM to this address:
@@ -153,8 +154,8 @@ export const PageWallet: React.FC = () =>
                 value={claimAddress}
                 onChange={onInputChange}
                 onKeyDown={onKeyDown}
-                disabled={disabled}
-                style={{width: "100%", maxWidth: "600px", wordBreak: "break-all"}}
+                disabled={disableTextarea}
+                style={{width: "100%", maxWidth: "536px", wordBreak: "break-all"}}
             />
             <br/>
             {spammer.current.status !== "stopped"
@@ -163,11 +164,11 @@ export const PageWallet: React.FC = () =>
                     STOP MINER TO SET ADDRESS
                 </button>
             :
-                <button className="btn" onClick={onSubmit} disabled={disabled}>
+                <button className="btn" onClick={onSubmit} disabled={disableButton}>
                     SET CLAIM ADDRESS
                 </button>
             }
-            {msg && <div className={`${msg.type}-box`}>
+            {msg && <div className={`${msg.type}-box`} style={{marginBottom: 0}}>
                 <div>{msg.text}</div>
             </div>}
         </>
@@ -196,7 +197,7 @@ export const PageWallet: React.FC = () =>
             </div>
         </div>
 
-        <div className="btn-group" style={{paddingBottom: "1.5rem"}}>
+        <div className="btn-group">
             <button className="btn" onClick={() => confirmAndReplaceWallet(new Ed25519Keypair())}>
                 NEW WALLET
             </button>
@@ -207,8 +208,15 @@ export const PageWallet: React.FC = () =>
 
         {showSuccess && <h3 style={{color: "lightgreen"}}>Success!</h3>}
 
-        {showImport ? <ImportForm /> : <BackUpWarning />}
+        <br/><br/><br/>
+
+        {showImport && <>
+            <ImportForm />
+            <br/><br/><br/><br/>
+        </>}
 
         <ClaimAddressForm />
+        <br/><br/><br/><br/>
+        <BackUpWarning />
     </>;
 };
