@@ -68,6 +68,9 @@ export const PageStats: React.FC = () =>
         currentEpoch,
     }) => {
         const epochNumber = Number(epoch.epoch);
+        if (epochNumber < firstEpoch[network]) {
+            return null;
+        }
         const epochTimes = currEpoch && getEpochTimes(epochNumber, currEpoch);
         const epochTxs = Number(epoch.tx_count);
         const epochGas = epochTxs * gasPerTx;
