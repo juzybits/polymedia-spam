@@ -67,8 +67,8 @@ export const PageStats: React.FC = () =>
     }) => {
         const epochNumber = Number(epoch.epoch);
         const epochTimes = currEpoch && getEpochTimes(epochNumber, currEpoch);
-
         const epochTxs = Number(epoch.tx_count);
+        const epochGas = epochTxs * gasPerTx;
         const spamPerTx = newSupplyPerEpoch / epochTxs;
 
         let cardClass: "" | "current" | "register" | "claim";
@@ -81,10 +81,10 @@ export const PageStats: React.FC = () =>
             transactions = "ongoing";
         } else if (epochNumber === currEpoch.epochNumber - 1) {
             cardClass = "register";
-            transactions = `${formatNumber(epochTxs, "compact")} registered so far`;
+            transactions = `${formatNumber(epochTxs)} registered so far`;
         } else {
             cardClass = "claim";
-            transactions = `${formatNumber(epochTxs, "compact")}`;
+            transactions = `${formatNumber(epochTxs)}`;
         }
 
         return <div className={`counter-card ${cardClass}`}>
@@ -105,6 +105,14 @@ export const PageStats: React.FC = () =>
                     Transactions: {transactions}
                 </div>
             </div>
+
+            {epochGas > 0 &&
+            <div>
+                <div>
+                    Gas paid: {formatNumber(epochGas)} SUI
+                </div>
+            </div>
+            }
 
             {Number.isFinite(spamPerTx) &&
             <div>
