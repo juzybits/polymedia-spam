@@ -162,6 +162,7 @@ export const PageStats: React.FC = () =>
     const claimedSupply = convertBigIntToNumber(BigInt(stats.supply), SPAM_DECIMALS);
     const epochsCompleted = Number(stats.epoch) - 1 - firstEpoch[network];
     const availableSupply = epochsCompleted * newSupplyPerEpoch;
+    const dailyInflation = newSupplyPerEpoch / availableSupply * 100;
 
     return <>
         {heading}
@@ -171,6 +172,7 @@ export const PageStats: React.FC = () =>
             <p>Circulating supply: {formatNumber(claimedSupply, "compact")}</p>
             <p>Available supply: {formatNumber(availableSupply, "compact")}</p>
             <p>Epochs completed: {epochsCompleted}</p>
+            <p>Daily inflation: {formatNumber(dailyInflation, "compact")}%</p>
             <p>Current epoch: {stats.epoch}</p>
             {/* <p>System status: {stats.paused ? "paused" : "running"}</p> */}
         </div>
