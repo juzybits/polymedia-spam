@@ -147,7 +147,6 @@ export const PageWallet: React.FC = () =>
                 value={claimAddress}
                 onChange={onInputChange}
                 onKeyDown={onKeyDown}
-                autoFocus={true}
                 style={{width: "100%", maxWidth: "600px", wordBreak: "break-all"}}
             />
             <br/>

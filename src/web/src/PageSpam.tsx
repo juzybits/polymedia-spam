@@ -1,5 +1,5 @@
 import { UserCounter } from "@polymedia/spam-sdk";
-import { formatNumber } from "@polymedia/suits";
+import { formatNumber, shortenSuiAddress } from "@polymedia/suits";
 import { LinkToExplorerObj } from "@polymedia/webutils";
 import { useEffect, useState } from "react";
 import { Link, useOutletContext } from "react-router-dom";
@@ -253,6 +253,15 @@ export const PageSpam: React.FC = () =>
         </>;
     };
 
+    const claimAddress = spammer.current.getClaimAddress();
+    const signerAddress = spammer.current.getSpamClient().signer.toSuiAddress();
+    const claimAddrInfo = claimAddress === signerAddress
+        ? <>
+            <span>miner address</span>
+            <br/>
+            (<Link to="/wallet">not recommended</Link>)
+        </>
+        : shortenSuiAddress(claimAddress);
     return <>
         <h1><span className="rainbow">Spam</span></h1>
         <div>
@@ -261,6 +270,7 @@ export const PageSpam: React.FC = () =>
                 <p>Status: <StatusSpan status={spammer.current.status} /></p>
                 <p>Current epoch: {isLoading ? "loading... " : counters.epoch}</p>
                 <Balances />
+                <p>Claim address: {claimAddrInfo}</p>
             </div>
 
             <TopUp />
