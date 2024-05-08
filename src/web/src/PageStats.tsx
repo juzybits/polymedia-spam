@@ -1,15 +1,19 @@
 import { SPAM_DECIMALS, Stats } from "@polymedia/spam-sdk";
+import { convertBigIntToNumber, formatNumber } from "@polymedia/suits";
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
-import { formatBigInt, formatNumber } from "@polymedia/suits";
 import { EpochData, formatEpochPeriod, getEpochTimes } from "./lib/epochs";
 
 export const PageStats: React.FC = () =>
 {
+    /* State */
+
     const { network, spammer } = useOutletContext<AppContext>();
     const [ stats, setStats ] = useState<Stats>();
     const [ currEpoch, setCurrEpoch ] = useState<EpochData>();
+
+    /* Functions */
 
     useEffect(() => {
         updateStats();
@@ -44,6 +48,8 @@ export const PageStats: React.FC = () =>
             console.warn("epoch update failed");
         }
     };
+
+    /* HTML */
 
     const CounterCard: React.FC<{
         epoch: { epoch: string; tx_count: string };
@@ -90,29 +96,37 @@ export const PageStats: React.FC = () =>
         </div>;
     };
 
+    const heading = <h1><span className="rainbow">Stats</span></h1>;
+
+    if (!stats) {
+        return <>
+            {heading}
+            <p>Loading...</p>
+        </>
+    }
+
+    const txCount = Number(stats.tx_count);
+    const supply = convertBigIntToNumber(BigInt(stats.supply), SPAM_DECIMALS);
+
     return <>
-        <h1><span className="rainbow">Stats</span></h1>
-        {!stats
-        ? <p>Loading...</p>
-        : <>
-            <div className="tight">
-                <p>Total transactions: {formatNumber(Number(stats.tx_count), "compact")}</p>
-                <p>Circulating supply: {formatBigInt(BigInt(stats.supply), SPAM_DECIMALS, "compact")}</p>
-                <p>Current epoch: {stats.epoch}</p>
-                {/* <p>System status: {stats.paused ? "paused" : "running"}</p> */}
+        {heading}
+        <div className="tight">
+            <p>Total transactions: {formatNumber(txCount, "compact")}</p>
+            <p>Circulating supply: {formatNumber(supply, "compact")}</p>
+            <p>Current epoch: {stats.epoch}</p>
+            {/* <p>System status: {stats.paused ? "paused" : "running"}</p> */}
+        </div>
+
+        {stats.epochs.length > 0 &&
+        <>
+            <br/>
+            <h2>Epochs:</h2>
+
+            <div className="counter-cards">
+                {stats.epochs.map(epoch =>
+                    <CounterCard epoch={epoch} key={epoch.epoch} />
+                )}
             </div>
-
-            {stats.epochs.length > 0 &&
-            <>
-                <br/>
-                <h2>Epochs:</h2>
-
-                <div className="counter-cards">
-                    {stats.epochs.map(epoch =>
-                        <CounterCard epoch={epoch} key={epoch.epoch} />
-                    )}
-                </div>
-            </>}
         </>}
     </>;
 };
