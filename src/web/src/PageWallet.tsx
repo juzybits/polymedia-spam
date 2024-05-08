@@ -102,7 +102,7 @@ export const PageWallet: React.FC = () =>
     const ClaimAddressForm: React.FC = () => {
         const [ claimAddress, setClaimAddress ] = useState<string|undefined>(loadClaimAddressFromStorage());
         const [ msg, setMsg ] = useState<{ type: "okay"|"error", text: string }>();
-        const disableSubmit = msg?.type === "error" || !claimAddress;
+        const disabled = msg?.type === "error" || !claimAddress || spammer.current.status !== "stopped";
 
         const onInputChange = (evt: React.ChangeEvent<HTMLTextAreaElement>): void  => {
             const newClaimAddress = evt.currentTarget.value;
@@ -120,7 +120,7 @@ export const PageWallet: React.FC = () =>
         };
 
         const onKeyDown = (evt: React.KeyboardEvent<HTMLTextAreaElement>): void  => {
-            if (evt.key === "Enter" && !disableSubmit) {
+            if (evt.key === "Enter" && !disabled) {
                 evt.preventDefault();
                 onSubmit();
             }
@@ -137,6 +137,12 @@ export const PageWallet: React.FC = () =>
             }
         };
 
+        const onStopSpammer = () => {
+            if (spammer.current.status === "running") {
+                spammer.current.stop();
+            }
+        };
+
         return <>
             <br/><br/>
             <h3>Claim address</h3>
@@ -147,12 +153,20 @@ export const PageWallet: React.FC = () =>
                 value={claimAddress}
                 onChange={onInputChange}
                 onKeyDown={onKeyDown}
+                disabled={disabled}
                 style={{width: "100%", maxWidth: "600px", wordBreak: "break-all"}}
             />
             <br/>
-            <button className="btn" onClick={onSubmit} disabled={disableSubmit}>
-                SET CLAIM ADDRESS
-            </button>
+            {spammer.current.status !== "stopped"
+            ?
+                <button className="btn" onClick={onStopSpammer}>
+                    STOP MINER TO SET ADDRESS
+                </button>
+            :
+                <button className="btn" onClick={onSubmit} disabled={disabled}>
+                    SET CLAIM ADDRESS
+                </button>
+            }
             {msg && <div className={`${msg.type}-box`}>
                 <div>{msg.text}</div>
             </div>}
