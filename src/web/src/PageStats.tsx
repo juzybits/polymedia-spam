@@ -62,8 +62,10 @@ export const PageStats: React.FC = () =>
 
     const CounterCard: React.FC<{
         epoch: { epoch: string; tx_count: string };
+        currentEpoch: number;
     }> = ({
         epoch,
+        currentEpoch,
     }) => {
         const epochNumber = Number(epoch.epoch);
         const epochTimes = currEpoch && getEpochTimes(epochNumber, currEpoch);
@@ -72,12 +74,10 @@ export const PageStats: React.FC = () =>
         const spamPerTx = newSupplyPerEpoch / epochTxs;
         const suiPerSpam = epochGas / newSupplyPerEpoch;
 
-        let epochType: "" | "current" | "register" | "claim";
-        if (!currEpoch) {
-            epochType = "";
-        } else if (epochNumber === currEpoch.epochNumber) {
+        let epochType: "current" | "register" | "claim";
+        if (epochNumber === currentEpoch) {
             epochType = "current";
-        } else if (epochNumber === currEpoch.epochNumber - 1) {
+        } else if (epochNumber === currentEpoch - 1) {
             epochType = "register";
         } else {
             epochType = "claim";
@@ -93,7 +93,7 @@ export const PageStats: React.FC = () =>
                     if (epochType === "register") {
                         return "registering now";
                     }
-                    return null;
+                    return "claimable";
                 })()}</div>
             </div>
 
@@ -179,7 +179,7 @@ export const PageStats: React.FC = () =>
 
             <div className="counter-cards">
                 {stats.epochs.map(epoch =>
-                    <CounterCard epoch={epoch} key={epoch.epoch} />
+                    <CounterCard epoch={epoch} currentEpoch={Number(stats.epoch)} key={epoch.epoch} />
                 )}
             </div>
         </>}
