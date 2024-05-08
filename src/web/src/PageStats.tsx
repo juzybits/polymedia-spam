@@ -70,6 +70,7 @@ export const PageStats: React.FC = () =>
         const epochTxs = Number(epoch.tx_count);
         const epochGas = epochTxs * gasPerTx;
         const spamPerTx = newSupplyPerEpoch / epochTxs;
+        const suiPerSpam = epochGas / newSupplyPerEpoch;
 
         let epochType: "" | "current" | "register" | "claim";
         if (!currEpoch) {
@@ -112,7 +113,7 @@ export const PageStats: React.FC = () =>
             {epochGas > 0 &&
             <div>
                 <div>
-                    Gas paid: {formatNumber(epochGas)} SUI {epochType === "register" && "(based on txs so far)" }
+                    Gas paid: {formatNumber(epochGas)} SUI
                 </div>
             </div>
             }
@@ -120,10 +121,16 @@ export const PageStats: React.FC = () =>
             {Number.isFinite(spamPerTx) &&
             <div>
                 <div>
-                    SPAM per tx: {formatNumber(spamPerTx)} {epochType === "register" && "(based on txs so far)" }
+                    SPAM per tx: {formatNumber(spamPerTx)}
                 </div>
             </div>
             }
+
+            <div>
+                <div>
+                    SUI per SPAM: {suiPerSpam.toFixed(8)}
+                </div>
+            </div>
         </div>;
     };
 
