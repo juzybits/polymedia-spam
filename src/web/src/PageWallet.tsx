@@ -50,7 +50,7 @@ export const PageWallet: React.FC = () =>
     const WalletInfo: React.FC = () =>
     {
         return <div id="wallet-info">
-        <h2>Web miner wallet</h2>
+        <h2>Miner wallet</h2>
         <div id="wallet-content">
             <div className="wallet-section">
                 <h4>Sui address:</h4>

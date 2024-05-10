@@ -82,31 +82,35 @@ header {
             > div {
                 background-color: @color-bg-begin;
                 border-radius: @radius;
-                padding: 1.5rem;
+                padding: 2.25rem 1.5rem 2.75rem;
+                h2 {
+                    padding-top: 0;
+                }
+                .btn, .okay-box, .error-box {
+                    margin-bottom: 0;
+                }
             }
-        }
-        #wallet-info {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding-top: 1rem;
-            padding-bottom: 1rem;
-            #wallet-content {
+            #wallet-info {
                 display: flex;
                 flex-direction: column;
-                gap: 3rem;
-                padding: 0.5rem 1.5rem;
-                font-size: 1.1rem;
-                .wallet-section {
-                    h4 {
-                        font-size: 1.2rem;
-                    }
-                }
-                .dont-share-secret-key {
+                justify-content: center;
+                #wallet-content {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 2rem;
                     padding-top: 1rem;
-                    &, * {
-                        font-weight: 500;
-                        color: rgb(222, 125, 125);
+                    font-size: 1.1rem;
+                    .wallet-section {
+                        h4 {
+                            font-size: 1.2rem;
+                        }
+                    }
+                    .dont-share-secret-key {
+                        padding-top: 1rem;
+                        &, * {
+                            font-weight: 500;
+                            color: rgb(222, 125, 125);
+                        }
                     }
                 }
             }
