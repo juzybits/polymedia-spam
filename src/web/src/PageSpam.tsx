@@ -259,7 +259,7 @@ export const PageSpam: React.FC = () =>
         ? <>
             <span>miner address</span>
             <br/>
-            (<Link to="/wallet">not recommended</Link>)
+            (<Link to="/wallet#set-claim-address">not recommended</Link>)
         </>
         : shortenSuiAddress(claimAddress);
     return <>

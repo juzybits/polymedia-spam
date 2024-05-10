@@ -1,7 +1,7 @@
 import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
 import { validateAndNormalizeSuiAddress } from "@polymedia/suits";
-import { useState } from "react";
-import { useOutletContext } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useLocation, useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
 import { PageDisclaimer } from "./PageDisclaimer";
 import { loadClaimAddressFromStorage, pairFromSecretKey } from "./lib/storage";
@@ -10,12 +10,26 @@ export const PageWallet: React.FC = () =>
 {
     /* State */
 
+    const location = useLocation();
     const { spammer, disclaimerAccepted, replaceKeypair, updateClaimAddress }
         = useOutletContext<AppContext>();
     const [ createSuccess, setCreateSuccess ] = useState<boolean>(false);
     const [ importSuccess, setImportSuccess ] = useState<boolean>(false);
 
     /* Functions */
+
+    useEffect(() => {
+        const handleHashNavigation = () => {
+            const hash = location.hash.replace('#', '');
+            if (hash) {
+                const element = document.getElementById(hash);
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+        };
+        handleHashNavigation();
+    }, [location.hash]);
 
     const confirmAndReplaceWallet = (pair: Ed25519Keypair): boolean => {
         const userAccepted = window.confirm(
@@ -54,6 +68,7 @@ export const PageWallet: React.FC = () =>
                 <div className="dont-share-secret-key">Don't share your secret key with anyone</div>
             </div>
         </div>
+        <div id="set-claim-address" />
         </div>;
     }
 
