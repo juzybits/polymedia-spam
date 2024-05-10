@@ -11,7 +11,6 @@ export const PageWallet: React.FC = () =>
     /* State */
 
     const { replaceKeypair, spammer, disclaimerAccepted, updateClaimAddress } = useOutletContext<AppContext>();
-    const [ showImport, setShowImport ] = useState<boolean>(false);
     const [ showSuccess, setShowSuccess ] = useState<boolean>(false);
 
     /* Functions */
@@ -22,7 +21,6 @@ export const PageWallet: React.FC = () =>
         );
         if (resp) {
             replaceKeypair(pair);
-            setShowImport(false);
             setShowSuccess(true);
         }
     };
@@ -86,7 +84,6 @@ export const PageWallet: React.FC = () =>
                 value={secretKey}
                 onChange={onInputChange}
                 onKeyDown={onKeyDown}
-                autoFocus={true}
                 style={{width: "100%", maxWidth: "536px"}}
             />
             <br/>
@@ -201,19 +198,14 @@ export const PageWallet: React.FC = () =>
             <button className="btn" onClick={() => confirmAndReplaceWallet(new Ed25519Keypair())}>
                 NEW WALLET
             </button>
-            <button className="btn" onClick={() => {setShowImport(oldImport => !oldImport); setShowSuccess(false);}}>
-                IMPORT
-            </button>
         </div>
 
         {showSuccess && <h3 style={{color: "lightgreen"}}>Success!</h3>}
 
         <br/><br/><br/>
 
-        {showImport && <>
-            <ImportForm />
-            <br/><br/><br/><br/>
-        </>}
+        <ImportForm />
+        <br/><br/><br/><br/>
 
         <ClaimAddressForm />
         <br/><br/><br/><br/>
