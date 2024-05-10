@@ -35,27 +35,26 @@ export const PageWallet: React.FC = () =>
 
     const WalletInfo: React.FC = () =>
     {
-        return <>
-        <div id="wallet-info">
+        return <div id="wallet-info">
+        <h2>Web miner wallet</h2>
         <div id="wallet-content">
             <div className="wallet-section">
-                <h4>Your Sui address:</h4>
-                <p>This is the Sui address of your spam wallet. Send $SUI to this address to fund your spam wallet and start mining.</p>
+                <h4>Sui address:</h4>
+                <p>Send SUI to this address to fund your miner wallet.</p>
                 <span className="sui-address">
                     {spammer.current.getSpamClient().signer.toSuiAddress()}
                 </span>
             </div>
             <div className="wallet-section">
-                <h4>Your secret key:</h4>
-                <p>This is the private key of your spam wallet. Copy it somewhere safe! This allows you to restore your wallet later.</p>
+                <h4>Secret key:</h4>
+                <p>It allows you to restore your wallet. Copy it somewhere safe!</p>
                 <span className="sui-address">
                     {(spammer.current.getSpamClient().signer as Ed25519Keypair).getSecretKey()}
                 </span>
                 <div className="dont-share-secret-key">Don't share your secret key with anyone</div>
             </div>
         </div>
-        </div>
-        </>;
+        </div>;
     }
 
     const ClaimAddressForm: React.FC = () =>
@@ -91,7 +90,7 @@ export const PageWallet: React.FC = () =>
             if (claimAddress) {
                 try {
                     updateClaimAddress(claimAddress);
-                    setMsg({ type: "okay", text: "Saved!" });
+                    setMsg({ type: "okay", text: "Success!" });
                 } catch (err) {
                     setMsg({ type: "error", text: String(err) });
                 }
@@ -104,8 +103,8 @@ export const PageWallet: React.FC = () =>
             }
         };
 
-        return <>
-            <h3>Claim address</h3>
+        return <div>
+            <h2>Set claim address</h2>
             <p>
                 Send claimed SPAM to this address:
             </p>
@@ -127,10 +126,10 @@ export const PageWallet: React.FC = () =>
                     SET CLAIM ADDRESS
                 </button>
             }
-            {msg && <div className={`${msg.type}-box`} style={{marginBottom: 0}}>
+            {msg && <div className={`${msg.type}-box`}>
                 <div>{msg.text}</div>
             </div>}
-        </>
+        </div>;
     }
 
     const ImportWalletForm: React.FC = () =>
@@ -168,8 +167,8 @@ export const PageWallet: React.FC = () =>
             setImportSuccess(okay);
         };
 
-        return <>
-            <h3>Import wallet</h3>
+        return <div>
+            <h2>Import existing wallet</h2>
             <p>
                 Paste your secret key and click the import button.
             </p>
@@ -188,8 +187,10 @@ export const PageWallet: React.FC = () =>
                 <div>Invalid secret key:</div>
                 <div>{errMsg}</div>
             </div>}
-            {importSuccess && <h3 style={{color: "lightgreen"}}>Success!</h3>}
-        </>;
+            {importSuccess && <div className="okay-box">
+                <div>Success!</div>
+            </div>}
+        </div>;
     };
 
     const CreateWalletForm: React.FC = () =>
@@ -200,41 +201,45 @@ export const PageWallet: React.FC = () =>
             setCreateSuccess(okay);
         };
 
-        return <>
-            <h3>Create new wallet</h3>
+        return <div>
+            <h2>Create new wallet</h2>
             <p>Delete your current wallet and replace it with a new one.</p>
             <div className="btn-group">
                 <button className="btn" onClick={onSubmit}>
                     CREATE WALLET
                 </button>
             </div>
-            {createSuccess && <h3 style={{color: "lightgreen"}}>Success!</h3>}
-        </>;
+            {createSuccess && <div className="okay-box">
+                <div>Success!</div>
+            </div>}
+        </div>;
     };
 
     const BackUpWarning: React.FC = () =>
     {
-        return <>
-            <h3>Back up your secret key!</h3>
+        return <div>
+            <h2>Back up your secret key!</h2>
             <div className="tight">
                 <p>▸ Your spam wallet is stored in your browser, only you have access to it.</p>
                 <p>▸ Clearing cookies will delete your wallet, and we cannot recover it for you.</p>
                 <p>▸ Copy your secret key and keep it safe, this allows you to restore your wallet.</p>
             </div>
-        </>;
+        </div>;
     };
 
-    return <>
+    return <div id="page-wallet">
         <h1><span className="rainbow">Wallet</span></h1>
 
-        <WalletInfo />
+        <div id="page-wallet-sections">
+            <WalletInfo />
 
-        <ClaimAddressForm />
+            <ClaimAddressForm />
 
-        <CreateWalletForm />
+            <CreateWalletForm />
 
-        <ImportWalletForm />
+            <ImportWalletForm />
 
-        <BackUpWarning />
-    </>;
+            <BackUpWarning />
+        </div>
+    </div>;
 };

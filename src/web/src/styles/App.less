@@ -71,34 +71,48 @@ header {
             }
         }
     }
-}
-
-#wallet-info {
-    display: flex;
-    justify-content: center;
-    padding-top: 1rem;
-    padding-bottom: 1rem;
-    #wallet-content {
-        display: flex;
-        flex-direction: column;
-        gap: 3rem;
-        padding: 0.5rem 1.5rem;
-        font-size: 1.1rem;
-        .wallet-section {
-            h4 {
-                font-size: 1.2rem;
+    #page-wallet {
+        h2 {
+            font-size: 1.8rem;
+        }
+        #page-wallet-sections {
+            display: flex;
+            flex-direction: column;
+            gap: 3rem;
+            > div {
+                background-color: @color-bg-begin;
+                border-radius: @radius;
+                padding: 1.5rem;
             }
         }
-        .dont-share-secret-key {
+        #wallet-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
             padding-top: 1rem;
-            &, * {
-                font-weight: 500;
-                color: rgb(222, 125, 125);
+            padding-bottom: 1rem;
+            #wallet-content {
+                display: flex;
+                flex-direction: column;
+                gap: 3rem;
+                padding: 0.5rem 1.5rem;
+                font-size: 1.1rem;
+                .wallet-section {
+                    h4 {
+                        font-size: 1.2rem;
+                    }
+                }
+                .dont-share-secret-key {
+                    padding-top: 1rem;
+                    &, * {
+                        font-weight: 500;
+                        color: rgb(222, 125, 125);
+                    }
+                }
             }
         }
     }
 }
-
 
 .sui-address {
     padding: 1rem;
