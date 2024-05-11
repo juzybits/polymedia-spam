@@ -128,7 +128,7 @@ export const PageWallet: React.FC = () =>
                 onChange={onInputChange}
                 onKeyDown={onKeyDown}
                 disabled={disableTextarea}
-                style={{width: "100%", maxWidth: "536px", wordBreak: "break-all"}}
+                style={{width: "100%", wordBreak: "break-all"}}
             />
             <br/>
             {spammer.current.status !== "stopped"
@@ -154,7 +154,7 @@ export const PageWallet: React.FC = () =>
 
         const disableSubmit = errMsg !== null || secretKey.length === 0;
 
-        const onInputChange = (evt: React.ChangeEvent<HTMLInputElement>): void  => {
+        const onInputChange = (evt: React.ChangeEvent<HTMLTextAreaElement>): void  => {
             const newSecretKey = evt.currentTarget.value;
             setSecretKey(newSecretKey);
             if (newSecretKey.length === 0) {
@@ -169,8 +169,9 @@ export const PageWallet: React.FC = () =>
             }
         };
 
-        const onKeyDown = (evt: React.KeyboardEvent<HTMLInputElement>): void  => {
+        const onKeyDown = (evt: React.KeyboardEvent<HTMLTextAreaElement>): void  => {
             if (evt.key === "Enter" && !disableSubmit) {
+                evt.preventDefault();
                 onSubmit();
             }
         };
@@ -183,16 +184,15 @@ export const PageWallet: React.FC = () =>
         };
 
         return <div>
-            <h2>Import existing wallet</h2> {/* TODO: textarea */}
+            <h2>Import existing wallet</h2>
             <p>
                 Paste your secret key and click the import button.
             </p>
-            <input
-                type="text"
+            <textarea
                 value={secretKey}
                 onChange={onInputChange}
                 onKeyDown={onKeyDown}
-                style={{width: "100%", maxWidth: "536px"}}
+                style={{width: "100%", wordBreak: "break-all"}}
             />
             <br/>
             <button className="btn" onClick={onSubmit} disabled={disableSubmit}>
