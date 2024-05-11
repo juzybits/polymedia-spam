@@ -235,9 +235,9 @@ export const PageWallet: React.FC = () =>
         return <div>
             <h2>Back up your secret key!</h2>
             <div className="tight">
-                <p>▸ Your spam wallet is stored in your browser, only you have access to it.</p>
-                <p>▸ Clearing cookies will delete your wallet, and we cannot recover it for you.</p>
-                <p>▸ Copy your secret key and keep it safe, this allows you to restore your wallet.</p>
+                <p>▸ Your miner wallet is stored in your browser. Only you have access to it.</p>
+                <p>▸ Clearing cookies will delete your wallet. We cannot recover it for you.</p>
+                <p>▸ You can only restore your miner wallet if you save the secret key.</p>
             </div>
         </div>;
     };
@@ -250,9 +250,9 @@ export const PageWallet: React.FC = () =>
 
             <ClaimAddressForm />
 
-            <CreateWalletForm />
-
             <ImportWalletForm />
+
+            <CreateWalletForm />
 
             <BackUpWarning />
         </div>
