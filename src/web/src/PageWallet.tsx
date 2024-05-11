@@ -20,11 +20,11 @@ export const PageWallet: React.FC = () =>
 
     useEffect(() => {
         const handleHashNavigation = () => {
-            const hash = location.hash.replace('#', '');
+            const hash = location.hash.replace("#", "");
             if (hash) {
                 const element = document.getElementById(hash);
                 if (element) {
-                    element.scrollIntoView({ behavior: 'smooth' });
+                    element.scrollIntoView({ behavior: "smooth" });
                 }
             }
         };
@@ -70,12 +70,12 @@ export const PageWallet: React.FC = () =>
         </div>
         <div id="set-claim-address" />
         </div>;
-    }
+    };
 
     const ClaimAddressForm: React.FC = () =>
     {
         const [ claimAddress, setClaimAddress ] = useState<string|undefined>(loadClaimAddressFromStorage());
-        const [ msg, setMsg ] = useState<{ type: "okay"|"error", text: string }>();
+        const [ msg, setMsg ] = useState<{ type: "okay"|"error"; text: string }>();
         const disableButton = msg?.type === "error" || !claimAddress || spammer.current.status !== "stopped";
         const disableTextarea = spammer.current.status !== "stopped";
 
@@ -145,7 +145,7 @@ export const PageWallet: React.FC = () =>
                 <div>{msg.text}</div>
             </div>}
         </div>;
-    }
+    };
 
     const ImportWalletForm: React.FC = () =>
     {
@@ -183,7 +183,7 @@ export const PageWallet: React.FC = () =>
         };
 
         return <div>
-            <h2>Import existing wallet</h2>
+            <h2>Import existing wallet</h2> {/* TODO: textarea */}
             <p>
                 Paste your secret key and click the import button.
             </p>

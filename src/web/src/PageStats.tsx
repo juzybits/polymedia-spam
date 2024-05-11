@@ -6,9 +6,9 @@ import { AppContext } from "./App";
 import { EpochData, formatEpochPeriod, getEpochTimes } from "./lib/epochs";
 
 type SpamPrice = {
-    sui: number,
-    usd: number,
-}
+    sui: number;
+    usd: number;
+};
 
 const turbosPoolId = "0x1e74d37329126a52a60a340ffda7e047e175442f4df096e1b2b40c40fa5fc213";
 const newSupplyPerEpoch = 1_000_000_000;
@@ -78,7 +78,7 @@ export const PageStats: React.FC = () =>
                 });
                 /* eslint-enable */
             } else {
-                throw Error(`API response not okay`);
+                throw Error("API response not okay");
             }
         })
         .catch(err => {
@@ -119,7 +119,7 @@ export const PageStats: React.FC = () =>
                 <div className="counter-epoch">Epoch {epoch.epoch}</div>
                 <div>{(() => {
                     if (epochType === "current") {
-                        return "spamming now"
+                        return "spamming now";
                     }
                     if (epochType === "register") {
                         return "registering now";
@@ -182,7 +182,7 @@ export const PageStats: React.FC = () =>
         return <>
             {heading}
             <p>Loading...</p>
-        </>
+        </>;
     }
 
     const epochsCompleted = Number(stats.epoch) - 1 - firstEpoch[network];

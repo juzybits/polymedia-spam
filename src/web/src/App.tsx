@@ -73,7 +73,7 @@ export type AppContext = {
     spammer: React.MutableRefObject<Spammer>;
     spamView: SpamView;
     replaceKeypair: (keypair: Ed25519Keypair) => void;
-    updateClaimAddress: (claimAddress: string) => Promise<void>;
+    updateClaimAddress: (claimAddress: string) => void;
     disclaimerAccepted: boolean; acceptDisclaimer: () => void;
 };
 
@@ -250,7 +250,7 @@ const App: React.FC = () =>
         setShowMobileNav(false);
     }
 
-    async function updateClaimAddress(newClaimAddress: string): Promise<void> {
+    function updateClaimAddress(newClaimAddress: string): void {
         spammer.current.setClaimAddress(newClaimAddress);
         saveClaimAddressToStorage(newClaimAddress);
     }
