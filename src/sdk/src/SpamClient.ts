@@ -126,6 +126,25 @@ export class SpamClient
         return counters;
     }
 
+    public async fetchGasCostOfIncrementTx(): Promise<number> {
+        const resp = await this.suiClient.queryTransactionBlocks({
+            filter: {
+                MoveFunction: {
+                    package: this.packageId,
+                    module: "spam",
+                    function: "increment_user_counter",
+                },
+            },
+            options: {
+                showBalanceChanges: true,
+            },
+            order: "descending",
+            limit: 1,
+        });
+        const balanceChanges = resp.data[0].balanceChanges!;
+        return Number(balanceChanges[0].amount) / -1_000_000_000;
+    }
+
     /* Package functions */
 
     public async newUserCounter(
