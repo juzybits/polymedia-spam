@@ -12,7 +12,6 @@ type SpamPrice = {
 
 const turbosPoolId = "0x1e74d37329126a52a60a340ffda7e047e175442f4df096e1b2b40c40fa5fc213";
 const newSupplyPerEpoch = 1_000_000_000;
-const gasPerTx = 0.000774244;
 const firstEpoch: Record<NetworkName, number> = {
     mainnet: 386,
     testnet: 357,
@@ -27,6 +26,7 @@ export const PageStats: React.FC = () =>
     const { network, spammer } = useOutletContext<AppContext>();
     const [ stats, setStats ] = useState<Stats>();
     const [ currEpoch, setCurrEpoch ] = useState<EpochData>();
+    const [ gasPerTx, setGasPerTx ] = useState<number>(0.000775244);
     const [ price, setPrice ] = useState<SpamPrice>();
 
     /* Functions */
@@ -34,6 +34,7 @@ export const PageStats: React.FC = () =>
     useEffect(() => {
         fetchStats();
         fetchCurrEpoch();
+        fetchGasPerTx();
         fetchPrice();
     }, [spammer.current, network]);
 
@@ -66,9 +67,18 @@ export const PageStats: React.FC = () =>
         }
     };
 
+    const fetchGasPerTx = async () => {
+        try {
+            const newGasPerTx = await spammer.current.getSpamClient().fetchGasCostOfIncrementTx();
+            setGasPerTx(newGasPerTx);
+        } catch (err) {
+            console.warn(`[fetchGasPerTx] ${err}`);
+        }
+    };
+
     const fetchPrice = async () => {
-        await fetch(`https://api.dexscreener.com/latest/dex/pairs/sui/${turbosPoolId}`)
-        .then(async resp => {
+        try {
+            const resp = await fetch(`https://api.dexscreener.com/latest/dex/pairs/sui/${turbosPoolId}`);
             if (resp.ok) {
                 /* eslint-disable */
                 const data = await resp.json();
@@ -80,10 +90,9 @@ export const PageStats: React.FC = () =>
             } else {
                 throw Error("API response not okay");
             }
-        })
-        .catch(err => {
+        } catch (err) {
             console.warn(`[fetchPrice] ${err}`);
-        });
+        }
     };
 
     /* HTML */
