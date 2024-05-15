@@ -18,9 +18,9 @@ export type SpamEventHandler = (event: SpamEvent) => void;
 const TXS_UNTIL_ROTATE = 50;
 const SLEEP_MS_AFTER_RPC_CHANGE = 1000;
 const SLEEP_MS_AFTER_OBJECT_NOT_READY = 1000;
-const SLEEP_MS_AFTER_EPOCH_CHANGE = 45000;
-const SLEEP_MS_AFTER_NETWORK_ERROR = 45000;
-const SLEEP_MS_AFTER_UNEXPECTED_ERROR = 45000;
+const SLEEP_MS_AFTER_EPOCH_CHANGE = 30000;
+const SLEEP_MS_AFTER_NETWORK_ERROR = 30000;
+const SLEEP_MS_AFTER_UNEXPECTED_ERROR = 30000;
 
 export class Spammer
 {
@@ -249,8 +249,10 @@ export class Spammer
 
     private async refetchData(): Promise<void>
     {
+        // Reset these values so the SpamClient re-fetches them for the next tx
         this.getSpamClient().setGasCoin(undefined);
         this.getSpamClient().setGasPrice(undefined);
+        this.getSpamClient().setProtocolConfig(undefined);
 
         if (this.lastTxDigest) {
             this.event({ type: "debug", msg: `Waiting for tx: ${this.lastTxDigest}` });

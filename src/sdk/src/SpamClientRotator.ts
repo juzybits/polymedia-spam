@@ -49,8 +49,10 @@ export class SpamClientRotator
                 const oldClient = this.getSpamClient();
                 this.activeIndex = nextIndex;
                 const newClient = this.getSpamClient();
+                // Reuse gas and protocol config from previous SpamClient to avoid re-fetching
                 newClient.setGasCoin(oldClient.getGasCoin());
                 newClient.setGasPrice(oldClient.getGasPrice());
+                newClient.setProtocolConfig(oldClient.getProtocolConfig());
                 return newClient;
             }
         } while (nextIndex !== activeIndex);
