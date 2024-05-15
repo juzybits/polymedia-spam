@@ -250,6 +250,7 @@ export class Spammer
     private async refetchData(): Promise<void>
     {
         this.getSpamClient().setGasCoin(undefined);
+        this.getSpamClient().setGasPrice(undefined);
 
         if (this.lastTxDigest) {
             this.event({ type: "debug", msg: `Waiting for tx: ${this.lastTxDigest}` });

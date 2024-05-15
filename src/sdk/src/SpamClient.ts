@@ -28,12 +28,12 @@ export class SpamClient
     public readonly packageId: string;
     public readonly directorId: string;
     private gasCoin: SuiObjectRef|undefined;
+    private gasPrice: bigint|undefined;
 
     constructor(
         keypair: Signer,
         network: NetworkName,
         rpcUrl: string,
-        gasCoin?: SuiObjectRef,
     ) {
         this.signer = keypair;
         this.network = network;
@@ -41,7 +41,8 @@ export class SpamClient
         this.suiClient = new SuiClient({ url: rpcUrl }),
         this.packageId = SPAM_IDS[network].packageId;
         this.directorId = SPAM_IDS[network].directorId;
-        this.gasCoin = gasCoin;
+        this.gasCoin = undefined;
+        this.gasPrice = undefined;
     }
 
     /* Data fetching */
@@ -230,6 +231,14 @@ export class SpamClient
         this.gasCoin = gasCoin;
     }
 
+    public getGasPrice(): bigint|undefined {
+        return this.gasPrice;
+    }
+
+    public setGasPrice(gasPrice: bigint|undefined): void {
+        this.gasPrice = gasPrice;
+    }
+
     /* Helpers */
 
     private async deserializeStats(
@@ -258,6 +267,14 @@ export class SpamClient
 
         if (this.gasCoin) {
             txb.setGasPayment([this.gasCoin]);
+        }
+
+        if (!this.gasPrice) {
+            await this.fetchAndSetGasPrice();
+        }
+
+        if (this.gasPrice) {
+            txb.setGasPrice(this.gasPrice);
         }
 
         const { bytes, signature } = await txb.sign({
@@ -294,6 +311,14 @@ export class SpamClient
         this.gasCoin = resp.effects?.gasObject.reference;
 
         return resp;
+    }
+
+    private async fetchAndSetGasPrice(): Promise<void> {
+        try {
+            this.gasPrice = await this.suiClient.getReferenceGasPrice();
+        } catch (err) {
+            console.warn(`Failed to fetch gas price: ${err}`);
+        }
     }
 
     /* eslint-disable */
