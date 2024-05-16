@@ -34,11 +34,10 @@
     ],
     "types": "./dist/cjs/index.d.ts",
     "main": "./dist/cjs/index.js",
-    "import": "./dist/esm/index.js",
+    "module": "./dist/esm/index.js",
     "exports": {
         ".": {
-            "types": "./dist/cjs/index.d.ts",
-            "main": "./dist/cjs/index.js",
+            "require": "./dist/cjs/index.js",
             "import": "./dist/esm/index.js"
         }
     }
