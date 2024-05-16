@@ -41,7 +41,7 @@ export const PageStats: React.FC = () =>
     const fetchStats = async () => {
         try {
             setStats(undefined);
-            const newStats = await spammer.current.getSpamClient().fetchStatsForRecentEpochs(14);
+            const newStats = await spammer.current.getSpamClient().fetchStatsForRecentEpochs(30); // TODO pagination
             // Prepend a synthetic epoch counter for the current epoch
             newStats.epochs.unshift({
                 epoch: newStats.epoch,
