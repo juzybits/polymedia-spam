@@ -206,13 +206,14 @@ export const PageStats: React.FC = () =>
         <div className="tight">
             <p>Total transactions: {formatNumber(totalTxs)}</p>
             <p>Total gas paid: {formatNumber(totalGas, "compact")} SUI</p>
-            <p>Circulating supply: {formatNumber(claimedSupply, "compact")}</p>
-            <p>Claimable supply: {formatNumber(claimableSupply, "compact")}</p>
+            {/* <p>Circulating supply: {formatNumber(claimedSupply, "compact")}</p> */}
             <p>Daily inflation: {dailyInflation.toFixed(2)}%</p>
             {price && <>
-                <p>Market cap : {formatNumber(price.usd * claimedSupply)} USD</p>
-                <p>SPAM/USD: {price.usd}</p>
                 <p>SPAM/SUI: {price.sui}</p>
+                <p>SPAM/USD: {price.usd}</p>
+                {/* <p>Circulating market cap : {formatNumber(price.usd * claimedSupply)} USD</p> */}
+                <p>Supply: {formatNumber(claimableSupply, "compact")} ({formatNumber(claimedSupply, "compact")} claimed)</p>
+                <p>Market cap : ${formatNumber(price.usd * claimableSupply)} (${formatNumber(price.usd * claimedSupply)} claimed)</p>
             </>
             }
             {/* <p>Current epoch: {stats.epoch}</p> */}
