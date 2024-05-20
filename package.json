@@ -3,9 +3,6 @@
     "name": "polymedia-spam-monorepo",
     "license": "Apache-2.0",
     "scripts": {
-        "sdk:watch": "nodemon --watch src/sdk/src --ext ts,json --exec 'pnpm sdk:build'",
-        "sdk:build": "cd src/sdk && pnpm build",
-
         "build": "turbo run build",
         "clean": "turbo run clean && rm -rf dist/ node_modules/ .turbo/",
         "lint": "turbo run lint"
@@ -22,7 +19,6 @@
         "eslint-plugin-react": "^7.34.1",
         "eslint-plugin-react-hooks": "^4.6.0",
         "eslint-plugin-react-refresh": "^0.4.6",
-        "nodemon": "^3.1.0",
         "turbo": "^1.13.2",
         "typescript": "^5.4.5"
     },
