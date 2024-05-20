@@ -26,13 +26,13 @@ export class Spammer
 {
     public status: SpamStatus;
     public userCounters: UserCounters;
-    private requestRefetch: boolean;
-    private lastTxDigest: string|null;
-    private eventHandler: SpamEventHandler|undefined;
-    private claimAddress!: string;
-    private txsSinceRotate: number;
-    private readonly rotator: SpamClientRotator;
-    private simulateLatencyOnLocalnet: () => Promise<void>;
+    protected requestRefetch: boolean;
+    protected lastTxDigest: string|null;
+    protected eventHandler: SpamEventHandler|undefined;
+    protected claimAddress!: string;
+    protected txsSinceRotate: number;
+    protected readonly rotator: SpamClientRotator;
+    protected simulateLatencyOnLocalnet: () => Promise<void>;
 
     constructor(
         keypair: Signer,
@@ -70,7 +70,7 @@ export class Spammer
         this.eventHandler = undefined;
     }
 
-    private event(event: SpamEvent) {
+    protected event(event: SpamEvent) {
         this.eventHandler && this.eventHandler(event);
     }
 
@@ -116,7 +116,7 @@ export class Spammer
 
     /* Main loop */
 
-    private async spam(loop: boolean)
+    protected async spam(loop: boolean)
     {
         if (this.status === "stopping") {
             this.status = "stopped";
@@ -247,7 +247,7 @@ export class Spammer
         }
     }
 
-    private async refetchData(): Promise<void>
+    protected async refetchData(): Promise<void>
     {
         // Reset these values so the SpamClient re-fetches them for the next tx
         this.getSpamClient().setGasCoin(undefined);
@@ -267,7 +267,7 @@ export class Spammer
         this.requestRefetch = false;
     }
 
-    private async registerUserCounter(counterId: string): Promise<void>
+    protected async registerUserCounter(counterId: string): Promise<void>
     {
         this.event({ type: "info", msg: "Registering counter: " + shortenSuiAddress(counterId) });
         await this.simulateLatencyOnLocalnet();
@@ -280,7 +280,7 @@ export class Spammer
         }
     }
 
-    private async claimUserCounters(counterIds: string[]): Promise<void>
+    protected async claimUserCounters(counterIds: string[]): Promise<void>
     {
         this.event({ type: "info", msg: "Claiming counters: " + counterIds.map(objId => shortenSuiAddress(objId)).join(", ") });
         await this.simulateLatencyOnLocalnet();
@@ -293,7 +293,7 @@ export class Spammer
         }
     }
 
-    private async destroyUserCounters(counterIds: string[]): Promise<void>
+    protected async destroyUserCounters(counterIds: string[]): Promise<void>
     {
         this.event({ type: "info", msg: "Deleting counters: " + counterIds.map(objId => shortenSuiAddress(objId)).join(", ") });
         await this.simulateLatencyOnLocalnet();
@@ -306,7 +306,7 @@ export class Spammer
         }
     }
 
-    private async newUserCounter(): Promise<void>
+    protected async newUserCounter(): Promise<void>
     {
         this.event({ type: "info", msg: "Creating counter" });
         await this.simulateLatencyOnLocalnet();
@@ -319,7 +319,7 @@ export class Spammer
         }
     }
 
-    private async incrementUserCounter(counterRef: SuiObjectRef): Promise<void>
+    protected async incrementUserCounter(counterRef: SuiObjectRef): Promise<void>
     {
         this.event({ type: "debug", msg: "Incrementing counter" });
         if (!this.userCounters.current) {

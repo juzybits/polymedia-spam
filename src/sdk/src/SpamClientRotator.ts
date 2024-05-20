@@ -10,9 +10,9 @@ export type SpamClientWithStats = {
 
 export class SpamClientRotator
 {
-    private spamClients: SpamClientWithStats[];
-    private activeCount: number;
-    private activeIndex: number;
+    protected spamClients: SpamClientWithStats[];
+    protected activeCount: number;
+    protected activeIndex: number;
 
     constructor(
         keypair: Signer,
@@ -69,7 +69,7 @@ export class SpamClientRotator
     }
 
     // The minimum is inclusive and the maximum is exclusive
-    private getRandomInt(min: number, max: number): number {
+    protected getRandomInt(min: number, max: number): number {
         const minCeil = Math.ceil(min);
         const maxFloor = Math.floor(max);
         return Math.floor(Math.random() * (maxFloor - minCeil) + minCeil);

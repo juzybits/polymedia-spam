@@ -28,9 +28,9 @@ export class SpamClient
     public readonly suiClient: SuiClient;
     public readonly packageId: string;
     public readonly directorId: string;
-    private gasCoin: SuiObjectRef|undefined;
-    private gasPrice: bigint|undefined;
-    private protocolConfig: ProtocolConfig|undefined;
+    protected gasCoin: SuiObjectRef|undefined;
+    protected gasPrice: bigint|undefined;
+    protected protocolConfig: ProtocolConfig|undefined;
 
     constructor(
         keypair: Signer,
@@ -252,7 +252,7 @@ export class SpamClient
 
     /* Helpers */
 
-    private async deserializeStats(
+    protected async deserializeStats(
         txb: TransactionBlock,
     ): Promise<Stats>
     {
@@ -270,7 +270,7 @@ export class SpamClient
         return valueDeserialized;
     }
 
-    private async signAndExecute(
+    protected async signAndExecute(
         txb: TransactionBlock,
     ): Promise<SuiTransactionBlockResponse>
     {
@@ -329,7 +329,7 @@ export class SpamClient
         return resp;
     }
 
-    private async fetchAndSetGasPrice(): Promise<void> {
+    protected async fetchAndSetGasPrice(): Promise<void> {
         try {
             this.gasPrice = await this.suiClient.getReferenceGasPrice();
         } catch (err) {
@@ -337,7 +337,7 @@ export class SpamClient
         }
     }
 
-    private async fetchAndSetProtocolConfig(): Promise<void> {
+    protected async fetchAndSetProtocolConfig(): Promise<void> {
         try {
             this.protocolConfig = await this.suiClient.getProtocolConfig();
         } catch (err) {
@@ -346,7 +346,7 @@ export class SpamClient
     }
 
     /* eslint-disable */
-    private parseUserCounter(
+    protected parseUserCounter(
         resp: SuiObjectResponse,
     ): UserCounter {
         const fields = getSuiObjectResponseFields(resp);
