@@ -10,8 +10,7 @@
         "type": "git",
         "url": "github dot com slash your repo"
     },
-    "keywords": [
-    ],
+    "keywords": [],
     "scripts": {
         "start": "tsc && node dist/main.js",
         "build": "tsc",
@@ -22,7 +21,7 @@
         "@polymedia/spam-sdk": "workspace:*"
     },
     "devDependencies": {
-        "@types/node": "^20.11.25"
+        "@types/node": "^20.12.12"
     },
     "type": "module",
     "sideEffects": false
