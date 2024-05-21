@@ -16,7 +16,7 @@
         "start": "tsc && node dist/main.js",
         "build": "tsc",
         "clean": "rm -rf dist/ node_modules/ .turbo/",
-        "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+        "lint": "eslint src/ --report-unused-disable-directives --max-warnings 0"
     },
     "dependencies": {
         "@polymedia/spam-sdk": "workspace:*"
