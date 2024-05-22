@@ -26,6 +26,7 @@ export default [
         rules: {
             "@stylistic/jsx-quotes": [ "error", "prefer-double" ],
             "@stylistic/member-delimiter-style": [ "error", { "multiline": { "delimiter": "semi" }, "singleline": { "delimiter": "semi" } } ],
+            "@stylistic/no-tabs": "error",
             "@stylistic/quotes": [ "error", "double", { "avoidEscape": true } ],
             "@stylistic/semi": [ "error", "always" ],
             "@typescript-eslint/consistent-type-definitions": [ "error", "type" ],
@@ -35,7 +36,7 @@ export default [
             "@typescript-eslint/no-non-null-assertion": "off",
             "@typescript-eslint/no-unnecessary-condition": "off",
             "@typescript-eslint/no-unused-vars": [ "error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_", "caughtErrorsIgnorePattern": "^_" } ],
-            "@typescript-eslint/prefer-nullish-coalescing": [ "off" ],
+            "@typescript-eslint/prefer-nullish-coalescing": "off",
             "@typescript-eslint/restrict-template-expressions": "off",
             "@typescript-eslint/use-unknown-in-catch-callback-variable": "off",
             "no-constant-condition": "off",
