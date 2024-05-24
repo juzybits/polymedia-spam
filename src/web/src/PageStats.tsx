@@ -26,7 +26,7 @@ export const PageStats: React.FC = () =>
     const { network, spammer } = useOutletContext<AppContext>();
     const [ stats, setStats ] = useState<Stats>();
     const [ currEpoch, setCurrEpoch ] = useState<EpochData>();
-    const [ gasPerTx, setGasPerTx ] = useState<number>(0.000775244);
+    const [ gasPerTx, setGasPerTx ] = useState<number>(0.000774244);
     const [ price, setPrice ] = useState<SpamPrice>();
 
     /* Functions */
