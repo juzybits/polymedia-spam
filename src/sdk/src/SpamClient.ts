@@ -12,7 +12,7 @@ import {
     devInspectAndGetResults,
     getSuiObjectResponseFields,
     sleep,
-} from "@polymedia/suits";
+} from "@polymedia/suitcase-core";
 import { SPAM_IDS, SPAM_MODULE } from "./config.js";
 import * as pkg from "./package.js";
 import { BcsStats, Stats, UserCounter, UserCounters } from "./types.js";

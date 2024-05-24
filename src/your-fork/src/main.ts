@@ -2,7 +2,7 @@
 
 import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
 import { SPAM_IDS, SpamClient } from "@polymedia/spam-sdk";
-import { shortenSuiAddress } from "@polymedia/suits";
+import { shortenSuiAddress } from "@polymedia/suitcase-core";
 
 async function main()
 {

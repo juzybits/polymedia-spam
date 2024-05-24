@@ -1,7 +1,7 @@
 import { decodeSuiPrivateKey } from "@mysten/sui.js/cryptography";
 import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
 import { RPC_ENDPOINTS } from "@polymedia/spam-sdk";
-import { NetworkName, validateAndNormalizeSuiAddress } from "@polymedia/suits";
+import { NetworkName, validateAndNormalizeSuiAddress } from "@polymedia/suitcase-core";
 
 /* Key pair */
 

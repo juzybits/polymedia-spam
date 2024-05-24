@@ -18,7 +18,9 @@
         "lint": "eslint src/ --report-unused-disable-directives --max-warnings 0"
     },
     "dependencies": {
-        "@polymedia/spam-sdk": "workspace:*"
+        "@mysten/sui.js": "^0.54.1",
+        "@polymedia/spam-sdk": "workspace:*",
+        "@polymedia/suitcase-core": "^0.0.3"
     },
     "devDependencies": {
         "@types/node": "^20.12.12"

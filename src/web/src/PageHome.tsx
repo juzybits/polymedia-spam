@@ -1,7 +1,7 @@
 import { SPAM_IDS } from "@polymedia/spam-sdk";
+import { LinkExternal } from "@polymedia/suitcase-react";
 import { Link, useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
-import { LinkExternal } from "@polymedia/webutils";
 
 export const PageHome: React.FC = () =>
 {

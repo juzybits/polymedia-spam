@@ -1,5 +1,5 @@
 import { SPAM_DECIMALS, Stats } from "@polymedia/spam-sdk";
-import { NetworkName, convertBigIntToNumber, formatNumber } from "@polymedia/suits";
+import { NetworkName, convertBigIntToNumber, formatNumber } from "@polymedia/suitcase-core";
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";

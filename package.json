@@ -10,8 +10,6 @@
         "lint": "turbo run lint"
     },
     "dependencies": {
-        "@mysten/sui.js": "^0.54.1",
-        "@polymedia/suits": "^0.0.42"
     },
     "devDependencies": {
         "@eslint/compat": "^1.0.1",

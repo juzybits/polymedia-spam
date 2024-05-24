@@ -8,8 +8,8 @@ import {
     Spammer,
     emptyUserCounters,
 } from "@polymedia/spam-sdk";
-import { convertBigIntToNumber, sleep } from "@polymedia/suits";
-import { LinkExternal, NetworkSelector, isLocalhost, loadNetwork } from "@polymedia/webutils";
+import { convertBigIntToNumber, sleep } from "@polymedia/suitcase-core";
+import { LinkExternal, NetworkSelector, isLocalhost, loadNetwork } from "@polymedia/suitcase-react";
 import { useEffect, useRef, useState } from "react";
 import { BrowserRouter, Link, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import { PageHome } from "./PageHome";

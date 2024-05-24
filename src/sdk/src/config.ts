@@ -1,4 +1,4 @@
-import { NetworkName } from "@polymedia/suits";
+import { NetworkName } from "@polymedia/suitcase-core";
 
 export type NetworkConfig = {
     packageId: string;

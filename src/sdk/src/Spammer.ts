@@ -1,6 +1,6 @@
 import { SuiClient, SuiObjectRef } from "@mysten/sui.js/client";
 import { Signer } from "@mysten/sui.js/cryptography";
-import { NetworkName, shortenSuiAddress, sleep, validateAndNormalizeSuiAddress } from "@polymedia/suits";
+import { NetworkName, shortenSuiAddress, sleep, validateAndNormalizeSuiAddress } from "@polymedia/suitcase-core";
 import { SpamClient } from "./SpamClient.js";
 import { SpamClientRotator } from "./SpamClientRotator.js";
 import { SpamError, parseSpamError } from "./errors.js";
