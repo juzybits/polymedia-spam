@@ -1,5 +1,5 @@
 import { InferBcsType, bcs } from "@mysten/bcs";
-import { SuiObjectRef } from "@mysten/sui.js/client";
+import { SuiObjectRef } from "@mysten/sui/client";
 
 /* 1:1 representations of Sui structs */
 

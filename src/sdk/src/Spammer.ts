@@ -1,5 +1,5 @@
-import { SuiClient, SuiObjectRef } from "@mysten/sui.js/client";
-import { Signer } from "@mysten/sui.js/cryptography";
+import { SuiClient, SuiObjectRef } from "@mysten/sui/client";
+import { Signer } from "@mysten/sui/cryptography";
 import { NetworkName, shortenSuiAddress, sleep, validateAndNormalizeSuiAddress } from "@polymedia/suitcase-core";
 import { SpamClient } from "./SpamClient.js";
 import { SpamClientRotator } from "./SpamClientRotator.js";
@@ -256,7 +256,7 @@ export class Spammer
 
         if (this.lastTxDigest) {
             this.event({ type: "debug", msg: `Waiting for tx: ${this.lastTxDigest}` });
-            await this.getSuiClient().waitForTransactionBlock({
+            await this.getSuiClient().waitForTransaction({
                 digest: this.lastTxDigest,
                 pollInterval: 500,
             });

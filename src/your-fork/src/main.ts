@@ -1,6 +1,6 @@
 // Demonstrates using the SDK to build Node.js CLI tools for SPAM.
 
-import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
+import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 import { SPAM_IDS, SpamClient } from "@polymedia/spam-sdk";
 import { shortenSuiAddress } from "@polymedia/suitcase-core";
 

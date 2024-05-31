@@ -1,12 +1,12 @@
-import { SuiObjectRef } from "@mysten/sui.js/client";
+import { SuiObjectRef } from "@mysten/sui/client";
 import {
-    TransactionBlock,
+    Transaction,
     TransactionResult,
-} from "@mysten/sui.js/transactions";
+} from "@mysten/sui/transactions";
 import { SPAM_MODULE } from "./config.js";
 
 export function new_user_counter(
-    txb: TransactionBlock,
+    txb: Transaction,
     packageId: string,
     directorId: string,
 ): TransactionResult {
@@ -19,7 +19,7 @@ export function new_user_counter(
 }
 
 export function increment_user_counter(
-    txb: TransactionBlock,
+    txb: Transaction,
     packageId: string,
     userCounterRef: SuiObjectRef,
 ): TransactionResult {
@@ -32,7 +32,7 @@ export function increment_user_counter(
 }
 
 export function destroy_user_counter(
-    txb: TransactionBlock,
+    txb: Transaction,
     packageId: string,
     userCounterId: string,
 ): TransactionResult {
@@ -45,7 +45,7 @@ export function destroy_user_counter(
 }
 
 export function register_user_counter(
-    txb: TransactionBlock,
+    txb: Transaction,
     packageId: string,
     directorId: string,
     userCounterId: string,
@@ -60,7 +60,7 @@ export function register_user_counter(
 }
 
 export function claim_user_counter(
-    txb: TransactionBlock,
+    txb: Transaction,
     packageId: string,
     directorId: string,
     userCounterId: string,
@@ -75,7 +75,7 @@ export function claim_user_counter(
 }
 
 export function stats_for_specific_epochs(
-    txb: TransactionBlock,
+    txb: Transaction,
     packageId: string,
     directorId: string,
     epochNumbers: number[],
@@ -90,7 +90,7 @@ export function stats_for_specific_epochs(
 }
 
 export function stats_for_recent_epochs(
-    txb: TransactionBlock,
+    txb: Transaction,
     packageId: string,
     directorId: string,
     epochCount: number,

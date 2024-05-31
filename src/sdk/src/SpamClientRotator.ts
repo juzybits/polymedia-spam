@@ -1,5 +1,5 @@
-import { SuiClient, getFullnodeUrl } from "@mysten/sui.js/client";
-import { Signer } from "@mysten/sui.js/cryptography";
+import { SuiClient, getFullnodeUrl } from "@mysten/sui/client";
+import { Signer } from "@mysten/sui/cryptography";
 import { NetworkName } from "@polymedia/suitcase-core";
 import { SpamClient } from "./SpamClient.js";
 

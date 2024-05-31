@@ -1,4 +1,4 @@
-import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
+import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 import { validateAndNormalizeSuiAddress } from "@polymedia/suitcase-core";
 import { useEffect, useState } from "react";
 import { useLocation, useOutletContext } from "react-router-dom";

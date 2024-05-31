@@ -4,9 +4,9 @@ import {
     SuiObjectRef,
     SuiObjectResponse,
     SuiTransactionBlockResponse,
-} from "@mysten/sui.js/client";
-import { Signer } from "@mysten/sui.js/cryptography";
-import { TransactionBlock } from "@mysten/sui.js/transactions";
+} from "@mysten/sui/client";
+import { Signer } from "@mysten/sui/cryptography";
+import { Transaction } from "@mysten/sui/transactions";
 import {
     NetworkName,
     devInspectAndGetResults,
@@ -165,7 +165,7 @@ export class SpamClient
     public async newUserCounter(
     ): Promise<SuiTransactionBlockResponse>
     {
-        const txb = new TransactionBlock();
+        const txb = new Transaction();
         pkg.new_user_counter(txb, this.packageId, this.directorId);
         return this.signAndExecute(txb);
     }
@@ -174,7 +174,7 @@ export class SpamClient
         userCounterRef: SuiObjectRef,
     ): Promise<SuiTransactionBlockResponse>
     {
-        const txb = new TransactionBlock();
+        const txb = new Transaction();
         txb.setGasBudget(INCREMENT_TX_GAS_BUDGET);
         pkg.increment_user_counter(txb, this.packageId, userCounterRef);
         return this.signAndExecute(txb);
@@ -184,7 +184,7 @@ export class SpamClient
         userCounterIds: string[],
     ): Promise<SuiTransactionBlockResponse>
     {
-        const txb = new TransactionBlock();
+        const txb = new Transaction();
         for (const counterId of userCounterIds) {
             pkg.destroy_user_counter(txb, this.packageId, counterId);
         }
@@ -195,7 +195,7 @@ export class SpamClient
         userCounterId: string,
     ): Promise<SuiTransactionBlockResponse>
     {
-        const txb = new TransactionBlock();
+        const txb = new Transaction();
         pkg.register_user_counter(txb, this.packageId, this.directorId, userCounterId);
         return this.signAndExecute(txb);
     }
@@ -206,7 +206,7 @@ export class SpamClient
     ): Promise<SuiTransactionBlockResponse>
     {
         const recipient = recipientAddress ?? this.signer.toSuiAddress();
-        const txb = new TransactionBlock();
+        const txb = new Transaction();
         for (const counterId of userCounterIds) {
             const [coin] = pkg.claim_user_counter(txb, this.packageId, this.directorId, counterId);
             txb.transferObjects([coin], recipient);
@@ -218,7 +218,7 @@ export class SpamClient
         epochNumbers: number[],
     ): Promise<Stats>
     {
-        const txb = new TransactionBlock();
+        const txb = new Transaction();
         pkg.stats_for_specific_epochs(txb, this.packageId, this.directorId, epochNumbers);
         return this.deserializeStats(txb);
     }
@@ -227,7 +227,7 @@ export class SpamClient
         epochCount: number,
     ): Promise<Stats>
     {
-        const txb = new TransactionBlock();
+        const txb = new Transaction();
         pkg.stats_for_recent_epochs(txb, this.packageId, this.directorId, epochCount);
         return this.deserializeStats(txb);
     }
@@ -264,7 +264,7 @@ export class SpamClient
     /* Helpers */
 
     protected async deserializeStats(
-        txb: TransactionBlock,
+        txb: Transaction,
     ): Promise<Stats>
     {
         const blockResults = await devInspectAndGetResults(this.suiClient, txb);
@@ -282,7 +282,7 @@ export class SpamClient
     }
 
     protected async signAndExecute(
-        txb: TransactionBlock,
+        txb: Transaction,
     ): Promise<SuiTransactionBlockResponse>
     {
         txb.setSender(this.signer.toSuiAddress());
