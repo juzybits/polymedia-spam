@@ -1,3 +1,4 @@
+import { bcs } from "@mysten/sui/bcs";
 import { SuiObjectRef } from "@mysten/sui/client";
 import {
     Transaction,
@@ -84,7 +85,7 @@ export function stats_for_specific_epochs(
         target: `${packageId}::${SPAM_MODULE}::stats_for_specific_epochs`,
         arguments: [
             txb.object(directorId),
-            txb.pure(epochNumbers),
+            txb.pure(bcs.vector(bcs.U64).serialize(epochNumbers)),
         ],
     });
 }
@@ -99,7 +100,7 @@ export function stats_for_recent_epochs(
         target: `${packageId}::${SPAM_MODULE}::stats_for_recent_epochs`,
         arguments: [
             txb.object(directorId),
-            txb.pure(epochCount),
+            txb.pure.u64(epochCount),
         ],
     });
 }

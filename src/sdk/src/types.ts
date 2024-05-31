@@ -1,4 +1,4 @@
-import { InferBcsType, bcs } from "@mysten/bcs";
+import { bcs } from "@mysten/bcs";
 import { SuiObjectRef } from "@mysten/sui/client";
 
 /* 1:1 representations of Sui structs */
@@ -25,7 +25,7 @@ export type UserCounter = {
     registered: boolean;
 };
 
-export type Stats = InferBcsType<typeof BcsStats>;
+export type Stats = typeof BcsStats.$inferType;
 
 export const BcsStats = bcs.struct("Stats", {
     epoch: bcs.u64(),
