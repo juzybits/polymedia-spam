@@ -1,5 +1,4 @@
 import {
-    ProtocolConfig,
     SuiClient,
     SuiObjectRef,
     SuiObjectResponse,
@@ -30,7 +29,6 @@ export class SpamClient
     public readonly directorId: string;
     protected gasCoin: SuiObjectRef|undefined;
     protected gasPrice: bigint|undefined;
-    protected protocolConfig: ProtocolConfig|undefined;
 
     constructor(
         keypair: Signer,
@@ -45,7 +43,6 @@ export class SpamClient
         this.directorId = SPAM_IDS[network].directorId;
         this.gasCoin = undefined;
         this.gasPrice = undefined;
-        this.protocolConfig = undefined;
     }
 
     /* Data fetching */
@@ -253,14 +250,6 @@ export class SpamClient
         this.gasPrice = gasPrice;
     }
 
-    public getProtocolConfig(): ProtocolConfig|undefined {
-        return this.protocolConfig;
-    }
-
-    public setProtocolConfig(protocolConfig: ProtocolConfig|undefined): void {
-        this.protocolConfig = protocolConfig;
-    }
-
     /* Helpers */
 
     protected async deserializeStats(
@@ -299,14 +288,9 @@ export class SpamClient
             txb.setGasPrice(this.gasPrice);
         }
 
-        if (!this.protocolConfig) {
-            await this.fetchAndSetProtocolConfig();
-        }
-
         const { bytes, signature } = await txb.sign({
             signer: this.signer,
             client: this.suiClient,
-            protocolConfig: this.protocolConfig,
         });
 
         let resp: SuiTransactionBlockResponse | null = null;
@@ -345,14 +329,6 @@ export class SpamClient
             this.gasPrice = await this.suiClient.getReferenceGasPrice();
         } catch (err) {
             console.warn(`Failed to fetch gas price: ${err}`);
-        }
-    }
-
-    protected async fetchAndSetProtocolConfig(): Promise<void> {
-        try {
-            this.protocolConfig = await this.suiClient.getProtocolConfig();
-        } catch (err) {
-            console.warn(`Failed to fetch protocol config: ${err}`);
         }
     }
 

@@ -252,7 +252,6 @@ export class Spammer
         // Reset these values so the SpamClient re-fetches them for the next tx
         this.getSpamClient().setGasCoin(undefined);
         this.getSpamClient().setGasPrice(undefined);
-        this.getSpamClient().setProtocolConfig(undefined);
 
         if (this.lastTxDigest) {
             this.event({ type: "debug", msg: `Waiting for tx: ${this.lastTxDigest}` });
