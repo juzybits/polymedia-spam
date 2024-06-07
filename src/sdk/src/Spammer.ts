@@ -3,6 +3,7 @@ import { Signer } from "@mysten/sui/cryptography";
 import { NetworkName, shortenSuiAddress, sleep, validateAndNormalizeSuiAddress } from "@polymedia/suitcase-core";
 import { SpamClient } from "./SpamClient.js";
 import { SpamClientRotator } from "./SpamClientRotator.js";
+import { LAST_SPAM_EPOCH } from "./config.js";
 import { SpamError, parseSpamError } from "./errors.js";
 import { UserCounters, emptyUserCounters } from "./types.js";
 
@@ -167,6 +168,9 @@ export class Spammer
             }
             // Current counter
             else if (loop) {
+                if (counters.epoch > LAST_SPAM_EPOCH) {
+                    throw new Error("Mining has ended.");
+                }
                 if (counters.current === null) {
                     // Create a counter for the current epoch
                     await this.newUserCounter();
@@ -190,6 +194,10 @@ export class Spammer
                     this.txsSinceRotate = Math.floor(TXS_UNTIL_ROTATE / 2); // stay on current RPC
                 }
                 await sleep(SLEEP_MS_AFTER_EPOCH_CHANGE);
+            }
+            else if (errStr.endsWith("Mining has ended.")) {
+                this.status = "stopping";
+                this.event({ type: "info", msg: errStr });
             }
             // User ran out of gas
             else if ( errStr.includes("No valid gas coins found for the transaction")

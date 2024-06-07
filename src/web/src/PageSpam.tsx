@@ -1,4 +1,4 @@
-import { UserCounter } from "@polymedia/spam-sdk";
+import { LAST_SPAM_EPOCH, UserCounter } from "@polymedia/spam-sdk";
 import { formatNumber, shortenSuiAddress } from "@polymedia/suitcase-core";
 import { LinkToPolymedia } from "@polymedia/suitcase-react";
 import { useEffect, useState } from "react";
@@ -138,7 +138,12 @@ export const PageSpam: React.FC = () =>
         }
         if (spammer.current.status === "stopped") {
             return <>
-                <button className="btn" onClick={startLoop}>SPAM</button>
+                {counters.epoch > LAST_SPAM_EPOCH
+                ?
+                    <p className="text-orange">Mining has ended.</p>
+                    :
+                    <button className="btn" onClick={startLoop}>SPAM</button>
+                }
                 {showProcessCountersButton && <>
                     <br/>
                     <button className="btn break-all" onClick={startOnce}>

@@ -17,7 +17,7 @@
         "deploy-dev": "pnpm build && wrangler pages deploy dist/ --project-name polymedia-spam --branch dev",
         "deploy-prod": "pnpm build && wrangler pages deploy dist/ --project-name polymedia-spam --branch main",
         "dev": "vite",
-        "lint": "eslint src/ --report-unused-disable-directives --max-warnings 0",
+        "lint": "eslint src/ vite.config.ts --report-unused-disable-directives --max-warnings 0",
         "preview": "pnpm build && vite preview",
         "tunnel": "lt --port 1234"
     },
