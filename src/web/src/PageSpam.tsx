@@ -1,4 +1,4 @@
-import { LAST_SPAM_EPOCH, UserCounter } from "@polymedia/spam-sdk";
+import { UserCounter } from "@polymedia/spam-sdk";
 import { formatNumber, shortenSuiAddress } from "@polymedia/suitcase-core";
 import { LinkToPolymedia } from "@polymedia/suitcase-react";
 import { useEffect, useState } from "react";
@@ -122,7 +122,9 @@ export const PageSpam: React.FC = () =>
         } else if (counters.claim.length) {
             message = <p className="text-orange">Send SUI to your wallet to claim the counter{counters.claim.length > 1 ? "s" : ""}</p>;
         } else {
-            message = <p>Top up your wallet to start.</p>;
+            message = network === "mainnet"
+                ? <p className="text-orange">Mining has ended.</p>
+                : <p>Top up your wallet to start.</p>;
         }
         return <>
             {message}
@@ -138,10 +140,10 @@ export const PageSpam: React.FC = () =>
         }
         if (spammer.current.status === "stopped") {
             return <>
-                {counters.epoch > LAST_SPAM_EPOCH
+                {network === "mainnet"
                 ?
                     <p className="text-orange">Mining has ended.</p>
-                    :
+                :
                     <button className="btn" onClick={startLoop}>SPAM</button>
                 }
                 {showProcessCountersButton && <>

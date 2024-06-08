@@ -41,18 +41,20 @@ export const PageStats: React.FC = () =>
     const fetchStats = async () => {
         try {
             setStats(undefined);
-            /*
-            TODO: await spammer.current.getSpamClient().fetchStatsForSpecificEpochs([
-                422,421,420,419,418,417,416,415,414,413,412,411,410,409,408,407,406,405,404,
-                403,402,401,400,399,398,397,396,395,394,393,392,391,390,389,388,387,386,
-            ])
-            */
-            const newStats = await spammer.current.getSpamClient().fetchStatsForRecentEpochs(40);
-            // Prepend a synthetic epoch counter for the current epoch
-            newStats.epochs.unshift({
-                epoch: newStats.epoch,
-                tx_count: "0",
-            });
+            let newStats: Stats;
+            if (network === "mainnet") {
+                newStats = await spammer.current.getSpamClient().fetchStatsForSpecificEpochs([
+                    422,421,420,419,418,417,416,415,414,413,412,411,410,409,408,407,406,405,404,
+                    403,402,401,400,399,398,397,396,395,394,393,392,391,390,389,388,387,386,
+                ]);
+            } else {
+                newStats = await spammer.current.getSpamClient().fetchStatsForRecentEpochs(40);
+                // Prepend a synthetic epoch counter for the current epoch
+                newStats.epochs.unshift({
+                    epoch: newStats.epoch,
+                    tx_count: "0",
+                });
+            }
             setStats(newStats);
         } catch (err) {
             console.warn(`[fetchStats] ${err}`);
@@ -212,12 +214,12 @@ export const PageStats: React.FC = () =>
         <div className="tight">
             <p>Total transactions: {formatNumber(totalTxs)}</p>
             <p>Total gas paid: {formatNumber(totalGas, "compact")} SUI</p>
-            {/* <p>Circulating supply: {formatNumber(claimedSupply, "compact")}</p> */}
-            <p>Daily inflation: {dailyInflation.toFixed(2)}%</p>
+            {network !== "mainnet" &&
+                <p>Daily inflation: {dailyInflation.toFixed(2)}%</p>
+            }
             {price && <>
                 <p>SPAM/SUI: {price.sui}</p>
                 <p>SPAM/USD: {price.usd}</p>
-                {/* <p>Circulating market cap : {formatNumber(price.usd * claimedSupply)} USD</p> */}
                 <p>Supply: {formatNumber(claimableSupply, "compact")} ({formatNumber(claimedSupply, "compact")} claimed)</p>
                 <p>Market cap : ${formatNumber(price.usd * claimableSupply)} (${formatNumber(price.usd * claimedSupply)} claimed)</p>
             </>

@@ -28,4 +28,3 @@ export const SPAM_MODULE = "spam";
 export const SPAM_SYMBOL = "SPAM";
 export const SPAM_DECIMALS = 4;
 export const SUI_DECIMALS = 9;
-export const LAST_SPAM_EPOCH = 422;
