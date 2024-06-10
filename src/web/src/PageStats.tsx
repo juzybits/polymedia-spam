@@ -202,7 +202,7 @@ export const PageStats: React.FC = () =>
         </>;
     }
 
-    const epochsCompleted = Number(stats.epoch) - 1 - firstEpoch[network];
+    const epochsCompleted = network === "mainnet" ? 37 : Number(stats.epoch) - 1 - firstEpoch[network];
     const totalTxs = Number(stats.tx_count);
     const totalGas = totalTxs * gasPerTx;
     const claimedSupply = convertBigIntToNumber(BigInt(stats.supply), SPAM_DECIMALS);
