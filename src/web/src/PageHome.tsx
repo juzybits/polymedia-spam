@@ -1,6 +1,6 @@
 import { SPAM_IDS } from "@polymedia/spam-sdk";
 import { LinkExternal } from "@polymedia/suitcase-react";
-import { Link, useOutletContext } from "react-router-dom";
+import { useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
 
 export const PageHome: React.FC = () =>
@@ -12,46 +12,91 @@ export const PageHome: React.FC = () =>
     <div id="home-content">
         <h1><span className="rainbow" style={{fontSize: "3rem"}}>SPAM</span></h1>
 
-        <h2>Spam to Earn on Sui</h2>
+        <h3 style={{paddingTop: "1rem"}}>
+            IT'S A CULT
+        </h3>
+        <img id="img-cult" src="img/cult.webp" alt="cult" />
 
-        <p>
-            The more transactions you send, the more SPAM you earn.
-        </p>
-
-        <Link className="btn" to="/spam">
-            START
-        </Link>
-
-        <h3>Coin type</h3>
+        <h3>COIN TYPE</h3>
         <p>
             <span className="sui-address">
                 {spamPackageId}::spam::SPAM
             </span>
         </p>
 
-        <h3>ELI5</h3>
+        <h3>CHART & TRADING</h3>
         <div className="tight">
-            <p>▸ One billion SPAM coins are minted every day.</p>
-            <p>▸ You earn SPAM simply by sending Sui transactions.</p>
-            <p>▸ The more txs you send, the more SPAM you receive.</p>
-            <p>▸ There is no proof of work, only proof of spam.</p>
+            <p>
+                <LinkExternal href="https://dexscreener.com/sui/0x1e74d37329126a52a60a340ffda7e047e175442f4df096e1b2b40c40fa5fc213">
+                    DEX Screener
+                </LinkExternal>
+            </p>
+            <p>
+                <LinkExternal href="https://app.turbos.finance/#/trade?input=0x2::sui::SUI&output=0x30a644c3485ee9b604f52165668895092191fcaf5489a846afa7fc11cdb9b24a::spam::SPAM">
+                    Turbos Finance
+                </LinkExternal>
+            </p>
+            <p>
+                <LinkExternal href="https://hop.ag/swap/SUI-SPAM">
+                    Hop Aggregator
+                </LinkExternal>
+            </p>
+            <p>
+                <LinkExternal href="https://aftermath.finance/trade?fromCoin=0x2%3A%3Asui%3A%3ASUI&toCoin=0x30a644c3485ee9b604f52165668895092191fcaf5489a846afa7fc11cdb9b24a%3A%3Aspam%3A%3ASPAM">
+                    Aftermath Finance
+                </LinkExternal>
+            </p>
         </div>
 
-        <h3>Life Of A Counter</h3>
-        <div className="tight">
-            <p>For each transaction counter:</p>
-            <p>▸ You spam it during day 1</p>
-            <p>▸ You <span className="text-red"><b>MUST</b></span> register it during day 2</p>
-            <p>▸ You can mint SPAM anytime from day 3</p>
-        </div>
-        <p className="text-red">If you don't register a counter, it cannot mint SPAM!</p>
-
-        <br/>
-        <p>
-            <LinkExternal follow={true} href="https://github.com/juzybits/polymedia-spam/blob/main/README.md" >
-                Read the docs
-            </LinkExternal>
+        <h3>SOCIALS</h3>
+        <p style={{paddingBottom: 0}}>
+            There are no official social media accounts, only community-owned:
         </p>
+        <div className="tight">
+            <p>
+                <LinkExternal href="https://x.com/juzybits">
+                    Twitter
+                </LinkExternal> (@juzybits)
+            </p>
+            <p>
+                <LinkExternal href="https://x.com/SPAM_SUI">
+                    Twitter
+                </LinkExternal> (@SPAM_SUI)
+            </p>
+            <p>
+                <LinkExternal href="https://t.me/spam_sui">
+                    Telegram
+                </LinkExternal> (/spam_sui)
+            </p>
+            <p>
+                <LinkExternal href="https://discord.gg/DsxqP88EQp">
+                    Discord
+                </LinkExternal> (Polymedia)
+            </p>
+        </div>
+
+        <h3>PHILOSOPHY</h3>
+        <div className="tight">
+            <p>
+                <LinkExternal href="https://x.com/juzybits/status/1789587870900007104" follow={true}>
+                    <i>SPAM embodies the ideals of crypto</i>
+                </LinkExternal>
+            </p>
+            <p>
+                <LinkExternal href="https://x.com/juzybits/status/1798664689498632196" follow={true}>
+                    <i>The goals of SPAM, and why mining ended</i>
+                </LinkExternal>
+            </p>
+        </div>
+
+        <h3>SOURCE CODE</h3>
+        <div className="tight">
+            <p>
+                <LinkExternal href="https://github.com/juzybits/polymedia-spam" follow={true}>
+                    <i>SPAM repo on GitHub</i>
+                </LinkExternal>
+            </p>
+        </div>
 
     </div>
     </div>;

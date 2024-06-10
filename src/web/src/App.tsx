@@ -12,6 +12,7 @@ import { convertBigIntToNumber, sleep } from "@polymedia/suitcase-core";
 import { LinkExternal, NetworkSelector, isLocalhost, loadNetwork } from "@polymedia/suitcase-react";
 import { useEffect, useRef, useState } from "react";
 import { BrowserRouter, Link, Outlet, Route, Routes, useLocation } from "react-router-dom";
+import { PageAbout } from "./PageAbout";
 import { PageHome } from "./PageHome";
 import { PageNotFound } from "./PageNotFound";
 import { PageRPCs } from "./PageRPCs";
@@ -41,6 +42,7 @@ export const AppRouter: React.FC = () => {
         <Routes>
             <Route path="/" element={<App />} >
                 <Route index element={<PageHome />} />
+                <Route path="/about" element={<PageAbout />} />
                 <Route path="/spam" element={<PageSpam />} />
                 <Route path="/wallet" element={<PageWallet />} />
                 <Route path="/rpcs" element={<PageRPCs />} />
@@ -301,6 +303,9 @@ const App: React.FC = () =>
         return <nav>
             <Link to="/" className={selected("/")} onClick={onClick}>
                 Home
+            </Link>
+            <Link to="/about" className={selected("/about")} onClick={onClick}>
+                About
             </Link>
             <Link to="/spam" className={selected("/spam")} onClick={onClick}>
                 Spam
