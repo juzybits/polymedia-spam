@@ -22,7 +22,6 @@ import { StatusSpan } from "./components/StatusSpan";
 import {
     RpcUrl,
     loadClaimAddressFromStorage,
-    loadDisclaimerAcceptedFromStorage,
     loadKeypairFromStorage,
     loadRpcUrlsFromStorage,
     saveClaimAddressToStorage,
@@ -109,7 +108,7 @@ const App: React.FC = () =>
         handleSpamEvent,
         loadClaimAddressFromStorage(),
     ));
-    const [ disclaimerAccepted, setDisclaimerAccepted ] = useState<boolean>(loadDisclaimerAcceptedFromStorage());
+    const [ disclaimerAccepted, setDisclaimerAccepted ] = useState<boolean>(true);
 
     const appContext: AppContext = {
         network,
