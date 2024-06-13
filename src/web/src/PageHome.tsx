@@ -1,12 +1,16 @@
 import { SPAM_IDS } from "@polymedia/spam-sdk";
+import { formatNumber } from "@polymedia/suitcase-core";
 import { LinkExternal } from "@polymedia/suitcase-react";
 import { useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
+import { usePrice } from "./hooks/usePrice";
 
 export const PageHome: React.FC = () =>
 {
     const { network } = useOutletContext<AppContext>();
+    const { price } = usePrice();
     const spamPackageId = SPAM_IDS[network].packageId;
+    const mainnetMaxSupply = 37_000_000_000;
 
     return <div id="page-home">
     <div id="home-content">
@@ -23,6 +27,22 @@ export const PageHome: React.FC = () =>
                 {spamPackageId}::spam::SPAM
             </span>
         </p>
+
+        {network === "mainnet" && <>
+        <h3>MARKET DATA</h3>
+            <div className="tight">
+                <p>
+                    Fully diluted valuation: <span style={{fontSize: "1.05em", fontWeight: "500"}}>
+                        {!price ? "loading..." : "$" + formatNumber(price.usd * mainnetMaxSupply)}
+                    </span>
+                </p>
+                <p>
+                    SPAM / USD: <span style={{fontSize: "1.05em", fontWeight: "500"}}>
+                        {!price ? "loading..." : price.usd}
+                    </span>
+                </p>
+            </div>
+        </>}
 
         <h3>CHART</h3>
         <div className="tight">

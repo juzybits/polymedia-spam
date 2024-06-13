@@ -193,10 +193,12 @@ export const PageStats: React.FC = () =>
                 <p>Daily inflation: {dailyInflation.toFixed(2)}%</p>
             }
             {price && <>
-                <p>SPAM/SUI: {price.sui}</p>
+                <br/>
+                <p>Max supply: {formatNumber(claimableSupply, "compact")} ({formatNumber(claimedSupply, "compact")} claimed)</p>
+                <p>FDV: ${formatNumber(price.usd * claimableSupply)} (${formatNumber(price.usd * claimedSupply)} claimed)</p>
+                <br/>
                 <p>SPAM/USD: {price.usd}</p>
-                <p>Supply: {formatNumber(claimableSupply, "compact")} ({formatNumber(claimedSupply, "compact")} claimed)</p>
-                <p>Market cap : ${formatNumber(price.usd * claimableSupply)} (${formatNumber(price.usd * claimedSupply)} claimed)</p>
+                <p>SPAM/SUI: {price.sui}</p>
             </>
             }
             {/* <p>Current epoch: {stats.epoch}</p> */}
