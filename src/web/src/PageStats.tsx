@@ -3,14 +3,9 @@ import { NetworkName, convertBigIntToNumber, formatNumber } from "@polymedia/sui
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
+import { usePrice } from "./hooks/usePrice";
 import { EpochData, formatEpochPeriod, getEpochTimes } from "./lib/epochs";
 
-type SpamPrice = {
-    sui: number;
-    usd: number;
-};
-
-const turbosPoolId = "0x1e74d37329126a52a60a340ffda7e047e175442f4df096e1b2b40c40fa5fc213";
 const newSupplyPerEpoch = 1_000_000_000;
 const firstEpoch: Record<NetworkName, number> = {
     mainnet: 386,
@@ -27,7 +22,7 @@ export const PageStats: React.FC = () =>
     const [ stats, setStats ] = useState<Stats>();
     const [ currEpoch, setCurrEpoch ] = useState<EpochData>();
     const [ gasPerTx, setGasPerTx ] = useState<number>(0.000774244);
-    const [ price, setPrice ] = useState<SpamPrice>();
+    const { price } = usePrice();
 
     /* Functions */
 
@@ -35,7 +30,6 @@ export const PageStats: React.FC = () =>
         fetchStats();
         fetchCurrEpoch();
         fetchGasPerTx();
-        fetchPrice();
     }, [spammer.current, network]);
 
     const fetchStats = async () => {
@@ -81,25 +75,6 @@ export const PageStats: React.FC = () =>
             setGasPerTx(newGasPerTx);
         } catch (err) {
             console.warn(`[fetchGasPerTx] ${err}`);
-        }
-    };
-
-    const fetchPrice = async () => {
-        try {
-            const resp = await fetch(`https://api.dexscreener.com/latest/dex/pairs/sui/${turbosPoolId}`);
-            if (resp.ok) {
-                /* eslint-disable */
-                const data = await resp.json();
-                setPrice({
-                    sui: data.pair.priceNative,
-                    usd: data.pair.priceUsd,
-                });
-                /* eslint-enable */
-            } else {
-                throw Error("API response not okay");
-            }
-        } catch (err) {
-            console.warn(`[fetchPrice] ${err}`);
         }
     };
 
