@@ -123,14 +123,14 @@ export const PageSpam: React.FC = () =>
             message = <p className="text-orange">Send SUI to your wallet to claim the counter{counters.claim.length > 1 ? "s" : ""}</p>;
         } else {
             message = network === "mainnet"
-                ? <p className="text-orange">Mining has ended.</p>
+                ? <p className="text-orange">Mining has ended</p>
                 : <p>Top up your wallet to start.</p>;
         }
         return <>
             {message}
-            <Link className="btn" to="/wallet">
+            {/* <Link className="btn" to="/wallet">
                 TOP UP
-            </Link>
+            </Link> */}
         </>;
     };
 
@@ -142,7 +142,7 @@ export const PageSpam: React.FC = () =>
             return <>
                 {network === "mainnet"
                 ?
-                    <p className="text-orange">Mining has ended.</p>
+                    <p className="text-orange">Mining has ended</p>
                 :
                     <button className="btn" onClick={startLoop}>SPAM</button>
                 }

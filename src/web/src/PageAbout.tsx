@@ -1,23 +1,22 @@
 import { LinkExternal } from "@polymedia/suitcase-react";
-import { Link } from "react-router-dom";
 
 export const PageAbout: React.FC = () =>
 {
     return <div id="page-about">
     <div id="home-content">
-        <h1><span className="rainbow" style={{fontSize: "3rem"}}>SPAM</span></h1>
+        <h1><span className="rainbow">About</span></h1>
 
-        <h2>Spam to Earn on Sui</h2>
+        <h2>"Spam to Earn" a.k.a. "Proof of Spam" on Sui</h2>
 
         <p>
             The more transactions you send, the more SPAM you earn.
         </p>
 
-        <Link className="btn" to="/spam">
+        {/* <Link className="btn" to="/spam">
             START
-        </Link>
+        </Link> */}
 
-        <h3 className="text-orange">Mining has ended!</h3>
+        <h3 className="text-orange">MINING HAS ENDED!</h3>
         <p>
             This was the original landing page for SPAM. The functionality is kept around so miners can claim their counters.
         </p>
