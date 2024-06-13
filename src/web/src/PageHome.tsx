@@ -24,13 +24,32 @@ export const PageHome: React.FC = () =>
             </span>
         </p>
 
-        <h3>CHART & TRADING</h3>
+        <h3>CHART</h3>
         <div className="tight">
             <p>
-                <LinkExternal href="https://dexscreener.com/sui/0x1e74d37329126a52a60a340ffda7e047e175442f4df096e1b2b40c40fa5fc213">
-                    DEX Screener
+                <LinkExternal href="https://birdeye.so/token/0x30a644c3485ee9b604f52165668895092191fcaf5489a846afa7fc11cdb9b24a::spam::SPAM?chain=sui">
+                    Birdeye (Turbos & Cetus)
                 </LinkExternal>
             </p>
+            <p>
+                <LinkExternal href="https://dexscreener.com/sui/0x1e74d37329126a52a60a340ffda7e047e175442f4df096e1b2b40c40fa5fc213">
+                    DEX Screener (Turbos)
+                </LinkExternal>
+            </p>
+            <p>
+                <LinkExternal href="https://www.geckoterminal.com/sui-network/pools/0xf3874d627a9e6528ba24dfb2d1ae5335400e2436241b010244c0cb2878725480">
+                    GeckoTerminal (Cetus)
+                </LinkExternal>
+            </p>
+            <p>
+                <LinkExternal href="https://coinmarketcap.com/dexscan/sui%20network/0xf3874d627a9e6528ba24dfb2d1ae5335400e2436241b010244c0cb2878725480/">
+                    CoinMarketCap (Cetus)
+                </LinkExternal>
+            </p>
+        </div>
+
+        <h3>TRADING</h3>
+        <div className="tight">
             <p>
                 <LinkExternal href="https://app.turbos.finance/#/trade?input=0x2::sui::SUI&output=0x30a644c3485ee9b604f52165668895092191fcaf5489a846afa7fc11cdb9b24a::spam::SPAM">
                     Turbos Finance
@@ -44,6 +63,11 @@ export const PageHome: React.FC = () =>
             <p>
                 <LinkExternal href="https://aftermath.finance/trade?fromCoin=0x2%3A%3Asui%3A%3ASUI&toCoin=0x30a644c3485ee9b604f52165668895092191fcaf5489a846afa7fc11cdb9b24a%3A%3Aspam%3A%3ASPAM">
                     Aftermath Finance
+                </LinkExternal>
+            </p>
+            <p>
+                <LinkExternal href="https://flowx.finance/swap?coinIn=0x2::sui::SUI&coinOut=0x30a644c3485ee9b604f52165668895092191fcaf5489a846afa7fc11cdb9b24a::spam::SPAM">
+                    FlowX Finance
                 </LinkExternal>
             </p>
         </div>
