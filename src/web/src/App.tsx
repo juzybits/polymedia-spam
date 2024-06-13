@@ -304,6 +304,9 @@ const App: React.FC = () =>
             <Link to="/" className={selected("/")} onClick={onClick}>
                 Home
             </Link>
+            <Link to="/stats" className={selected("/stats")} onClick={onClick}>
+                Stats
+            </Link>
             <Link to="/about" className={selected("/about")} onClick={onClick}>
                 About
             </Link>
@@ -315,9 +318,6 @@ const App: React.FC = () =>
             </Link>
             <Link to="/rpcs" className={selected("/rpcs")} onClick={onClick}>
                 RPCs
-            </Link>
-            <Link to="/stats" className={selected("/stats")} onClick={onClick}>
-                Stats
             </Link>
             <div className="divider" />
 
