@@ -16,9 +16,6 @@ export const PageHome: React.FC = () =>
     <div id="home-content">
         <h1><span className="rainbow" style={{fontSize: "3rem"}}>SPAM</span></h1>
 
-        <h3 style={{paddingTop: "1rem"}}>
-            IT'S A CULT
-        </h3>
         <img id="img-cult" src="img/cult.webp" alt="cult" />
 
         <h3>COIN TYPE</h3>
@@ -130,6 +127,51 @@ export const PageHome: React.FC = () =>
                 <LinkExternal href="https://x.com/juzybits/status/1798664689498632196" follow={true}>
                     <i>The goals of SPAM, and why mining ended</i>
                 </LinkExternal>
+            </p>
+        </div>
+
+        <h3>IN THE MEDIA</h3>
+        <div className="link-list">
+            <p>
+                <b>BINANCE</b>: <LinkExternal href="https://binance.com/en/square/post/2024-05-07-sui-s-on-chain-transactions-surge-due-to-spam-project-7762208634042" follow={true}>
+                    <i>Sui's On-Chain Transactions Surge Due to Spam Project</i>
+                </LinkExternal><br/>
+            </p>
+
+            <p>
+                <b>BITCOIN.COM</b>: <LinkExternal href="https://news.bitcoin.com/sui-surpasses-solana-in-daily-transactions-amidst-spam-token-frenzy/" follow={true}>
+                    <i>Sui Surpasses Solana in Daily Transactions Amidst Spam Token Frenzy</i>
+                </LinkExternal><br/>
+            </p>
+
+            <p>
+                <b>BITGET</b>: <LinkExternal href="https://bitget.com/news/detail/12560603992392" follow={true}>
+                    <i>Spam: The driving force behind Sui's daily transaction volume exceeding Solana</i>
+                </LinkExternal><br/>
+            </p>
+
+            <p>
+                <b>COINTRUST</b>: <LinkExternal href="https://cointrust.com/market-news/sui-blockchain-surpasses-solana-in-stress-test-a-new-era-of-scalability" follow={true}>
+                    <i>Sui Blockchain Surpasses Solana in Stress Test: A New Era of Scalability</i>
+                </LinkExternal><br/>
+            </p>
+
+            <p>
+                <b>BINANCE</b>: <LinkExternal href="https://binance.com/en/square/post/2024-05-08-sui-solana-spam-7813611345193" follow={true}>
+                    <i>Sui's daily transaction volume exceeds Solana, and the Spam project becomes a driving force</i>
+                </LinkExternal><br/>
+            </p>
+
+            <p>
+                <b>BITRUE</b>: <LinkExternal href="https://support.bitrue.com/hc/en-001/articles/32146510725913-SUI-Network-Transactions-Surge-Analyzing-the-Impact-on-SUI-Price" follow={true}>
+                    <i>Sui Network Transactions Surge: Analyzing the Impact on SUI Price</i>
+                </LinkExternal><br/>
+            </p>
+
+            <p>
+                <b>AMBCRYPTO</b>: <LinkExternal href="https://ambcrypto.com/sui-crypto-transactions-surge-will-its-price-see-growth/" follow={true}>
+                    <i>Sui crypto transactions surge – Will its price see growth?</i>
+                </LinkExternal><br/>
             </p>
         </div>
 
