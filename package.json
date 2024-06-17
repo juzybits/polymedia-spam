@@ -5,7 +5,7 @@
     "license": "Apache-2.0",
     "scripts": {
         "build": "turbo run build",
-        "clean": "turbo run clean && rm -rf dist/ node_modules/ .turbo/ src/sui/build/",
+        "clean": "turbo run clean && rm -rf dist/ node_modules/ .turbo/ src/sui*/build/",
         "dev": "turbo run dev",
         "lint": "turbo run lint"
     },
