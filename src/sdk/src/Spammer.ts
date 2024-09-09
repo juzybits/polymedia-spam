@@ -1,6 +1,6 @@
 import { SuiClient, SuiObjectRef } from "@mysten/sui/client";
 import { Signer } from "@mysten/sui/cryptography";
-import { NetworkName, shortenSuiAddress, sleep, validateAndNormalizeSuiAddress } from "@polymedia/suitcase-core";
+import { NetworkName, shortenAddress, sleep, validateAndNormalizeAddress } from "@polymedia/suitcase-core";
 import { SpamClient } from "./SpamClient.js";
 import { SpamClientRotator } from "./SpamClientRotator.js";
 import { SpamError, parseSpamError } from "./errors.js";
@@ -89,7 +89,7 @@ export class Spammer
     }
 
     public setClaimAddress(newClaimAddress: string): void {
-        const cleanAddress = validateAndNormalizeSuiAddress(newClaimAddress);
+        const cleanAddress = validateAndNormalizeAddress(newClaimAddress);
         if (!cleanAddress) {
             throw Error(`Invalid claim address: ${newClaimAddress}`);
         }
@@ -268,7 +268,7 @@ export class Spammer
 
     protected async registerUserCounter(counterId: string): Promise<void>
     {
-        this.event({ type: "info", msg: "Registering counter: " + shortenSuiAddress(counterId) });
+        this.event({ type: "info", msg: "Registering counter: " + shortenAddress(counterId) });
         await this.simulateLatencyOnLocalnet();
         const resp = await this.getSpamClient().registerUserCounter(counterId);
         this.requestRefetch = true;
@@ -281,7 +281,7 @@ export class Spammer
 
     protected async claimUserCounters(counterIds: string[]): Promise<void>
     {
-        this.event({ type: "info", msg: "Claiming counters: " + counterIds.map(objId => shortenSuiAddress(objId)).join(", ") });
+        this.event({ type: "info", msg: "Claiming counters: " + counterIds.map(objId => shortenAddress(objId)).join(", ") });
         await this.simulateLatencyOnLocalnet();
         const resp = await this.getSpamClient().claimUserCounters(counterIds, this.claimAddress);
         this.requestRefetch = true;
@@ -294,7 +294,7 @@ export class Spammer
 
     protected async destroyUserCounters(counterIds: string[]): Promise<void>
     {
-        this.event({ type: "info", msg: "Deleting counters: " + counterIds.map(objId => shortenSuiAddress(objId)).join(", ") });
+        this.event({ type: "info", msg: "Deleting counters: " + counterIds.map(objId => shortenAddress(objId)).join(", ") });
         await this.simulateLatencyOnLocalnet();
         const resp = await this.getSpamClient().destroyUserCounters(counterIds);
         this.requestRefetch = true;

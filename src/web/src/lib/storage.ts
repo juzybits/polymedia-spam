@@ -1,7 +1,7 @@
 import { decodeSuiPrivateKey } from "@mysten/sui/cryptography";
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 import { RPC_ENDPOINTS } from "@polymedia/spam-sdk";
-import { NetworkName, validateAndNormalizeSuiAddress } from "@polymedia/suitcase-core";
+import { NetworkName, validateAndNormalizeAddress } from "@polymedia/suitcase-core";
 
 /* Key pair */
 
@@ -68,7 +68,7 @@ export function loadClaimAddressFromStorage(): string|undefined {
     if (!claimAddress) {
         return undefined;
     }
-    const cleanAddress = validateAndNormalizeSuiAddress(claimAddress);
+    const cleanAddress = validateAndNormalizeAddress(claimAddress);
     if (!cleanAddress) {
         return undefined;
     }
@@ -76,7 +76,7 @@ export function loadClaimAddressFromStorage(): string|undefined {
 }
 
 export function saveClaimAddressToStorage(claimAddress: string): void {
-    const cleanAddress = validateAndNormalizeSuiAddress(claimAddress);
+    const cleanAddress = validateAndNormalizeAddress(claimAddress);
     if (!cleanAddress) {
         throw Error(`Invalid claim address: ${claimAddress}`);
     }

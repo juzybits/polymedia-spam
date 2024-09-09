@@ -279,7 +279,7 @@ module spam::spam
         let adminCap = AdminCap {
             id: object::new(ctx),
         };
-        transfer::transfer(adminCap, ctx.sender())
+        transfer::transfer(adminCap, ctx.sender());
     }
 
     // === Test Functions ===

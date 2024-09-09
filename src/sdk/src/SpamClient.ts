@@ -8,8 +8,8 @@ import { Signer } from "@mysten/sui/cryptography";
 import { Transaction } from "@mysten/sui/transactions";
 import {
     NetworkName,
-    devInspectAndGetResults,
-    getSuiObjectResponseFields,
+    devInspectAndGetExecutionResults,
+    objResToFields,
     sleep,
 } from "@polymedia/suitcase-core";
 import { SPAM_IDS, SPAM_MODULE } from "./config.js";
@@ -256,7 +256,7 @@ export class SpamClient
         txb: Transaction,
     ): Promise<Stats>
     {
-        const blockResults = await devInspectAndGetResults(this.suiClient, txb);
+        const blockResults = await devInspectAndGetExecutionResults(this.suiClient, txb);
 
         const txResults = blockResults[0];
         if (!txResults.returnValues?.length) {
@@ -336,7 +336,7 @@ export class SpamClient
     protected parseUserCounter(
         resp: SuiObjectResponse,
     ): UserCounter {
-        const fields = getSuiObjectResponseFields(resp);
+        const fields = objResToFields(resp);
         const ref: SuiObjectRef = {
             objectId: resp.data!.objectId,
             version: resp.data!.version,

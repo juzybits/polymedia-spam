@@ -95,24 +95,14 @@ export const PageHome: React.FC = () =>
         </p>
         <div className="tight">
             <p>
-                <LinkExternal href="https://x.com/juzybits">
-                    Twitter
-                </LinkExternal> (@juzybits)
-            </p>
-            <p>
                 <LinkExternal href="https://x.com/SPAM_SUI">
                     Twitter
-                </LinkExternal> (@SPAM_SUI)
+                </LinkExternal>
             </p>
             <p>
                 <LinkExternal href="https://t.me/spam_sui">
                     Telegram
-                </LinkExternal> (/spam_sui)
-            </p>
-            <p>
-                <LinkExternal href="https://discord.gg/DsxqP88EQp">
-                    Discord
-                </LinkExternal> (Polymedia)
+                </LinkExternal>
             </p>
         </div>
 

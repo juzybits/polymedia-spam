@@ -1,5 +1,5 @@
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
-import { validateAndNormalizeSuiAddress } from "@polymedia/suitcase-core";
+import { validateAndNormalizeAddress } from "@polymedia/suitcase-core";
 import { useEffect, useState } from "react";
 import { useLocation, useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
@@ -86,7 +86,7 @@ export const PageWallet: React.FC = () =>
                 setMsg(undefined);
                 return;
             }
-            const cleanAddress = validateAndNormalizeSuiAddress(newClaimAddress);
+            const cleanAddress = validateAndNormalizeAddress(newClaimAddress);
             if (!cleanAddress) {
                 setMsg({ type: "error", text: "Invalid address" });
                 return;

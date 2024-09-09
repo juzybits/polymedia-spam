@@ -1,5 +1,5 @@
 import { UserCounter } from "@polymedia/spam-sdk";
-import { formatNumber, shortenSuiAddress } from "@polymedia/suitcase-core";
+import { formatNumber, shortenAddress } from "@polymedia/suitcase-core";
 import { LinkToPolymedia } from "@polymedia/suitcase-react";
 import { useEffect, useState } from "react";
 import { Link, useOutletContext } from "react-router-dom";
@@ -268,7 +268,7 @@ export const PageSpam: React.FC = () =>
             <br/>
             <Link to="/wallet#set-claim-address">not recommended</Link>
         </>
-        : shortenSuiAddress(claimAddress);
+        : shortenAddress(claimAddress);
     return <>
         <h1><span className="rainbow">Spam</span></h1>
         <div>
