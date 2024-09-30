@@ -1,8 +1,8 @@
+import { fixupConfigRules } from "@eslint/compat";
 import eslint from "@eslint/js";
 import stylistic from "@stylistic/eslint-plugin";
-import tsEslint from "typescript-eslint";
 import pluginReactConfig from "eslint-plugin-react/configs/recommended.js";
-import { fixupConfigRules } from "@eslint/compat";
+import tsEslint from "typescript-eslint";
 
 export default [
     eslint.configs.recommended,

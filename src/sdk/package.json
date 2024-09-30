@@ -24,9 +24,9 @@
         "typecheck": "tsc -p tsconfig.esm.json"
     },
     "dependencies": {
-        "@mysten/bcs": "^1.0.4",
-        "@mysten/sui": "^1.8.0",
-        "@polymedia/suitcase-core": "^0.0.26"
+        "@mysten/bcs": "^1.1.0",
+        "@mysten/sui": "^1.11.0",
+        "@polymedia/suitcase-core": "^0.0.32"
     },
     "type": "module",
     "sideEffects": false,

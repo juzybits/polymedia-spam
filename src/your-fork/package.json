@@ -18,12 +18,12 @@
         "lint": "eslint src/ --report-unused-disable-directives --max-warnings 0"
     },
     "dependencies": {
-        "@mysten/sui": "^1.8.0",
+        "@mysten/sui": "^1.11.0",
         "@polymedia/spam-sdk": "workspace:*",
-        "@polymedia/suitcase-core": "^0.0.26"
+        "@polymedia/suitcase-core": "^0.0.32"
     },
     "devDependencies": {
-        "@types/node": "^22.5.4"
+        "@types/node": "^22.7.4"
     },
     "type": "module",
     "sideEffects": false
