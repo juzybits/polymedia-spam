@@ -79,27 +79,23 @@ export const RPC_ENDPOINTS: Record<NetworkName, string[]> = {
     "mainnet": [
         getFullnodeUrl("mainnet"),
         "https://mainnet.suiet.app",
-        "https://sui-mainnet-us-2.cosmostation.io",
-        "https://sui-mainnet-endpoint.blockvision.org",
-        "https://sui-mainnet.public.blastapi.io",
-        "https://sui-mainnet-rpc.allthatnode.com",
-        "https://sui-mainnet-eu-4.cosmostation.io",
-        "https://sui1mainnet-rpc.chainode.tech",
         "https://rpc-mainnet.suiscan.xyz",
+        "https://mainnet.sui.rpcpool.com",
+        "https://sui-mainnet.nodeinfra.com",
+        "https://sui-mainnet.public.blastapi.io",
+        "https://mainnet-rpc.sui.chainbase.online",
         "https://sui-mainnet-ca-2.cosmostation.io",
-        // "https://mainnet.sui.rpcpool.com",               // 429 (Too Many Requests)
-        // "https://sui.publicnode.com",                    // CORS error
-        // "https://sui-mainnet.nodeinfra.com",             // CORS error
-        // "https://sui-mainnet-rpc.bartestnet.com",        // CORS error
+        "https://sui-mainnet-us-1.cosmostation.io",
+        "https://sui-mainnet-us-2.cosmostation.io",
     ],
     "testnet": [
         getFullnodeUrl("testnet"),
-        "https://testnet.suiet.app",
+        "https://rpc-testnet.suiscan.xyz",
         "https://sui-testnet-endpoint.blockvision.org",
+        "https://sui-testnet.public.blastapi.io",
+        "https://testnet.suiet.app",
         "https://sui-testnet.nodeinfra.com",
         "https://testnet.sui.rpcpool.com",
-        // "https://rpc-testnet.suiscan.xyz",              // Slow to sync (ObjectNotFound error)
-        // "https://sui-testnet.public.blastapi.io",       // Slow to sync: "ObjectNotFound" / "Object is not available for consumption"
     ],
     "devnet": [
         getFullnodeUrl("devnet"),

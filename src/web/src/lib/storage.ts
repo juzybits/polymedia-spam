@@ -38,14 +38,19 @@ export type RpcUrl = {
 };
 
 export function loadRpcUrlsFromStorage(network: NetworkName): RpcUrl[] {
-    const rawRpcUrls = localStorage.getItem(keyRpcUrlsBaseKey + network);
+    const defaultRpcs = getDefaultRpcUrls(network);
+    const storedRpcsJson = localStorage.getItem(keyRpcUrlsBaseKey + network);
     let rpcUrls: RpcUrl[];
-    if (!rawRpcUrls) {
-        rpcUrls = getDefaultRpcUrls(network);
-        saveRpcUrlsToStorage(network, rpcUrls);
+    if (!storedRpcsJson) {
+        rpcUrls = defaultRpcs;
     } else {
-        rpcUrls = JSON.parse(rawRpcUrls) as RpcUrl[];
+        const storedRpcs = JSON.parse(storedRpcsJson) as RpcUrl[];
+        rpcUrls = defaultRpcs.map(defRpc => {
+            const storedRpc = storedRpcs.find(storRpc => storRpc.url === defRpc.url);
+            return { url: defRpc.url, enabled: storedRpc ? storedRpc.enabled : true };
+        });
     }
+    saveRpcUrlsToStorage(network, rpcUrls);
     return rpcUrls;
 }
 
