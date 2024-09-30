@@ -58,7 +58,7 @@ export const PageSpam: React.FC = () =>
                 durationMs: Number(suiState.epochDurationMs),
                 startTimeMs: Number(suiState.epochStartTimestampMs),
             });
-        } catch (err) {
+        } catch (_err) {
             console.warn("epoch update failed");
         }
     };

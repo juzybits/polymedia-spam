@@ -38,7 +38,7 @@ export class SpamClient
         this.signer = keypair;
         this.network = network;
         this.rpcUrl = rpcUrl;
-        this.suiClient = new SuiClient({ url: rpcUrl }),
+        this.suiClient = new SuiClient({ url: rpcUrl });
         this.packageId = SPAM_IDS[network].packageId;
         this.directorId = SPAM_IDS[network].directorId;
         this.gasCoin = undefined;

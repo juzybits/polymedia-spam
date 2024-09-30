@@ -159,7 +159,7 @@ const App: React.FC = () =>
                 sui: Number(balanceSui.totalBalance) / 10**SUI_DECIMALS,
             });
             // console.info("balance updated");
-        } catch (err) {
+        } catch (_err) {
             console.warn("balance update failed");
         }
     };
@@ -172,7 +172,7 @@ const App: React.FC = () =>
                 counters,
             });
             // console.info("view updated");
-        } catch (err) {
+        } catch (_err) {
             console.warn("view reset failed");
         }
     };
@@ -276,7 +276,7 @@ const App: React.FC = () =>
     const Header: React.FC = () =>
     {
         return <header>
-            <Link to="/" onClick={e => { inProgress ? e.preventDefault() : undefined; }}>
+            <Link to="/" onClick={e => { inProgress && e.preventDefault(); }}>
                 <h1>
                     <span><img alt="polymedia" src="/img/spam-logo.webp" className="logo" /></span>
                 </h1>
