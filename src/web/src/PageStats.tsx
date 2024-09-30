@@ -1,5 +1,5 @@
 import { SPAM_DECIMALS, Stats } from "@polymedia/spam-sdk";
-import { NetworkName, convertBigIntToNumber, formatNumber } from "@polymedia/suitcase-core";
+import { NetworkName, formatNumber } from "@polymedia/suitcase-core";
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { AppContext } from "./App";
@@ -180,7 +180,7 @@ export const PageStats: React.FC = () =>
     const epochsCompleted = network === "mainnet" ? 37 : Number(stats.epoch) - 1 - firstEpoch[network];
     const totalTxs = Number(stats.tx_count);
     const totalGas = totalTxs * gasPerTx;
-    const claimedSupply = convertBigIntToNumber(BigInt(stats.supply), SPAM_DECIMALS);
+    const claimedSupply = Number(stats.supply) / 10**SPAM_DECIMALS;
     const claimableSupply = epochsCompleted * newSupplyPerEpoch;
     const dailyInflation = newSupplyPerEpoch / claimableSupply * 100;
 

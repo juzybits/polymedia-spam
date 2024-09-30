@@ -8,8 +8,8 @@ import {
     Spammer,
     emptyUserCounters,
 } from "@polymedia/spam-sdk";
-import { convertBigIntToNumber, sleep } from "@polymedia/suitcase-core";
-import { LinkExternal, NetworkSelector, isLocalhost, loadNetwork } from "@polymedia/suitcase-react";
+import { sleep } from "@polymedia/suitcase-core";
+import { LinkExternal, NetworkDropdownSelector, isLocalhost, loadNetwork } from "@polymedia/suitcase-react";
 import { useEffect, useRef, useState } from "react";
 import { BrowserRouter, Link, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import { PageAbout } from "./PageAbout";
@@ -155,8 +155,8 @@ const App: React.FC = () =>
                 coinType: `${spammer.current.getSpamClient().packageId}::${SPAM_MODULE}::${SPAM_SYMBOL}`,
             });
             setBalances({
-                spam: convertBigIntToNumber(BigInt(balanceSpam.totalBalance), SPAM_DECIMALS),
-                sui: convertBigIntToNumber(BigInt(balanceSui.totalBalance), SUI_DECIMALS),
+                spam: Number(balanceSpam.totalBalance) / 10**SPAM_DECIMALS,
+                sui: Number(balanceSui.totalBalance) / 10**SUI_DECIMALS,
             });
             // console.info("balance updated");
         } catch (err) {
@@ -265,7 +265,7 @@ const App: React.FC = () =>
 
     const BtnNetwork: React.FC = () =>
         {
-            return <NetworkSelector
+            return <NetworkDropdownSelector
                 currentNetwork={network}
                 supportedNetworks={supportedNetworks}
                 disabled={inProgress}
