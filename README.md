@@ -2,7 +2,7 @@
 
 "Spam to Earn" a.k.a. "Proof of Spam" on Sui.
 
-![Polymedia SPAM](https://spamsui.com/img/open-graph.webp)
+![Polymedia SPAM](https://spam.polymedia.app/img/open-graph.webp)
 
 ## ELI5
 
